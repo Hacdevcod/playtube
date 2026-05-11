@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Play Tube - Player Funcional</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, 'Roboto', sans-serif;
+            background: #0f0f0f;
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            background: #0f0f0f;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 16px;
+            border-bottom: 1px solid #303030;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: #ff0000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .spacer {
+            flex: 1;
+        }
+
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .search-container {
+            padding: 12px 16px;
+            border-bottom: 1px solid #303030;
+        }
+
+        .search-box {
+            display: flex;
+            background: #1a1a1a;
+            border: 1px solid #303030;
+            border-radius: 24px;
+            overflow: hidden;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 12px 16px;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .search-box input::placeholder {
+            color: #717171;
+        }
+
+        .search-btn {
+            width: 48px;
+            background: #272727;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        /* Player Funcional */
+        .player-container {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #000;
+            position: relative;
+        }
+
+        .player-container iframe,
+        .player-container video {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Controles do Player */
+        .player-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            padding: 16px;
+            display: flex;
+            gap: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 10;
+        }
+
+        .player-container:hover .player-controls {
+            opacity: 1;
+        }
+
+        .control-btn {
+            background: rgba(0,0,0,0.6);
+            border: none;
+            color: #fff;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 4px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 2px;
+            margin: 16px 0;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #ff0000;
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.1s;
+        }
+
+        /* Modos */
+        .mode-selector {
+            display: flex;
+            gap: 8px;
+            padding: 12px 16px;
+            background: #1a1a1a;
+            border-bottom: 1px solid #303030;
+            flex-wrap: wrap;
+            overflow-x: auto;
+        }
+
+        .mode-btn {
+            padding: 8px 16px;
+            background: #272727;
+            border: none;
+            border-radius: 20px;
+            color: #fff;
+            font-size: 12px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .mode-btn.active {
+            background: #ff0000;
+        }
+
+        .video-info {
+            padding: 16px;
+        }
+
+        .video-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .action-chip {
+            padding: 8px 14px;
+            background: #272727;
+            border: none;
+            border-radius: 20px;
+            color: #fff;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .action-chip.primary {
+            background: #ff0000;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(120px);
+            background: #333;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 24px;
+            font-size: 13px;
+            z-index: 300;
+            transition: transform 0.3s;
+            white-space: nowrap;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <div class="logo">
+            <div class="logo-icon">▶</div>
+            <span class="logo-text">Play Tube</span>
+        </div>
+        <div class="spacer"></div>
+        <button class="icon-btn" id="shareBtn">🔗</button>
+    </div>
+
+    <div class="search-container">
+        <div class="search-box">
+            <input type="text" id="urlInput" placeholder="🔍 Cole a URL do YouTube" autocomplete="off">
+            <button class="search-btn" id="loadBtn">▶</button>
+        </div>
+    </div>
+
+    <!-- Modos de Player (todos funcionais) -->
+    <div class="mode-selector">
+        <button class="mode-btn active" data-mode="invidious">🌐 Invidious</button>
+        <button class="mode-btn" data-mode="piped">📡 Piped</button>
+        <button class="mode-btn" data-mode="direct">📺 YouTube</button>
+        <button class="mode-btn" data-mode="download">⬇ Download</button>
+    </div>
+
+    <!-- Container do Player -->
+    <div class="player-container" id="playerContainer">
+        <div id="player"></div>
+        <div class="player-controls" id="playerControls" style="display:none;">
+            <button class="control-btn" id="playPauseBtn">⏸</button>
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <button class="control-btn" id="fullscreenBtn">⛶</button>
+        </div>
+    </div>
+
+    <div class="video-info">
+        <div class="video-title" id="videoTitle">Aguardando vídeo...</div>
+        <div class="action-btns">
+            <button class="action-chip primary" id="downloadBtn">⬇ Baixar</button>
+            <button class="action-chip" id="refreshBtn">🔄 Trocar servidor</button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ============================================
+        // PLAYER FUNCIONAL - MÚLTIPLAS FONTES
+        // ============================================
+
+        let currentVideoId = null;
+        let currentMode = 'invidious';
+        let currentServerIndex = 0;
+        let videoElement = null;
+
+        // SERVIDORES FUNCIONAIS (testados)
+        const SERVERS = {
+            invidious: [
+                'https://inv-us.leptons.xyz',
+                'https://inv.vern.cc',
+                'https://invidious.flokinet.to',
+                'https://inv.riverside.rocks',
+                'https://invidious.nerdvpn.de',
+                'https://invidious.projectsegfau.lt'
+            ],
+            piped: [
+                'https://piped.video',
+                'https://piped.kavin.rocks',
+                'https://piped.snopyta.org',
+                'https://piped.mha.fi'
+            ]
+        };
+
+        // ===== EXTRAIR VIDEO ID =====
+        function extractVideoId(url) {
+            if (!url) return null;
+            const patterns = [
+                /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
+                /^([a-zA-Z0-9_-]{11})$/
+            ];
+            for (const pattern of patterns) {
+                const match = url.match(pattern);
+                if (match && match[1]) return match[1];
+            }
+            return null;
+        }
+
+        // ===== CARREGAR VÍDEO =====
+        async function loadVideo() {
+            const urlInput = document.getElementById('urlInput').value.trim();
+            if (!urlInput) {
+                showToast('Cole uma URL do YouTube');
+                return;
+            }
+
+            const videoId = extractVideoId(urlInput);
+            if (!videoId) {
+                showToast('URL inválida');
+                return;
+            }
+
+            currentVideoId = videoId;
+            await fetchVideoInfo(videoId);
+            localStorage.setItem('lastVideoId', videoId);
+            
+            loadWithMode(videoId);
+        }
+
+        // ===== CARREGAR CONFORME MODO =====
+        function loadWithMode(videoId) {
+            if (currentMode === 'invidious') {
+                loadInvidious(videoId);
+            } else if (currentMode === 'piped') {
+                loadPiped(videoId);
+            } else if (currentMode === 'direct') {
+                loadDirect(videoId);
+            } else if (currentMode === 'download') {
+                showDownloadOption(videoId);
+            }
+        }
+
+        // ===== INVIDIOUS (MAIS ESTÁVEL) =====
+        function loadInvidious(videoId) {
+            const server = SERVERS.invidious[currentServerIndex % SERVERS.invidious.length];
+            const embedUrl = `${server}/embed/${videoId}?autoplay=1&local=true`;
+            
+            document.getElementById('player').innerHTML = `
+                <iframe 
+                    src="${embedUrl}"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                    allowfullscreen
+                    style="width:100%;height:100%;border:none;">
+                </iframe>
+            `;
+            
+            document.getElementById('playerControls').style.display = 'none';
+            showToast(`🌐 ${new URL(server).hostname}`);
+            currentServerIndex++;
+        }
+
+        // ===== PIPED (ALTERNATIVA) =====
+        function loadPiped(videoId) {
+            const server = SERVERS.piped[currentServerIndex % SERVERS.piped.length];
+            const embedUrl = `${server}/embed/${videoId}?autoplay=1`;
+            
+            document.getElementById('player').innerHTML = `
+                <iframe 
+                    src="${embedUrl}"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                    allowfullscreen
+                    style="width:100%;height:100%;border:none;">
+                </iframe>
+            `;
+            
+            document.getElementById('playerControls').style.display = 'none';
+            showToast(`📡 ${new URL(server).hostname}`);
+            currentServerIndex++;
+        }
+
+        // ===== DIRECT YOUTUBE (TENTATIVA) =====
+        function loadDirect(videoId) {
+            const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=0`;
+            
+            document.getElementById('player').innerHTML = `
+                <iframe 
+                    src="${embedUrl}"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                    allowfullscreen
+                    style="width:100%;height:100%;border:none;">
+                </iframe>
+            `;
+            
+            document.getElementById('playerControls').style.display = 'none';
+            showToast(`📺 YouTube (pode ter restrições)`);
+        }
+
+        // ===== MOSTRAR OPÇÃO DE DOWNLOAD =====
+        function showDownloadOption(videoId) {
+            document.getElementById('player').innerHTML = `
+                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;background:#0a0a0a;gap:16px;">
+                    <div style="font-size:48px;">🎬</div>
+                    <div style="font-size:14px;color:#aaa;">Clique abaixo para baixar</div>
+                    <button onclick="downloadVideo()" style="padding:12px 24px;background:#ff0000;border:none;border-radius:24px;color:#fff;font-weight:600;">⬇ Baixar Vídeo/Áudio</button>
+                    <button onclick="openInYouTube()" style="padding:12px 24px;background:#333;border:none;border-radius:24px;color:#fff;">🎬 Abrir no YouTube</button>
+                </div>
+            `;
+            document.getElementById('playerControls').style.display = 'none';
+            showToast(`⬇ Modo Download`);
+        }
+
+        // ===== TROCAR SERVIDOR =====
+        function refreshServer() {
+            if (!currentVideoId) {
+                showToast('Carregue um vídeo primeiro');
+                return;
+            }
+            currentServerIndex++;
+            loadWithMode(currentVideoId);
+            showToast('🔄 Trocando servidor...');
+        }
+
+        // ===== DOWNLOAD =====
+        function downloadVideo() {
+            if (!currentVideoId) return;
+            window.open(`https://yt5s.com/en?url=https://www.youtube.com/watch?v=${currentVideoId}`, '_blank');
+            showToast('⬇ Abrindo download...');
+        }
+
+        function openInYouTube() {
+            if (currentVideoId) {
+                window.open(`https://www.youtube.com/watch?v=${currentVideoId}`, '_blank');
+            }
+        }
+
+        // ===== INFO DO VÍDEO =====
+        async function fetchVideoInfo(videoId) {
+            try {
+                const response = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('videoTitle').textContent = data.title || 'Vídeo';
+                } else {
+                    document.getElementById('videoTitle').textContent = `Vídeo: ${videoId}`;
+                }
+            } catch (error) {
+                document.getElementById('videoTitle').textContent = `Vídeo: ${videoId}`;
+            }
+        }
+
+        // ===== UTILS =====
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+
+        function shareVideo() {
+            if (!currentVideoId) {
+                showToast('Carregue um vídeo primeiro');
+                return;
+            }
+            navigator.clipboard.writeText(`https://www.youtube.com/watch?v=${currentVideoId}`);
+            showToast('📋 Link copiado!');
+        }
+
+        // ===== EVENTOS =====
+        document.getElementById('urlInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loadVideo();
+        });
+        
+        document.getElementById('loadBtn').addEventListener('click', loadVideo);
+        document.getElementById('shareBtn').addEventListener('click', shareVideo);
+        document.getElementById('downloadBtn').addEventListener('click', downloadVideo);
+        document.getElementById('refreshBtn').addEventListener('click', refreshServer);
+        
+        // Seleção de modo
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentMode = btn.dataset.mode;
+                currentServerIndex = 0;
+                if (currentVideoId) {
+                    loadWithMode(currentVideoId);
+                }
+                showToast(`Modo: ${btn.textContent}`);
+            });
+        });
+
+        // Carregar último vídeo
+        const lastVideo = localStorage.getItem('lastVideoId');
+        if (lastVideo) {
+            document.getElementById('urlInput').value = `https://www.youtube.com/watch?v=${lastVideo}`;
+            setTimeout(() => loadVideo(), 500);
+        }
+
+        console.log('✅ Player Funcional - Múltiplos servidores');
+        console.log('   - Invidious: 6 servidores');
+        console.log('   - Piped: 4 servidores');
+        console.log('   - Botão "Trocar servidor" se falhar');
+    </script>
+</body>
+</html>
