@@ -31,6 +31,8 @@
             background: var(--yt-bg);
             color: var(--yt-white);
             min-height: 100vh;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         /* Top Bar */
@@ -82,6 +84,11 @@
             color: #fff;
             font-size: 20px;
             cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .icon-btn:active {
+            background: var(--yt-surface2);
         }
 
         /* Search Bar */
@@ -120,6 +127,11 @@
             color: #fff;
             cursor: pointer;
             font-size: 18px;
+            transition: background 0.2s;
+        }
+
+        .search-btn:active {
+            background: #444;
         }
 
         /* Player Container */
@@ -133,6 +145,7 @@
             width: 100%;
             aspect-ratio: 16/9;
             position: relative;
+            transition: all 0.3s ease;
         }
 
         .player-wrapper iframe {
@@ -161,7 +174,7 @@
             font-size: 20px;
             cursor: pointer;
             backdrop-filter: blur(4px);
-            transition: transform 0.2s;
+            transition: transform 0.2s, background 0.2s;
         }
 
         .float-btn:active {
@@ -170,6 +183,26 @@
 
         .float-btn.download {
             background: #ff0000;
+        }
+
+        .float-btn.download:active {
+            background: #cc0000;
+        }
+
+        .mini-toggle {
+            position: absolute;
+            top: 8px;
+            right: 56px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.6);
+            border: none;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            z-index: 20;
+            transition: right 0.3s;
         }
 
         /* Mini Player */
@@ -182,9 +215,23 @@
             z-index: 1000;
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            cursor: move;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+            cursor: grab;
             animation: slideIn 0.3s ease;
+        }
+
+        .player-wrapper.mini:active {
+            cursor: grabbing;
+        }
+
+        .player-wrapper.mini .mini-toggle {
+            right: 8px;
+        }
+
+        .player-wrapper.mini .float-btn {
+            width: 36px;
+            height: 36px;
+            font-size: 16px;
         }
 
         @keyframes slideIn {
@@ -198,32 +245,9 @@
             }
         }
 
-        .player-wrapper.mini .float-btn {
-            width: 36px;
-            height: 36px;
-            font-size: 16px;
-        }
-
-        .mini-toggle {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: rgba(0,0,0,0.6);
-            border: none;
-            color: #fff;
-            font-size: 14px;
-            cursor: pointer;
-            z-index: 20;
-        }
-
         /* Resultados da Busca */
         .results-section {
             padding: 16px;
-            max-height: 400px;
-            overflow-y: auto;
         }
 
         .section-title {
@@ -237,6 +261,9 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding-bottom: 16px;
         }
 
         .video-card {
@@ -246,11 +273,12 @@
             border-radius: 12px;
             padding: 8px;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: background 0.2s, transform 0.1s;
         }
 
         .video-card:active {
             background: var(--yt-surface2);
+            transform: scale(0.98);
         }
 
         .video-thumb {
@@ -259,6 +287,7 @@
             border-radius: 8px;
             background: #333;
             object-fit: cover;
+            flex-shrink: 0;
         }
 
         .video-info {
@@ -266,6 +295,7 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
+            min-width: 0;
         }
 
         .video-card-title {
@@ -273,6 +303,9 @@
             font-weight: 500;
             margin-bottom: 4px;
             line-height: 1.3;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .video-card-channel {
@@ -280,10 +313,16 @@
             color: var(--yt-gray);
         }
 
+        .video-card-duration {
+            font-size: 11px;
+            color: var(--yt-gray2);
+            margin-top: 2px;
+        }
+
         /* Loading */
         .loading {
             text-align: center;
-            padding: 20px;
+            padding: 40px 20px;
             color: var(--yt-gray);
         }
 
@@ -309,16 +348,53 @@
             transform: translateX(-50%) translateY(120px);
             background: #333;
             color: #fff;
-            padding: 10px 20px;
+            padding: 12px 24px;
             border-radius: 24px;
             font-size: 13px;
             z-index: 300;
-            transition: transform 0.3s;
+            transition: transform 0.3s ease;
             white-space: nowrap;
+            pointer-events: none;
         }
 
         .toast.show {
             transform: translateX(-50%) translateY(0);
+        }
+
+        /* Estado vazio */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--yt-gray);
+        }
+
+        .empty-state .emoji {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .empty-state .message {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .empty-state .hint {
+            font-size: 12px;
+            color: var(--yt-gray2);
+        }
+
+        /* Scrollbar personalizada */
+        .video-grid::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .video-grid::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .video-grid::-webkit-scrollbar-thumb {
+            background: var(--yt-border);
+            border-radius: 4px;
         }
 
         @media (max-width: 400px) {
@@ -329,6 +405,12 @@
             .video-card-title {
                 font-size: 12px;
             }
+            .player-wrapper.mini {
+                width: 260px;
+                height: 146px;
+                bottom: 10px;
+                right: 10px;
+            }
         }
     </style>
 </head>
@@ -336,17 +418,18 @@
     <div class="topbar">
         <div class="logo">
             <div class="logo-icon">▶</div>
-            <span class="logo-text">Play Tube<sup>MUSIC</sup></span>
+            <span class="logo-text">Play Tube<sup style="font-size:10px;color:#ff0000;">MUSIC</sup></span>
         </div>
         <div class="spacer"></div>
-        <button class="icon-btn" id="shareBtn">🔗</button>
+        <button class="icon-btn" id="shareBtn" title="Compartilhar">🔗</button>
+        <button class="icon-btn" id="fullscreenBtn" title="Tela cheia">⛶</button>
     </div>
 
     <!-- Campo de Busca -->
     <div class="search-section">
         <div class="search-box">
             <input type="text" id="searchInput" placeholder="🔍 Buscar música, artista ou banda..." autocomplete="off">
-            <button class="search-btn" id="searchBtn">🔍</button>
+            <button class="search-btn" id="searchBtn" aria-label="Buscar">🔍</button>
         </div>
     </div>
 
@@ -354,10 +437,10 @@
     <div class="player-container">
         <div class="player-wrapper" id="playerWrapper">
             <div id="player"></div>
-            <button class="mini-toggle" onclick="toggleMiniPlayer()">⤡</button>
+            <button class="mini-toggle" onclick="toggleMiniPlayer()" title="Mini player">⤡</button>
             <div class="player-buttons">
-                <button class="float-btn" id="pipBtn" onclick="togglePiP()">📺</button>
-                <button class="float-btn download" id="downloadBtn" onclick="downloadVideo()">⬇</button>
+                <button class="float-btn" id="pipBtn" onclick="togglePiP()" title="Picture-in-Picture">📺</button>
+                <button class="float-btn download" id="downloadBtn" onclick="downloadVideo()" title="Download">⬇</button>
             </div>
         </div>
     </div>
@@ -366,9 +449,10 @@
     <div class="results-section">
         <div class="section-title">🎵 Resultados</div>
         <div id="resultsContainer">
-            <div class="loading">
-                <div class="spinner"></div>
-                <div>Busque por músicas...</div>
+            <div class="empty-state">
+                <div class="emoji">🎧</div>
+                <div class="message">Busque por suas músicas favoritas</div>
+                <div class="hint">Artistas, nomes de músicas ou bandas</div>
             </div>
         </div>
     </div>
@@ -376,331 +460,425 @@
     <div class="toast" id="toast"></div>
 
     <script>
-        // ============================================
-        // PLAY TUBE MUSIC - BUSCA DE MÚSICAS
-        // Player suspenso + PiP + Download
-        // ============================================
+        (function() {
+            'use strict';
 
-        let currentVideoId = null;
-        let isMiniPlayer = false;
-        let currentQuery = '';
+            // ============================================
+            // PLAY TUBE MUSIC - BUSCA DE MÚSICAS
+            // Player suspenso + PiP + Download + Compartilhar
+            // ============================================
 
-        // Função de busca usando API do YouTube (sem chave, via oEmbed + fallback)
-        async function searchMusic(query) {
-            if (!query.trim()) {
-                showToast('Digite uma música para buscar');
-                return;
-            }
+            let currentVideoId = null;
+            let currentVideoTitle = '';
+            let isMiniPlayer = false;
+            let toastTimeout = null;
 
-            currentQuery = query;
-            showLoading(true);
-            
-            // Usa a API de busca do YouTube via no-cors + fallback
-            try {
-                // Primeiro tenta usar o serviço de busca alternativo
-                const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
-                
-                // Como não podemos acessar diretamente, vamos usar uma lista de resultados pré-definidos + busca inteligente
-                const results = await intelligentSearch(query);
-                displayResults(results);
-            } catch (error) {
-                showFallbackResults(query);
-            }
-            
-            showLoading(false);
-        }
-
-        // Busca inteligente baseada em palavras-chave
-        async function intelligentSearch(query) {
-            const lowerQuery = query.toLowerCase();
-            
-            // Banco de músicas popular
+            // ===== BANCO DE MÚSICAS =====
             const musicDatabase = [
-                { id: 'dQw4w9WgXcQ', title: 'Never Gonna Give You Up', artist: 'Rick Astley', tags: ['never', 'give', 'up', 'rick', 'astley'] },
-                { id: '9bZkp7q19f0', title: 'Gangnam Style', artist: 'PSY', tags: ['gangnam', 'style', 'psy'] },
-                { id: 'pRpeEdMmmQ0', title: 'Uptown Funk', artist: 'Mark Ronson ft. Bruno Mars', tags: ['uptown', 'funk', 'bruno', 'mars'] },
-                { id: 'OPf0YbXqDm0', title: 'See You Again', artist: 'Wiz Khalifa ft. Charlie Puth', tags: ['see', 'you', 'again', 'wiz', 'khalifa'] },
-                { id: 'JGwWNGJdvx8', title: 'Shape of You', artist: 'Ed Sheeran', tags: ['shape', 'you', 'ed', 'sheeran'] },
-                { id: 'kJQP7kiw5Fk', title: 'Despacito', artist: 'Luis Fonsi ft. Daddy Yankee', tags: ['despacito', 'luis', 'fonsi', 'daddy', 'yankee'] },
-                { id: 'RgKAFK5djSk', title: 'Waka Waka', artist: 'Shakira', tags: ['waka', 'shakira'] },
-                { id: 'M7lc1UVf-VE', title: 'Bad Guy', artist: 'Billie Eilish', tags: ['bad', 'guy', 'billie', 'eilish'] },
-                { id: 'CevxZvSJLk8', title: 'Blinding Lights', artist: 'The Weeknd', tags: ['blinding', 'lights', 'weeknd'] },
-                { id: 'fRh_vgS2dFE', title: 'Someone You Loved', artist: 'Lewis Capaldi', tags: ['someone', 'you', 'loved', 'lewis', 'capaldi'] },
-                { id: 'YykjpeuMqok', title: 'Watermelon Sugar', artist: 'Harry Styles', tags: ['watermelon', 'sugar', 'harry', 'styles'] },
-                { id: 'SxTYjptEzZc', title: 'Dance Monkey', artist: 'Tones and I', tags: ['dance', 'monkey', 'tones'] },
-                { id: '0yBnIUX0Qae', title: 'Levitating', artist: 'Dua Lipa', tags: ['levitating', 'dua', 'lipa'] },
-                { id: 'g6oKbP_Xx_o', title: 'As It Was', artist: 'Harry Styles', tags: ['as', 'it', 'was', 'harry', 'styles'] },
-                { id: 'i1n0t9t7kGk', title: 'Flowers', artist: 'Miley Cyrus', tags: ['flowers', 'miley', 'cyrus'] },
-                { id: '7wtfhZwyrcc', title: 'Tá Ok', artist: 'Dennis, Kevin o Chris', tags: ['ta', 'ok', 'dennis', 'kevin', 'chris'] }
+                { id: 'dQw4w9WgXcQ', title: 'Never Gonna Give You Up', artist: 'Rick Astley', duration: '3:33', tags: ['never', 'give', 'up', 'rick', 'astley', '80s'] },
+                { id: '9bZkp7q19f0', title: 'Gangnam Style', artist: 'PSY', duration: '4:12', tags: ['gangnam', 'style', 'psy', 'kpop', 'dance'] },
+                { id: 'pRpeEdMmmQ0', title: 'Uptown Funk', artist: 'Mark Ronson ft. Bruno Mars', duration: '4:31', tags: ['uptown', 'funk', 'bruno', 'mars', 'pop'] },
+                { id: 'OPf0YbXqDm0', title: 'See You Again', artist: 'Wiz Khalifa ft. Charlie Puth', duration: '3:58', tags: ['see', 'you', 'again', 'wiz', 'khalifa', 'charlie', 'puth'] },
+                { id: 'JGwWNGJdvx8', title: 'Shape of You', artist: 'Ed Sheeran', duration: '4:24', tags: ['shape', 'you', 'ed', 'sheeran', 'pop'] },
+                { id: 'kJQP7kiw5Fk', title: 'Despacito', artist: 'Luis Fonsi ft. Daddy Yankee', duration: '4:42', tags: ['despacito', 'luis', 'fonsi', 'daddy', 'yankee', 'latin'] },
+                { id: 'RgKAFK5djSk', title: 'Waka Waka', artist: 'Shakira', duration: '3:32', tags: ['waka', 'shakira', 'copa', 'world cup'] },
+                { id: 'M7lc1UVf-VE', title: 'Bad Guy', artist: 'Billie Eilish', duration: '3:14', tags: ['bad', 'guy', 'billie', 'eilish', 'pop'] },
+                { id: 'CevxZvSJLk8', title: 'Blinding Lights', artist: 'The Weeknd', duration: '3:22', tags: ['blinding', 'lights', 'weeknd', 'pop', '80s'] },
+                { id: 'fRh_vgS2dFE', title: 'Someone You Loved', artist: 'Lewis Capaldi', duration: '3:03', tags: ['someone', 'you', 'loved', 'lewis', 'capaldi'] },
+                { id: 'YykjpeuMqok', title: 'Watermelon Sugar', artist: 'Harry Styles', duration: '2:54', tags: ['watermelon', 'sugar', 'harry', 'styles'] },
+                { id: 'SxTYjptEzZc', title: 'Dance Monkey', artist: 'Tones and I', duration: '3:30', tags: ['dance', 'monkey', 'tones'] },
+                { id: '0yBnIUX0Qae', title: 'Levitating', artist: 'Dua Lipa', duration: '3:41', tags: ['levitating', 'dua', 'lipa'] },
+                { id: 'g6oKbP_Xx_o', title: 'As It Was', artist: 'Harry Styles', duration: '2:47', tags: ['as', 'it', 'was', 'harry', 'styles'] },
+                { id: 'i1n0t9t7kGk', title: 'Flowers', artist: 'Miley Cyrus', duration: '3:21', tags: ['flowers', 'miley', 'cyrus'] },
+                { id: '7wtfhZwyrcc', title: 'Tá Ok', artist: 'Dennis, Kevin o Chris', duration: '2:43', tags: ['ta', 'ok', 'dennis', 'kevin', 'chris', 'funk'] },
+                { id: 'Ho32Oh6b4qU', title: 'Bohemian Rhapsody', artist: 'Queen', duration: '5:55', tags: ['bohemian', 'rhapsody', 'queen', 'rock', 'classic'] },
+                { id: 'fJ9rUzIMcZQ', title: 'Hotel California', artist: 'Eagles', duration: '6:31', tags: ['hotel', 'california', 'eagles', 'rock', 'classic'] },
+                { id: 'ZbZSe6N_BXs', title: 'Imagine', artist: 'John Lennon', duration: '3:04', tags: ['imagine', 'john', 'lennon', 'classic'] },
+                { id: 'VbfpW0pbvaU', title: 'Stairway to Heaven', artist: 'Led Zeppelin', duration: '8:03', tags: ['stairway', 'heaven', 'led', 'zeppelin', 'rock'] }
             ];
 
-            // Busca por correspondência
-            let results = musicDatabase.filter(music => {
-                return lowerQuery.includes(music.title.toLowerCase()) ||
-                       lowerQuery.includes(music.artist.toLowerCase()) ||
-                       music.tags.some(tag => lowerQuery.includes(tag));
+            // ===== ELEMENTOS DOM =====
+            const searchInput = document.getElementById('searchInput');
+            const searchBtn = document.getElementById('searchBtn');
+            const resultsContainer = document.getElementById('resultsContainer');
+            const playerWrapper = document.getElementById('playerWrapper');
+            const playerDiv = document.getElementById('player');
+            const toast = document.getElementById('toast');
+            const shareBtn = document.getElementById('shareBtn');
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+
+            // ===== EVENT LISTENERS =====
+            searchBtn.addEventListener('click', () => searchMusic(searchInput.value));
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') searchMusic(searchInput.value);
             });
 
-            // Se não encontrar nada, retorna músicas populares
-            if (results.length === 0) {
-                results = musicDatabase.slice(0, 10);
-            }
+            shareBtn.addEventListener('click', shareVideo);
+            fullscreenBtn.addEventListener('click', toggleFullscreen);
 
-            // Limita a 15 resultados
-            return results.slice(0, 15);
-        }
+            // ===== BUSCA =====
+            function searchMusic(query) {
+                const trimmedQuery = query.trim();
 
-        function showFallbackResults(query) {
-            const container = document.getElementById('resultsContainer');
-            container.innerHTML = `
-                <div class="loading">
-                    <div>🎵 "${query}"</div>
-                    <div style="font-size: 12px; margin-top: 8px;">Clique em uma música abaixo</div>
-                </div>
-            `;
-            
-            // Mostra sugestões
-            setTimeout(() => {
-                intelligentSearch(query).then(results => {
-                    displayResults(results);
-                });
-            }, 500);
-        }
-
-        function displayResults(results) {
-            const container = document.getElementById('resultsContainer');
-            
-            if (results.length === 0) {
-                container.innerHTML = `
-                    <div class="loading">
-                        <div>😢 Nenhum resultado encontrado</div>
-                        <div style="font-size: 12px; margin-top: 8px;">Tente outra busca</div>
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = `
-                <div class="video-grid">
-                    ${results.map(video => `
-                        <div class="video-card" onclick="playVideo('${video.id}', '${video.title}', '${video.artist}')">
-                            <img class="video-thumb" src="https://i.ytimg.com/vi/${video.id}/hqdefault.jpg" 
-                                 onerror="this.src='https://i.ytimg.com/vi/${video.id}/default.jpg'"
-                                 alt="${video.title}">
-                            <div class="video-info">
-                                <div class="video-card-title">${escapeHtml(video.title)}</div>
-                                <div class="video-card-channel">${escapeHtml(video.artist)}</div>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        function showLoading(show) {
-            if (show) {
-                const container = document.getElementById('resultsContainer');
-                container.innerHTML = `
-                    <div class="loading">
-                        <div class="spinner"></div>
-                        <div>Buscando músicas...</div>
-                    </div>
-                `;
-            }
-        }
-
-        // ===== PLAYER =====
-        function playVideo(videoId, title, artist) {
-            currentVideoId = videoId;
-            const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0&modestbranding=1`;
-            
-            document.getElementById('player').innerHTML = `
-                <iframe id="videoFrame" 
-                    src="${embedUrl}"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                    allowfullscreen
-                    style="width:100%;height:100%;border:none;">
-                </iframe>
-            `;
-            
-            showToast(`▶ Reproduzindo: ${title}`);
-            
-            // Atualiza título da aba
-            document.title = `${title} - Play Tube`;
-            
-            // Se estiver em modo mini, sai do mini
-            if (isMiniPlayer) {
-                toggleMiniPlayer();
-            }
-        }
-
-        // ===== PICTURE-IN-PICTURE =====
-        async function togglePiP() {
-            const video = document.querySelector('#videoFrame');
-            if (!video) {
-                showToast('Aguarde o vídeo carregar');
-                return;
-            }
-
-            try {
-                if (document.pictureInPictureElement) {
-                    await document.exitPictureInPicture();
-                    showToast('📺 PiP desativado');
-                } else {
-                    await video.requestPictureInPicture();
-                    showToast('📺 PiP ativado - Vídeo flutuante');
+                if (!trimmedQuery) {
+                    showToast('⚠️ Digite uma música para buscar');
+                    return;
                 }
-            } catch (error) {
-                showToast('📺 PiP disponível no player');
-            }
-        }
 
-        // ===== DOWNLOAD =====
-        function downloadVideo() {
-            if (!currentVideoId) {
-                showToast('Selecione uma música primeiro');
-                return;
-            }
-            window.open(`https://yt5s.com/en?url=https://www.youtube.com/watch?v=${currentVideoId}`, '_blank');
-            showToast('⬇ Download iniciado');
-        }
+                showLoading(true);
 
-        // ===== MINI PLAYER =====
-        function toggleMiniPlayer() {
-            const wrapper = document.getElementById('playerWrapper');
-            
-            isMiniPlayer = !isMiniPlayer;
-            
-            if (isMiniPlayer) {
-                wrapper.classList.add('mini');
-                makeDraggable(wrapper);
-                showToast('📺 Player suspenso - Arraste para mover');
-            } else {
-                wrapper.classList.remove('mini');
-                wrapper.style.position = '';
-                wrapper.style.bottom = '';
-                wrapper.style.right = '';
-                wrapper.style.top = '';
-                wrapper.style.left = '';
-                showToast('📺 Player maximizado');
+                // Simula um pequeno delay para feedback visual
+                setTimeout(() => {
+                    const results = intelligentSearch(trimmedQuery);
+                    displayResults(results, trimmedQuery);
+                    showLoading(false);
+                }, 600);
             }
-        }
 
-        function makeDraggable(element) {
-            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-            
-            const dragMouseDown = (e) => {
-                e.preventDefault();
-                pos3 = e.clientX;
-                pos4 = e.clientY;
-                document.onmouseup = closeDragElement;
-                document.onmousemove = elementDrag;
+            function intelligentSearch(query) {
+                const lowerQuery = query.toLowerCase();
+                const queryWords = lowerQuery.split(/\s+/);
+
+                // Pontua cada música com base na correspondência
+                const scoredResults = musicDatabase.map(music => {
+                    let score = 0;
+                    const titleLower = music.title.toLowerCase();
+                    const artistLower = music.artist.toLowerCase();
+
+                    // Correspondência exata do título
+                    if (titleLower === lowerQuery) score += 100;
+                    // Correspondência exata do artista
+                    if (artistLower === lowerQuery) score += 90;
+                    // Título contém a query
+                    if (titleLower.includes(lowerQuery)) score += 50;
+                    // Artista contém a query
+                    if (artistLower.includes(lowerQuery)) score += 40;
+
+                    // Correspondência por palavras
+                    queryWords.forEach(word => {
+                        if (titleLower.includes(word)) score += 15;
+                        if (artistLower.includes(word)) score += 10;
+                        music.tags.forEach(tag => {
+                            if (tag.includes(word) || word.includes(tag)) score += 8;
+                        });
+                    });
+
+                    return { ...music, score };
+                });
+
+                // Filtra resultados com score > 0 e ordena por score decrescente
+                let results = scoredResults
+                    .filter(item => item.score > 0)
+                    .sort((a, b) => b.score - a.score);
+
+                // Se nada encontrado, mostra músicas populares como sugestão
+                if (results.length === 0) {
+                    results = musicDatabase.map(m => ({ ...m, score: 0 })).slice(0, 10);
+                }
+
+                // Remove a propriedade score antes de retornar
+                return results.slice(0, 15).map(({ score, ...rest }) => rest);
+            }
+
+            function displayResults(results, query) {
+                if (results.length === 0) {
+                    resultsContainer.innerHTML = `
+                        <div class="empty-state">
+                            <div class="emoji">😢</div>
+                            <div class="message">Nenhum resultado para "${escapeHtml(query)}"</div>
+                            <div class="hint">Tente buscar por artista, nome da música ou gênero</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const isSuggestion = results[0].score === 0 && query;
+
+                resultsContainer.innerHTML = `
+                    ${isSuggestion ? `<div style="font-size:12px;color:var(--yt-gray2);margin-bottom:12px;padding-left:4px;">Nenhum resultado exato para "${escapeHtml(query)}". Sugestões:</div>` : ''}
+                    <div class="video-grid">
+                        ${results.map(video => `
+                            <div class="video-card" onclick="window.playVideoById('${video.id}', '${escapeHtml(video.title)}', '${escapeHtml(video.artist)}')">
+                                <img class="video-thumb" 
+                                     src="https://i.ytimg.com/vi/${video.id}/hqdefault.jpg" 
+                                     onerror="this.src='https://i.ytimg.com/vi/${video.id}/default.jpg'"
+                                     alt="${escapeHtml(video.title)}"
+                                     loading="lazy">
+                                <div class="video-info">
+                                    <div class="video-card-title">${escapeHtml(video.title)}</div>
+                                    <div class="video-card-channel">${escapeHtml(video.artist)}</div>
+                                    <div class="video-card-duration">⏱ ${video.duration || '--:--'}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            function showLoading(show) {
+                if (show) {
+                    resultsContainer.innerHTML = `
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <div>Buscando músicas...</div>
+                        </div>
+                    `;
+                }
+            }
+
+            // ===== PLAYER =====
+            window.playVideoById = function(videoId, title, artist) {
+                currentVideoId = videoId;
+                currentVideoTitle = title;
+                const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0&modestbranding=1&enablejsapi=1`;
+
+                playerDiv.innerHTML = `
+                    <iframe id="videoFrame" 
+                        src="${embedUrl}"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                        allowfullscreen
+                        style="width:100%;height:100%;border:none;"
+                        title="${escapeHtml(title)}">
+                    </iframe>
+                `;
+
+                showToast(`▶ ${title}`);
+                document.title = `${title} - Play Tube`;
+
+                // Sai do mini player se estiver ativo
+                if (isMiniPlayer) {
+                    toggleMiniPlayer();
+                }
+
+                // Scroll suave até o player
+                document.querySelector('.player-container').scrollIntoView({ behavior: 'smooth' });
             };
-            
-            const dragTouchStart = (e) => {
-                e.preventDefault();
-                pos3 = e.touches[0].clientX;
-                pos4 = e.touches[0].clientY;
-                document.ontouchend = closeDragElement;
-                document.ontouchmove = touchDrag;
-            };
-            
-            const elementDrag = (e) => {
-                e.preventDefault();
-                pos1 = pos3 - e.clientX;
-                pos2 = pos4 - e.clientY;
-                pos3 = e.clientX;
-                pos4 = e.clientY;
-                element.style.top = (element.offsetTop - pos2) + "px";
-                element.style.left = (element.offsetLeft - pos1) + "px";
-                element.style.bottom = 'auto';
-                element.style.right = 'auto';
-            };
-            
-            const touchDrag = (e) => {
-                e.preventDefault();
-                pos1 = pos3 - e.touches[0].clientX;
-                pos2 = pos4 - e.touches[0].clientY;
-                pos3 = e.touches[0].clientX;
-                pos4 = e.touches[0].clientY;
-                element.style.top = (element.offsetTop - pos2) + "px";
-                element.style.left = (element.offsetLeft - pos1) + "px";
-                element.style.bottom = 'auto';
-                element.style.right = 'auto';
-            };
-            
-            const closeDragElement = () => {
-                document.onmouseup = null;
-                document.onmousemove = null;
-                document.ontouchend = null;
-                document.ontouchmove = null;
-            };
-            
-            element.onmousedown = dragMouseDown;
-            element.ontouchstart = dragTouchStart;
-        }
 
-        // ===== COMPARTILHAR =====
-        function shareVideo() {
-            if (!currentVideoId) {
-                showToast('Selecione uma música primeiro');
-                return;
+            // ===== PICTURE-IN-PICTURE =====
+            window.togglePiP = async function() {
+                const videoFrame = document.querySelector('#videoFrame');
+                if (!videoFrame) {
+                    showToast('⚠️ Selecione uma música primeiro');
+                    return;
+                }
+
+                try {
+                    if (document.pictureInPictureElement) {
+                        await document.exitPictureInPicture();
+                        showToast('📺 PiP desativado');
+                    } else {
+                        await videoFrame.requestPictureInPicture();
+                        showToast('📺 PiP ativado - Vídeo flutuante');
+                    }
+                } catch (error) {
+                    showToast('📺 Inicie o vídeo para usar PiP');
+                }
+            };
+
+            // ===== DOWNLOAD =====
+            window.downloadVideo = function() {
+                if (!currentVideoId) {
+                    showToast('⚠️ Selecione uma música primeiro');
+                    return;
+                }
+                window.open(`https://yt5s.com/en?url=https://www.youtube.com/watch?v=${currentVideoId}`, '_blank');
+                showToast('⬇ Redirecionando para download...');
+            };
+
+            // ===== MINI PLAYER =====
+            window.toggleMiniPlayer = function() {
+                isMiniPlayer = !isMiniPlayer;
+
+                if (isMiniPlayer) {
+                    playerWrapper.classList.add('mini');
+                    setupDrag(playerWrapper);
+                    showToast('📺 Player suspenso - Arraste para mover');
+                } else {
+                    playerWrapper.classList.remove('mini');
+                    resetPosition(playerWrapper);
+                    removeDrag(playerWrapper);
+                    showToast('📺 Player maximizado');
+                }
+            };
+
+            function setupDrag(element) {
+                let posX = 0, posY = 0, initialX = 0, initialY = 0;
+
+                const onMouseDown = (e) => {
+                    e.preventDefault();
+                    initialX = e.clientX;
+                    initialY = e.clientY;
+                    posX = element.offsetLeft;
+                    posY = element.offsetTop;
+
+                    document.addEventListener('mousemove', onMouseMove);
+                    document.addEventListener('mouseup', onMouseUp);
+                };
+
+                const onMouseMove = (e) => {
+                    e.preventDefault();
+                    const dx = e.clientX - initialX;
+                    const dy = e.clientY - initialY;
+                    element.style.left = (posX + dx) + 'px';
+                    element.style.top = (posY + dy) + 'px';
+                    element.style.right = 'auto';
+                    element.style.bottom = 'auto';
+                };
+
+                const onMouseUp = () => {
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+                };
+
+                const onTouchStart = (e) => {
+                    e.preventDefault();
+                    initialX = e.touches[0].clientX;
+                    initialY = e.touches[0].clientY;
+                    posX = element.offsetLeft;
+                    posY = element.offsetTop;
+
+                    document.addEventListener('touchmove', onTouchMove, { passive: false });
+                    document.addEventListener('touchend', onTouchEnd);
+                };
+
+                const onTouchMove = (e) => {
+                    e.preventDefault();
+                    const dx = e.touches[0].clientX - initialX;
+                    const dy = e.touches[0].clientY - initialY;
+                    element.style.left = (posX + dx) + 'px';
+                    element.style.top = (posY + dy) + 'px';
+                    element.style.right = 'auto';
+                    element.style.bottom = 'auto';
+                };
+
+                const onTouchEnd = () => {
+                    document.removeEventListener('touchmove', onTouchMove);
+                    document.removeEventListener('touchend', onTouchEnd);
+                };
+
+                element.addEventListener('mousedown', onMouseDown);
+                element.addEventListener('touchstart', onTouchStart, { passive: false });
+
+                // Armazena referências para remoção
+                element._dragHandlers = { onMouseDown, onTouchStart };
             }
-            const url = `https://www.youtube.com/watch?v=${currentVideoId}`;
-            if (navigator.share) {
-                navigator.share({ title: 'Play Tube', url: url });
-            } else {
-                navigator.clipboard.writeText(url);
-                showToast('📋 Link copiado!');
+
+            function removeDrag(element) {
+                if (element._dragHandlers) {
+                    element.removeEventListener('mousedown', element._dragHandlers.onMouseDown);
+                    element.removeEventListener('touchstart', element._dragHandlers.onTouchStart);
+                    delete element._dragHandlers;
+                }
             }
-        }
 
-        // ===== TOAST =====
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            toast.textContent = msg;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2000);
-        }
-
-        // ===== EVENTOS =====
-        document.getElementById('searchBtn').addEventListener('click', () => {
-            const query = document.getElementById('searchInput').value;
-            searchMusic(query);
-        });
-
-        document.getElementById('searchInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                const query = document.getElementById('searchInput').value;
-                searchMusic(query);
+            function resetPosition(element) {
+                element.style.position = '';
+                element.style.bottom = '';
+                element.style.right = '';
+                element.style.top = '';
+                element.style.left = '';
             }
-        });
 
-        document.getElementById('shareBtn').addEventListener('click', shareVideo);
+            // ===== COMPARTILHAR =====
+            function shareVideo() {
+                if (!currentVideoId) {
+                    showToast('⚠️ Selecione uma música para compartilhar');
+                    return;
+                }
 
-        // Carregar músicas populares ao iniciar
-        window.addEventListener('load', () => {
-            searchMusic('populares');
-        });
+                const shareUrl = `https://youtu.be/${currentVideoId}`;
 
-        // Expor funções globalmente
-        window.playVideo = playVideo;
-        window.toggleMiniPlayer = toggleMiniPlayer;
-        window.togglePiP = togglePiP;
-        window.downloadVideo = downloadVideo;
-        window.shareVideo = shareVideo;
-        window.searchMusic = searchMusic;
+                if (navigator.share) {
+                    navigator.share({
+                        title: currentVideoTitle,
+                        text: `Ouça "${currentVideoTitle}" no Play Tube`,
+                        url: shareUrl
+                    }).catch(() => {
+                        copyToClipboard(shareUrl);
+                    });
+                } else {
+                    copyToClipboard(shareUrl);
+                }
+            }
 
-        console.log('✅ Play Tube Music - Busca de músicas ativada');
-        console.log('   - Digite o nome da música no campo de busca');
-        console.log('   - Clique em 🔍 para buscar');
-        console.log('   - Clique no resultado para reproduzir');
+            function copyToClipboard(text) {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(() => {
+                        showToast('🔗 Link copiado!');
+                    }).catch(() => {
+                        fallbackCopy(text);
+                    });
+                } else {
+                    fallbackCopy(text);
+                }
+            }
+
+            function fallbackCopy(text) {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    showToast('🔗 Link copiado!');
+                } catch (e) {
+                    showToast('🔗 ' + text);
+                }
+                document.body.removeChild(textarea);
+            }
+
+            // ===== TELA CHEIA =====
+            function toggleFullscreen() {
+                if (!currentVideoId) {
+                    showToast('⚠️ Selecione uma música primeiro');
+                    return;
+                }
+
+                const videoFrame = document.querySelector('#videoFrame');
+                if (!videoFrame) return;
+
+                if (document.fullscreenElement) {
+                    document.exitFullscreen();
+                } else {
+                    const playerContainer = document.querySelector('.player-container');
+                    if (playerContainer.requestFullscreen) {
+                        playerContainer.requestFullscreen();
+                    }
+                }
+            }
+
+            // ===== UTILITÁRIOS =====
+            function escapeHtml(text) {
+                if (!text) return '';
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            function showToast(message) {
+                if (toastTimeout) clearTimeout(toastTimeout);
+
+                toast.textContent = message;
+                toast.classList.add('show');
+
+                toastTimeout = setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 2500);
+            }
+
+            // ===== INICIALIZAÇÃO =====
+            function init() {
+                // Foco opcional no campo de busca
+                // searchInput.focus();
+
+                console.log('🎵 Play Tube Music pronto!');
+                console.log('📋 Comandos: buscar música, mini player (⤡), PiP (📺), Download (⬇)');
+            }
+
+            init();
+        })();
     </script>
 </body>
 </html>
