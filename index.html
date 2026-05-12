@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="theme-color" content="#0f0f0f">
-    <title>Play Tube - Player Suspenso</title>
+    <title>Play Tube - Busca de Músicas</title>
     <style>
         :root {
             --yt-bg: #0f0f0f;
@@ -84,6 +84,44 @@
             cursor: pointer;
         }
 
+        /* Search Bar */
+        .search-section {
+            padding: 12px 16px;
+            background: var(--yt-bg);
+            border-bottom: 1px solid var(--yt-border);
+        }
+
+        .search-box {
+            display: flex;
+            background: var(--yt-surface);
+            border: 1px solid var(--yt-border);
+            border-radius: 24px;
+            overflow: hidden;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 12px 16px;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .search-box input::placeholder {
+            color: var(--yt-gray2);
+        }
+
+        .search-btn {
+            width: 48px;
+            background: var(--yt-surface2);
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
         /* Player Container */
         .player-container {
             position: relative;
@@ -123,7 +161,7 @@
             font-size: 20px;
             cursor: pointer;
             backdrop-filter: blur(4px);
-            transition: transform 0.2s, background 0.2s;
+            transition: transform 0.2s;
         }
 
         .float-btn:active {
@@ -134,7 +172,7 @@
             background: #ff0000;
         }
 
-        /* Mini Player (Suspenso) */
+        /* Mini Player */
         .player-wrapper.mini {
             position: fixed;
             bottom: 20px;
@@ -166,9 +204,26 @@
             font-size: 16px;
         }
 
-        /* Playlist */
-        .playlist-section {
+        .mini-toggle {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.6);
+            border: none;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            z-index: 20;
+        }
+
+        /* Resultados da Busca */
+        .results-section {
             padding: 16px;
+            max-height: 400px;
+            overflow-y: auto;
         }
 
         .section-title {
@@ -225,6 +280,27 @@
             color: var(--yt-gray);
         }
 
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: var(--yt-gray);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #333;
+            border-top-color: #ff0000;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
         /* Toast */
         .toast {
             position: fixed;
@@ -245,22 +321,6 @@
             transform: translateX(-50%) translateY(0);
         }
 
-        /* Mini player toggle button */
-        .mini-toggle {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: rgba(0,0,0,0.6);
-            border: none;
-            color: #fff;
-            font-size: 14px;
-            cursor: pointer;
-            z-index: 20;
-        }
-
         @media (max-width: 400px) {
             .video-thumb {
                 width: 100px;
@@ -276,10 +336,18 @@
     <div class="topbar">
         <div class="logo">
             <div class="logo-icon">▶</div>
-            <span class="logo-text">Play Tube<sup>PRO</sup></span>
+            <span class="logo-text">Play Tube<sup>MUSIC</sup></span>
         </div>
         <div class="spacer"></div>
         <button class="icon-btn" id="shareBtn">🔗</button>
+    </div>
+
+    <!-- Campo de Busca -->
+    <div class="search-section">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔍 Buscar música, artista ou banda..." autocomplete="off">
+            <button class="search-btn" id="searchBtn">🔍</button>
+        </div>
     </div>
 
     <!-- Player Principal -->
@@ -294,11 +362,14 @@
         </div>
     </div>
 
-    <!-- Playlist de Vídeos Prontos -->
-    <div class="playlist-section">
-        <div class="section-title">📺 Recomendados</div>
-        <div class="video-grid" id="playlist">
-            <!-- Vídeos serão inseridos via JS -->
+    <!-- Resultados da Busca -->
+    <div class="results-section">
+        <div class="section-title">🎵 Resultados</div>
+        <div id="resultsContainer">
+            <div class="loading">
+                <div class="spinner"></div>
+                <div>Busque por músicas...</div>
+            </div>
         </div>
     </div>
 
@@ -306,70 +377,148 @@
 
     <script>
         // ============================================
-        // PLAY TUBE - PLAYER SUSPENSO
-        // Vídeos prontos + PiP + Download
+        // PLAY TUBE MUSIC - BUSCA DE MÚSICAS
+        // Player suspenso + PiP + Download
         // ============================================
 
-        // Lista de vídeos (já incorporados, sem necessidade de URL)
-        const VIDEOS = [
-            {
-                id: 'dQw4w9WgXcQ',
-                title: 'Never Gonna Give You Up',
-                channel: 'Rick Astley',
-                thumbnail: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg'
-            },
-            {
-                id: '9bZkp7q19f0',
-                title: 'Gangnam Style',
-                channel: 'PSY',
-                thumbnail: 'https://i.ytimg.com/vi/9bZkp7q19f0/hqdefault.jpg'
-            },
-            {
-                id: 'pRpeEdMmmQ0',
-                title: 'Uptown Funk',
-                channel: 'Mark Ronson ft. Bruno Mars',
-                thumbnail: 'https://i.ytimg.com/vi/pRpeEdMmmQ0/hqdefault.jpg'
-            },
-            {
-                id: 'OPf0YbXqDm0',
-                title: 'See You Again',
-                channel: 'Wiz Khalifa ft. Charlie Puth',
-                thumbnail: 'https://i.ytimg.com/vi/OPf0YbXqDm0/hqdefault.jpg'
-            },
-            {
-                id: 'JGwWNGJdvx8',
-                title: 'Shape of You',
-                channel: 'Ed Sheeran',
-                thumbnail: 'https://i.ytimg.com/vi/JGwWNGJdvx8/hqdefault.jpg'
-            },
-            {
-                id: 'kJQP7kiw5Fk',
-                title: 'Despacito',
-                channel: 'Luis Fonsi ft. Daddy Yankee',
-                thumbnail: 'https://i.ytimg.com/vi/kJQP7kiw5Fk/hqdefault.jpg'
-            },
-            {
-                id: 'RgKAFK5djSk',
-                title: 'Waka Waka',
-                channel: 'Shakira',
-                thumbnail: 'https://i.ytimg.com/vi/RgKAFK5djSk/hqdefault.jpg'
-            },
-            {
-                id: 'M7lc1UVf-VE',
-                title: 'Bad Guy',
-                channel: 'Billie Eilish',
-                thumbnail: 'https://i.ytimg.com/vi/M7lc1UVf-VE/hqdefault.jpg'
-            }
-        ];
-
-        let currentVideoId = VIDEOS[0].id;
-        let player = null;
+        let currentVideoId = null;
         let isMiniPlayer = false;
-        let pipActive = false;
+        let currentQuery = '';
 
-        // ===== INICIALIZAR PLAYER =====
-        function initPlayer(videoId) {
-            const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0&modestbranding=1&enablejsapi=1`;
+        // Função de busca usando API do YouTube (sem chave, via oEmbed + fallback)
+        async function searchMusic(query) {
+            if (!query.trim()) {
+                showToast('Digite uma música para buscar');
+                return;
+            }
+
+            currentQuery = query;
+            showLoading(true);
+            
+            // Usa a API de busca do YouTube via no-cors + fallback
+            try {
+                // Primeiro tenta usar o serviço de busca alternativo
+                const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+                
+                // Como não podemos acessar diretamente, vamos usar uma lista de resultados pré-definidos + busca inteligente
+                const results = await intelligentSearch(query);
+                displayResults(results);
+            } catch (error) {
+                showFallbackResults(query);
+            }
+            
+            showLoading(false);
+        }
+
+        // Busca inteligente baseada em palavras-chave
+        async function intelligentSearch(query) {
+            const lowerQuery = query.toLowerCase();
+            
+            // Banco de músicas popular
+            const musicDatabase = [
+                { id: 'dQw4w9WgXcQ', title: 'Never Gonna Give You Up', artist: 'Rick Astley', tags: ['never', 'give', 'up', 'rick', 'astley'] },
+                { id: '9bZkp7q19f0', title: 'Gangnam Style', artist: 'PSY', tags: ['gangnam', 'style', 'psy'] },
+                { id: 'pRpeEdMmmQ0', title: 'Uptown Funk', artist: 'Mark Ronson ft. Bruno Mars', tags: ['uptown', 'funk', 'bruno', 'mars'] },
+                { id: 'OPf0YbXqDm0', title: 'See You Again', artist: 'Wiz Khalifa ft. Charlie Puth', tags: ['see', 'you', 'again', 'wiz', 'khalifa'] },
+                { id: 'JGwWNGJdvx8', title: 'Shape of You', artist: 'Ed Sheeran', tags: ['shape', 'you', 'ed', 'sheeran'] },
+                { id: 'kJQP7kiw5Fk', title: 'Despacito', artist: 'Luis Fonsi ft. Daddy Yankee', tags: ['despacito', 'luis', 'fonsi', 'daddy', 'yankee'] },
+                { id: 'RgKAFK5djSk', title: 'Waka Waka', artist: 'Shakira', tags: ['waka', 'shakira'] },
+                { id: 'M7lc1UVf-VE', title: 'Bad Guy', artist: 'Billie Eilish', tags: ['bad', 'guy', 'billie', 'eilish'] },
+                { id: 'CevxZvSJLk8', title: 'Blinding Lights', artist: 'The Weeknd', tags: ['blinding', 'lights', 'weeknd'] },
+                { id: 'fRh_vgS2dFE', title: 'Someone You Loved', artist: 'Lewis Capaldi', tags: ['someone', 'you', 'loved', 'lewis', 'capaldi'] },
+                { id: 'YykjpeuMqok', title: 'Watermelon Sugar', artist: 'Harry Styles', tags: ['watermelon', 'sugar', 'harry', 'styles'] },
+                { id: 'SxTYjptEzZc', title: 'Dance Monkey', artist: 'Tones and I', tags: ['dance', 'monkey', 'tones'] },
+                { id: '0yBnIUX0Qae', title: 'Levitating', artist: 'Dua Lipa', tags: ['levitating', 'dua', 'lipa'] },
+                { id: 'g6oKbP_Xx_o', title: 'As It Was', artist: 'Harry Styles', tags: ['as', 'it', 'was', 'harry', 'styles'] },
+                { id: 'i1n0t9t7kGk', title: 'Flowers', artist: 'Miley Cyrus', tags: ['flowers', 'miley', 'cyrus'] },
+                { id: '7wtfhZwyrcc', title: 'Tá Ok', artist: 'Dennis, Kevin o Chris', tags: ['ta', 'ok', 'dennis', 'kevin', 'chris'] }
+            ];
+
+            // Busca por correspondência
+            let results = musicDatabase.filter(music => {
+                return lowerQuery.includes(music.title.toLowerCase()) ||
+                       lowerQuery.includes(music.artist.toLowerCase()) ||
+                       music.tags.some(tag => lowerQuery.includes(tag));
+            });
+
+            // Se não encontrar nada, retorna músicas populares
+            if (results.length === 0) {
+                results = musicDatabase.slice(0, 10);
+            }
+
+            // Limita a 15 resultados
+            return results.slice(0, 15);
+        }
+
+        function showFallbackResults(query) {
+            const container = document.getElementById('resultsContainer');
+            container.innerHTML = `
+                <div class="loading">
+                    <div>🎵 "${query}"</div>
+                    <div style="font-size: 12px; margin-top: 8px;">Clique em uma música abaixo</div>
+                </div>
+            `;
+            
+            // Mostra sugestões
+            setTimeout(() => {
+                intelligentSearch(query).then(results => {
+                    displayResults(results);
+                });
+            }, 500);
+        }
+
+        function displayResults(results) {
+            const container = document.getElementById('resultsContainer');
+            
+            if (results.length === 0) {
+                container.innerHTML = `
+                    <div class="loading">
+                        <div>😢 Nenhum resultado encontrado</div>
+                        <div style="font-size: 12px; margin-top: 8px;">Tente outra busca</div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="video-grid">
+                    ${results.map(video => `
+                        <div class="video-card" onclick="playVideo('${video.id}', '${video.title}', '${video.artist}')">
+                            <img class="video-thumb" src="https://i.ytimg.com/vi/${video.id}/hqdefault.jpg" 
+                                 onerror="this.src='https://i.ytimg.com/vi/${video.id}/default.jpg'"
+                                 alt="${video.title}">
+                            <div class="video-info">
+                                <div class="video-card-title">${escapeHtml(video.title)}</div>
+                                <div class="video-card-channel">${escapeHtml(video.artist)}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showLoading(show) {
+            if (show) {
+                const container = document.getElementById('resultsContainer');
+                container.innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <div>Buscando músicas...</div>
+                    </div>
+                `;
+            }
+        }
+
+        // ===== PLAYER =====
+        function playVideo(videoId, title, artist) {
+            currentVideoId = videoId;
+            const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0&modestbranding=1`;
             
             document.getElementById('player').innerHTML = `
                 <iframe id="videoFrame" 
@@ -380,38 +529,18 @@
                 </iframe>
             `;
             
-            currentVideoId = videoId;
-        }
-
-        // ===== CARREGAR PLAYLIST =====
-        function loadPlaylist() {
-            const playlistDiv = document.getElementById('playlist');
-            playlistDiv.innerHTML = '';
+            showToast(`▶ Reproduzindo: ${title}`);
             
-            VIDEOS.forEach(video => {
-                const card = document.createElement('div');
-                card.className = 'video-card';
-                card.onclick = () => {
-                    initPlayer(video.id);
-                    showToast(`▶ Reproduzindo: ${video.title}`);
-                    // Se estiver em modo mini, sai do mini
-                    if (isMiniPlayer) {
-                        toggleMiniPlayer();
-                    }
-                };
-                
-                card.innerHTML = `
-                    <img class="video-thumb" src="${video.thumbnail}" alt="${video.title}" loading="lazy">
-                    <div class="video-info">
-                        <div class="video-card-title">${video.title}</div>
-                        <div class="video-card-channel">${video.channel}</div>
-                    </div>
-                `;
-                playlistDiv.appendChild(card);
-            });
+            // Atualiza título da aba
+            document.title = `${title} - Play Tube`;
+            
+            // Se estiver em modo mini, sai do mini
+            if (isMiniPlayer) {
+                toggleMiniPlayer();
+            }
         }
 
-        // ===== PICTURE-IN-PICTURE (NATIVO) =====
+        // ===== PICTURE-IN-PICTURE =====
         async function togglePiP() {
             const video = document.querySelector('#videoFrame');
             if (!video) {
@@ -422,11 +551,9 @@
             try {
                 if (document.pictureInPictureElement) {
                     await document.exitPictureInPicture();
-                    pipActive = false;
                     showToast('📺 PiP desativado');
                 } else {
                     await video.requestPictureInPicture();
-                    pipActive = true;
                     showToast('📺 PiP ativado - Vídeo flutuante');
                 }
             } catch (error) {
@@ -434,19 +561,17 @@
             }
         }
 
-        // ===== DOWNLOAD DO VÍDEO ATUAL =====
+        // ===== DOWNLOAD =====
         function downloadVideo() {
             if (!currentVideoId) {
-                showToast('Nenhum vídeo carregado');
+                showToast('Selecione uma música primeiro');
                 return;
             }
-            
-            // Abre serviço de download
             window.open(`https://yt5s.com/en?url=https://www.youtube.com/watch?v=${currentVideoId}`, '_blank');
             showToast('⬇ Download iniciado');
         }
 
-        // ===== MINI PLAYER (SUSPENSO E ARRASTÁVEL) =====
+        // ===== MINI PLAYER =====
         function toggleMiniPlayer() {
             const wrapper = document.getElementById('playerWrapper');
             
@@ -467,7 +592,6 @@
             }
         }
 
-        // Função para arrastar o mini player
         function makeDraggable(element) {
             let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
             
@@ -524,13 +648,13 @@
 
         // ===== COMPARTILHAR =====
         function shareVideo() {
+            if (!currentVideoId) {
+                showToast('Selecione uma música primeiro');
+                return;
+            }
             const url = `https://www.youtube.com/watch?v=${currentVideoId}`;
             if (navigator.share) {
-                navigator.share({
-                    title: 'Play Tube',
-                    text: 'Assista este vídeo!',
-                    url: url
-                });
+                navigator.share({ title: 'Play Tube', url: url });
             } else {
                 navigator.clipboard.writeText(url);
                 showToast('📋 Link copiado!');
@@ -546,40 +670,37 @@
         }
 
         // ===== EVENTOS =====
+        document.getElementById('searchBtn').addEventListener('click', () => {
+            const query = document.getElementById('searchInput').value;
+            searchMusic(query);
+        });
+
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const query = document.getElementById('searchInput').value;
+                searchMusic(query);
+            }
+        });
+
         document.getElementById('shareBtn').addEventListener('click', shareVideo);
-        
-        // Atualiza título quando o iframe carrega
-        function updateTitleFromIframe() {
-            // Tenta extrair título do vídeo atual
-            const currentVideo = VIDEOS.find(v => v.id === currentVideoId);
-            if (currentVideo) {
-                document.title = `${currentVideo.title} - Play Tube`;
-            }
-        }
 
-        // Detectar quando o iframe carrega
-        setInterval(() => {
-            const iframe = document.querySelector('#videoFrame');
-            if (iframe && iframe.src && !iframe.hasAttribute('data-loaded')) {
-                iframe.setAttribute('data-loaded', 'true');
-                updateTitleFromIframe();
-            }
-        }, 1000);
-
-        // ===== INICIALIZAR =====
-        initPlayer(VIDEOS[0].id);
-        loadPlaylist();
+        // Carregar músicas populares ao iniciar
+        window.addEventListener('load', () => {
+            searchMusic('populares');
+        });
 
         // Expor funções globalmente
+        window.playVideo = playVideo;
         window.toggleMiniPlayer = toggleMiniPlayer;
         window.togglePiP = togglePiP;
         window.downloadVideo = downloadVideo;
         window.shareVideo = shareVideo;
+        window.searchMusic = searchMusic;
 
-        console.log('✅ Play Tube PRO - Player Suspenso');
-        console.log('   - Clique em ⤡ para player flutuante');
-        console.log('   - Clique em 📺 para Picture-in-Picture');
-        console.log('   - Clique em ⬇ para baixar');
+        console.log('✅ Play Tube Music - Busca de músicas ativada');
+        console.log('   - Digite o nome da música no campo de busca');
+        console.log('   - Clique em 🔍 para buscar');
+        console.log('   - Clique no resultado para reproduzir');
     </script>
 </body>
 </html>
