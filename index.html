@@ -23,6 +23,7 @@
             --yt-gray: #aaa;
             --yt-gray2: #717171;
             --yt-border: #303030;
+            --spotify-green: #1db954;
         }
 
         * {
@@ -48,44 +49,113 @@
             0%, 100% { box-shadow: 0 0 20px rgba(255,0,0,0.4); }
             50% { box-shadow: 0 0 40px rgba(255,0,0,0.8), 0 0 60px rgba(255,0,0,0.4); }
         }
-
         @keyframes float {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-3px); }
         }
-
         @keyframes shimmer {
             0% { background-position: -200% center; }
             100% { background-position: 200% center; }
         }
-
         @keyframes slideInRight {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
-
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
         @keyframes fadeInUp {
             from { transform: translateY(20px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
+        @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes equalizer {
             0%, 100% { height: 4px; }
             50% { height: 16px; }
         }
-
-        @keyframes likePulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.15); }
-        }
-
         @keyframes nookieGlow {
             0%, 100% { box-shadow: 0 0 10px rgba(0,200,83,0.4); }
             50% { box-shadow: 0 0 25px rgba(0,200,83,0.8), 0 0 40px rgba(0,200,83,0.4); }
+        }
+        @keyframes rainbow {
+            0% { border-color: #ff0000; }
+            25% { border-color: #ff8800; }
+            50% { border-color: #00c853; }
+            75% { border-color: #2196F3; }
+            100% { border-color: #ff0000; }
+        }
+
+        /* ===== PLAYER NO TOPO ===== */
+        .player-top {
+            width: 100%;
+            background: #000;
+            display: none;
+            position: relative;
+            animation: slideDown 0.4s ease;
+            border-bottom: 2px solid #ff0000;
+        }
+
+        .player-top.active {
+            display: block;
+        }
+
+        .player-top.rainbow-border {
+            animation: rainbow 3s linear infinite;
+            border-width: 2px;
+            border-style: solid;
+        }
+
+        .player-wrapper {
+            width: 100%;
+            aspect-ratio: 16/9;
+            position: relative;
+        }
+
+        .player-wrapper iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .player-close {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.7);
+            border: none;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .player-info-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.9));
+            padding: 40px 12px 12px;
+            pointer-events: none;
+        }
+
+        .player-info-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .player-info-artist {
+            font-size: 11px;
+            color: #ccc;
+            margin-top: 2px;
         }
 
         /* ===== TOPBAR ===== */
@@ -141,7 +211,6 @@
             padding: 2px 4px;
             border-radius: 4px;
             -webkit-text-fill-color: #fff;
-            animation: pulseLogo 2s ease-in-out infinite;
         }
 
         .spacer { flex: 1; }
@@ -150,9 +219,6 @@
         .search-section {
             padding: 12px 16px;
             background: var(--yt-bg);
-            border-bottom: 1px solid var(--yt-border);
-            position: sticky;
-            top: 56px;
             z-index: 50;
         }
 
@@ -189,15 +255,12 @@
             color: #fff;
             cursor: pointer;
             font-size: 18px;
-            transition: background 0.2s, color 0.2s;
+            transition: background 0.2s;
         }
 
-        .search-btn:active {
-            background: #ff0000;
-            color: #fff;
-        }
+        .search-btn:active { background: #ff0000; }
 
-        /* ===== HIDDEN PLAYER ===== */
+        /* ===== HIDDEN PLAYER (Background Play) ===== */
         .hidden-player {
             position: fixed;
             top: -10px;
@@ -211,13 +274,13 @@
 
         /* ===== RESULTS ===== */
         .results-section {
-            padding: 16px 16px 100px 16px;
+            padding: 8px 16px 100px 16px;
         }
 
         .section-title {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             padding-left: 4px;
             display: flex;
             align-items: center;
@@ -228,9 +291,16 @@
         }
 
         .result-count {
-            font-size: 11px;
+            font-size: 10px;
             color: var(--yt-gray2);
             font-weight: 400;
+        }
+
+        .section-subtitle {
+            font-size: 11px;
+            color: var(--spotify-green);
+            margin-bottom: 10px;
+            padding-left: 4px;
         }
 
         .video-grid {
@@ -327,11 +397,15 @@
             flex-shrink: 0;
             background: rgba(0,0,0,0.3);
             border: 2px solid rgba(255,255,255,0.3);
+            cursor: pointer;
         }
+
+        .np-thumb:active { transform: scale(0.95); }
 
         .np-info {
             flex: 1;
             min-width: 0;
+            cursor: pointer;
         }
 
         .np-title {
@@ -383,7 +457,7 @@
             font-size: 18px;
             cursor: pointer;
             padding: 4px;
-            transition: transform 0.15s, opacity 0.15s;
+            transition: transform 0.15s;
             opacity: 0.9;
         }
 
@@ -402,12 +476,9 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
 
-        .np-btn.play-btn:active {
-            transform: scale(0.9);
-            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-        }
+        .np-btn.play-btn:active { transform: scale(0.9); }
 
-        /* ===== BOTÃO PLAY LIKE (NO-COOKIES) FIXO ===== */
+        /* ===== BOTÃO PLAY LIKE ===== */
         .nookie-btn-fixed {
             position: fixed;
             bottom: 80px;
@@ -428,18 +499,15 @@
             align-items: center;
             justify-content: center;
             transition: transform 0.2s;
-            letter-spacing: -0.5px;
         }
 
-        .nookie-btn-fixed:active {
-            transform: scale(0.9);
+        .nookie-btn-fixed:active { transform: scale(0.9); }
+        .nookie-btn-fixed.liked {
+            background: linear-gradient(135deg, #ff1744, #ff5252);
+            box-shadow: 0 4px 15px rgba(255,23,68,0.5);
         }
 
-        .nookie-btn-fixed .nookie-icon {
-            font-size: 20px;
-        }
-
-        .nookie-btn-fixed .nookie-label {
+        .nookie-label {
             position: absolute;
             right: 58px;
             background: rgba(0,0,0,0.9);
@@ -451,23 +519,11 @@
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.2s;
-            font-weight: 500;
         }
 
         .nookie-btn-fixed:hover .nookie-label,
-        .nookie-btn-fixed:active .nookie-label {
-            opacity: 1;
-        }
-
-        .nookie-btn-fixed.liked {
-            background: linear-gradient(135deg, #ff1744, #ff5252);
-            animation: likePulse 0.6s ease, nookieGlow 2s ease-in-out infinite;
-            box-shadow: 0 4px 15px rgba(255,23,68,0.5);
-        }
-
-        .nookie-btn-fixed.liked .nookie-label {
-            color: #ff5252;
-        }
+        .nookie-btn-fixed:active .nookie-label { opacity: 1; }
+        .nookie-btn-fixed.liked .nookie-label { color: #ff5252; }
 
         /* ===== BOTÕES LATERAIS ===== */
         .side-buttons {
@@ -496,17 +552,15 @@
             color: #fff;
             font-size: 18px;
             cursor: pointer;
-            animation: slideInRight 0.3s ease forwards;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: transform 0.2s, box-shadow 0.2s;
             box-shadow: 0 4px 12px rgba(0,0,0,0.4);
             position: relative;
+            transition: transform 0.2s;
         }
 
         .side-btn:active { transform: scale(0.9); }
-
         .side-btn.youtube { background: #ff0000; }
         .side-btn.download { background: #1db954; }
         .side-btn.pip { background: #2196F3; }
@@ -526,9 +580,7 @@
         }
 
         .side-btn:hover .side-label,
-        .side-btn:active .side-label {
-            opacity: 1;
-        }
+        .side-btn:active .side-label { opacity: 1; }
 
         /* ===== LOADING ===== */
         .loading {
@@ -612,6 +664,16 @@
         <div class="spacer"></div>
     </div>
 
+    <!-- ===== PLAYER NO TOPO (Aparece ao iniciar reprodução) ===== -->
+    <div class="player-top" id="playerTop">
+        <div class="player-wrapper" id="playerWrapper"></div>
+        <button class="player-close" onclick="closePlayer()" title="Fechar player">✕</button>
+        <div class="player-info-overlay">
+            <div class="player-info-title" id="playerInfoTitle"></div>
+            <div class="player-info-artist" id="playerInfoArtist"></div>
+        </div>
+    </div>
+
     <!-- ===== SEARCH ===== -->
     <div class="search-section">
         <div class="search-box">
@@ -620,13 +682,12 @@
         </div>
     </div>
 
-    <!-- ===== HIDDEN PLAYER ===== -->
+    <!-- ===== HIDDEN PLAYER (Background Play) ===== -->
     <div class="hidden-player" id="hiddenPlayer"></div>
 
-    <!-- ===== BOTÃO PLAY LIKE (NO-COOKIES) FIXO ===== -->
+    <!-- ===== BOTÃO PLAY LIKE ===== -->
     <button class="nookie-btn-fixed" id="nookieBtn" onclick="toggleNookieMode()" title="Modo No-Cookies">
-        <span class="nookie-icon">🍪</span>
-        <span class="nookie-label">Modo No-Cookies</span>
+        🍪<span class="nookie-label">Modo No-Cookies</span>
     </button>
 
     <!-- ===== BOTÕES LATERAIS ===== -->
@@ -644,15 +705,16 @@
 
     <!-- ===== RESULTS ===== -->
     <div class="results-section">
-        <div class="section-title">
+        <div class="section-title" id="sectionTitle">
             <span>Resultados</span>
             <span class="result-count" id="resultCount"></span>
         </div>
+        <div class="section-subtitle" id="sectionSubtitle" style="display:none;"></div>
         <div id="resultsContainer">
             <div style="text-align:center;padding:60px 20px;color:#aaa;">
                 <div style="font-size:64px;margin-bottom:16px;">🎧</div>
                 <div style="font-size:18px;margin-bottom:8px;">Busque suas músicas</div>
-                <div style="font-size:12px;color:#717171;">Toque na tela para ver opções</div>
+                <div style="font-size:12px;color:#717171;">O player aparece ao tocar uma música</div>
             </div>
         </div>
         <div id="paginationContainer" class="pagination" style="display:none;"></div>
@@ -660,10 +722,10 @@
 
     <!-- ===== NOW PLAYING BAR ===== -->
     <div class="now-playing-bar" id="nowPlayingBar" style="display:none;">
-        <img class="np-thumb" id="npThumb" src="" alt="">
-        <div class="np-info">
+        <img class="np-thumb" id="npThumb" src="" alt="" onclick="showPlayer()">
+        <div class="np-info" onclick="showPlayer()">
             <div class="np-title" id="npTitle">Nenhuma música</div>
-            <div class="np-artist" id="npArtist">Selecione uma música</div>
+            <div class="np-artist" id="npArtist">Toque para ver o player</div>
         </div>
         <div class="np-equalizer" id="npEqualizer" style="display:none;">
             <div class="bar"></div>
@@ -672,23 +734,14 @@
             <div class="bar"></div>
         </div>
         <div class="np-controls">
-            <button class="np-btn" onclick="previousTrack()" title="Anterior">⏮</button>
-            <button class="np-btn play-btn" id="playPauseBtn" onclick="togglePlayPause()" title="Play/Pause">▶</button>
-            <button class="np-btn" onclick="nextTrack()" title="Próxima">⏭</button>
+            <button class="np-btn" onclick="previousTrack()">⏮</button>
+            <button class="np-btn play-btn" id="playPauseBtn" onclick="togglePlayPause()">▶</button>
+            <button class="np-btn" onclick="nextTrack()">⏭</button>
         </div>
     </div>
 
     <!-- ===== TOAST ===== -->
     <div class="toast" id="toast"></div>
-
-    <!-- ===== SERVICE WORKER ===== -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js').then(() => {
-                console.log('✅ SW registrado');
-            }).catch(() => {});
-        }
-    </script>
 
     <!-- ===== YOUTUBE IFRAME API ===== -->
     <script src="https://www.youtube.com/iframe_api"></script>
@@ -698,31 +751,36 @@
         (function() {
             'use strict';
 
-            // ============================================
-            // PLAY TUBE - SPOTIFY MODE + NOOKIE MODE
-            // ============================================
-
             const PROXY_URL = 'https://playtube-proxy.codw23.workers.dev';
 
             // Estado
             let ytPlayer = null;
+            let ytTopPlayer = null;
             let playlist = [];
             let currentTrackIndex = -1;
             let isPlaying = false;
             let currentVideoId = null;
+            let currentArtist = '';
             let toastTimeout = null;
             let nextPageToken = null;
             let prevPageToken = null;
             let currentQuery = '';
             let hideButtonsTimeout = null;
             let isNookieMode = false;
+            let hasShownRelatedVideos = false;
 
             // DOM
             const searchInput = document.getElementById('searchInput');
             const searchBtn = document.getElementById('searchBtn');
             const resultsContainer = document.getElementById('resultsContainer');
             const resultCount = document.getElementById('resultCount');
+            const sectionTitle = document.getElementById('sectionTitle');
+            const sectionSubtitle = document.getElementById('sectionSubtitle');
             const paginationContainer = document.getElementById('paginationContainer');
+            const playerTop = document.getElementById('playerTop');
+            const playerWrapper = document.getElementById('playerWrapper');
+            const playerInfoTitle = document.getElementById('playerInfoTitle');
+            const playerInfoArtist = document.getElementById('playerInfoArtist');
             const nowPlayingBar = document.getElementById('nowPlayingBar');
             const npThumb = document.getElementById('npThumb');
             const npTitle = document.getElementById('npTitle');
@@ -736,13 +794,13 @@
 
             // ===== MOSTRAR/ESCONDER BOTÕES LATERAIS =====
             document.addEventListener('click', (e) => {
-                if (currentVideoId && !e.target.closest('.side-btn') && !e.target.closest('.nookie-btn-fixed')) {
+                if (currentVideoId && !e.target.closest('.side-btn') && !e.target.closest('.nookie-btn-fixed') && !e.target.closest('.player-close')) {
                     showSideButtons();
                 }
             });
 
             document.addEventListener('touchstart', (e) => {
-                if (currentVideoId && !e.target.closest('.side-btn') && !e.target.closest('.nookie-btn-fixed')) {
+                if (currentVideoId && !e.target.closest('.side-btn') && !e.target.closest('.nookie-btn-fixed') && !e.target.closest('.player-close')) {
                     showSideButtons();
                 }
             }, { passive: true });
@@ -750,82 +808,97 @@
             function showSideButtons() {
                 sideButtons.classList.remove('hidden');
                 if (hideButtonsTimeout) clearTimeout(hideButtonsTimeout);
-                hideButtonsTimeout = setTimeout(() => {
-                    sideButtons.classList.add('hidden');
-                }, 4000);
+                hideButtonsTimeout = setTimeout(() => sideButtons.classList.add('hidden'), 4000);
             }
 
-            // ===== MODO NO-COOKIES (PLAY LIKE) =====
+            // ===== PLAYER NO TOPO =====
+            window.showPlayer = function() {
+                if (!currentVideoId) return;
+                
+                playerTop.classList.add('active');
+                playerTop.classList.add('rainbow-border');
+                
+                if (!ytTopPlayer) {
+                    initTopPlayer();
+                } else {
+                    ytTopPlayer.loadVideoById({
+                        videoId: currentVideoId,
+                        startSeconds: ytPlayer?.getCurrentTime ? ytPlayer.getCurrentTime() : 0
+                    });
+                }
+                
+                playerTop.scrollIntoView({ behavior: 'smooth' });
+            };
+
+            window.closePlayer = function() {
+                playerTop.classList.remove('active');
+                playerTop.classList.remove('rainbow-border');
+                if (ytTopPlayer) {
+                    ytTopPlayer.stopVideo();
+                }
+            };
+
+            function initTopPlayer() {
+                playerWrapper.innerHTML = '<div id="topPlayerElement"></div>';
+                
+                ytTopPlayer = new YT.Player('topPlayerElement', {
+                    videoId: currentVideoId,
+                    playerVars: {
+                        autoplay: 1,
+                        playsinline: 1,
+                        controls: 1,
+                        rel: 0,
+                        modestbranding: 1,
+                        fs: 1
+                    },
+                    events: {
+                        onReady: () => {
+                            if (ytPlayer?.getCurrentTime) {
+                                ytTopPlayer.seekTo(ytPlayer.getCurrentTime());
+                            }
+                            syncPlayers();
+                        },
+                        onStateChange: (event) => {
+                            if (event.data === YT.PlayerState.PLAYING) {
+                                if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
+                            }
+                        }
+                    }
+                });
+            }
+
+            function syncPlayers() {
+                setInterval(() => {
+                    if (ytTopPlayer && ytPlayer && isPlaying) {
+                        const time = ytTopPlayer.getCurrentTime();
+                        if (time && ytPlayer.seekTo) {
+                            ytPlayer.seekTo(time);
+                        }
+                    }
+                }, 3000);
+            }
+
+            // ===== MODO NO-COOKIES =====
             window.toggleNookieMode = function() {
                 isNookieMode = !isNookieMode;
                 
                 if (isNookieMode) {
                     nookieBtn.classList.add('liked');
                     nookieBtn.querySelector('.nookie-label').textContent = 'No-Cookies ON';
-                    nookieBtn.querySelector('.nookie-icon').textContent = '🔒';
-                    showToast('🍪 Modo No-Cookies ativado!');
-                    
-                    // Recarrega o vídeo atual no modo no-cookies
-                    if (currentVideoId) {
-                        reloadWithNookieMode();
-                    }
+                    nookieBtn.innerHTML = '🔒<span class="nookie-label">No-Cookies ON</span>';
                 } else {
                     nookieBtn.classList.remove('liked');
                     nookieBtn.querySelector('.nookie-label').textContent = 'Modo No-Cookies';
-                    nookieBtn.querySelector('.nookie-icon').textContent = '🍪';
-                    showToast('🍪 Modo normal restaurado');
-                    
-                    // Recarrega o vídeo atual no modo normal
-                    if (currentVideoId) {
-                        reloadWithNookieMode();
-                    }
+                    nookieBtn.innerHTML = '🍪<span class="nookie-label">Modo No-Cookies</span>';
                 }
+                showToast(isNookieMode ? '🔒 Modo No-Cookies ativado!' : '🍪 Modo normal restaurado');
             };
 
             function getNookieUrl(videoId) {
-                // Converte youtube.com → yout-ube.com (no-cookies)
-                // Ex: https://www.youtube.com/watch?v=VIDEO_ID → https://www.yout-ube.com/watch?v=VIDEO_ID
                 return `https://www.yout-ube.com/watch?v=${videoId}`;
             }
 
-            function getYoutubeNoCookieUrl(videoId) {
-                // URL oficial no-cookie do YouTube
-                return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0&modestbranding=1&iv_load_policy=3`;
-            }
-
-            function reloadWithNookieMode() {
-                if (!currentVideoId || !ytPlayer) return;
-                
-                if (isNookieMode) {
-                    // Modo No-Cookies: recarrega com iframe no-cookie
-                    ytPlayer.loadVideoById({
-                        videoId: currentVideoId,
-                        startSeconds: ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0
-                    });
-                    showToast('🔒 Reproduzindo sem cookies');
-                } else {
-                    // Modo normal
-                    ytPlayer.loadVideoById({
-                        videoId: currentVideoId,
-                        startSeconds: ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0
-                    });
-                    showToast('🍪 Modo normal');
-                }
-            }
-
-            // Modifica a URL do player padrão para usar no-cookie
-            const originalLoadVideoById = YT.Player.prototype.loadVideoById;
-            if (YT.Player && YT.Player.prototype) {
-                YT.Player.prototype.loadVideoById = function() {
-                    if (isNookieMode) {
-                        // Modo No-Cookies ativo - não altera o loadVideoById pois
-                        // o player usa youtube-nocookie.com via iframe
-                    }
-                    return originalLoadVideoById.apply(this, arguments);
-                };
-            }
-
-            // ===== OCULTAR URL ORIGINAL =====
+            // ===== OCULTAR URL =====
             if (window.history && window.history.replaceState) {
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
@@ -837,7 +910,6 @@
             };
 
             function initHiddenPlayer() {
-                // Sempre usa youtube-nocookie.com para privacidade
                 ytPlayer = new YT.Player('hiddenPlayer', {
                     height: '1',
                     width: '1',
@@ -854,7 +926,7 @@
                         origin: window.location.origin
                     },
                     events: {
-                        onReady: () => console.log('✅ Player oculto pronto (no-cookie)'),
+                        onReady: () => console.log('✅ Player oculto pronto'),
                         onStateChange: onPlayerStateChange,
                         onError: () => showToast('⚠️ Erro ao reproduzir')
                     }
@@ -866,6 +938,7 @@
                     isPlaying = true;
                     playPauseBtn.textContent = '⏸';
                     npEqualizer.style.display = 'flex';
+                    hasShownRelatedVideos = false;
                     updateMediaSession(true);
                 } else if (event.data === YT.PlayerState.PAUSED) {
                     isPlaying = false;
@@ -873,8 +946,31 @@
                     npEqualizer.style.display = 'none';
                     updateMediaSession(false);
                 } else if (event.data === YT.PlayerState.ENDED) {
-                    nextTrack();
+                    // 🔥 AO FINAL DA MÚSICA: busca vídeos do artista
+                    if (!hasShownRelatedVideos && currentArtist) {
+                        hasShownRelatedVideos = true;
+                        showRelatedVideos(currentArtist);
+                    } else {
+                        nextTrack();
+                    }
                 }
+            }
+
+            // ===== MOSTRAR VÍDEOS RELACIONADOS AO FINAL =====
+            async function showRelatedVideos(artist) {
+                showToast(`🎵 Buscando mais músicas de ${artist}...`);
+                sectionTitle.innerHTML = `<span>🎤 Mais de ${escapeHtml(artist)}</span>`;
+                sectionSubtitle.style.display = 'block';
+                sectionSubtitle.textContent = 'Vídeos relacionados ao artista';
+                
+                nextPageToken = null;
+                prevPageToken = null;
+                currentQuery = artist;
+                
+                await searchYouTube(artist, null, true);
+                
+                // Scroll para os resultados
+                document.querySelector('.results-section').scrollIntoView({ behavior: 'smooth' });
             }
 
             // ===== MEDIA SESSION =====
@@ -908,17 +1004,6 @@
                 }
             }
 
-            // ===== SW COMUNICATION =====
-            navigator.serviceWorker?.addEventListener('message', (event) => {
-                const { action } = event.data;
-                switch (action) {
-                    case 'PLAY': playTrack(); break;
-                    case 'PAUSE': pauseTrack(); break;
-                    case 'NEXT': nextTrack(); break;
-                    case 'PREVIOUS': previousTrack(); break;
-                }
-            });
-
             // ===== CONTROLES =====
             function playTrack(index = -1) {
                 if (index >= 0 && index < playlist.length) currentTrackIndex = index;
@@ -926,33 +1011,40 @@
 
                 const track = playlist[currentTrackIndex];
                 currentVideoId = track.id;
+                currentArtist = track.channel;
+                hasShownRelatedVideos = false;
 
+                // Player de fundo
                 if (ytPlayer?.loadVideoById) {
-                    ytPlayer.loadVideoById({
-                        videoId: track.id,
-                        startSeconds: 0
-                    });
+                    ytPlayer.loadVideoById({ videoId: track.id, startSeconds: 0 });
+                }
+
+                // Player no topo (se visível)
+                if (playerTop.classList.contains('active') && ytTopPlayer?.loadVideoById) {
+                    ytTopPlayer.loadVideoById({ videoId: track.id, startSeconds: 0 });
                 }
 
                 updateNowPlaying(track);
+                updatePlayerTopInfo(track);
                 showNowPlayingBar();
                 showSideButtons();
+                
+                // Mostra o player no topo automaticamente
+                showPlayer();
             }
 
             window.togglePlayPause = function() {
                 if (!ytPlayer) return;
                 if (isPlaying) {
                     ytPlayer.pauseVideo();
+                    if (ytTopPlayer) ytTopPlayer.pauseVideo();
                 } else if (currentVideoId) {
                     ytPlayer.playVideo();
+                    if (ytTopPlayer) ytTopPlayer.playVideo();
                 } else if (playlist.length > 0) {
                     playTrack(0);
                 }
             };
-
-            function pauseTrack() {
-                if (ytPlayer && isPlaying) ytPlayer.pauseVideo();
-            }
 
             window.nextTrack = function() {
                 if (playlist.length === 0) return;
@@ -968,11 +1060,12 @@
 
             function stopPlayback() {
                 if (ytPlayer) ytPlayer.stopVideo();
+                if (ytTopPlayer) ytTopPlayer.stopVideo();
                 isPlaying = false;
                 playPauseBtn.textContent = '▶';
                 npEqualizer.style.display = 'none';
                 nowPlayingBar.style.display = 'none';
-                sideButtons.classList.add('hidden');
+                playerTop.classList.remove('active');
             }
 
             function updateNowPlaying(track) {
@@ -980,6 +1073,11 @@
                 npArtist.textContent = track.channel || 'YouTube';
                 npThumb.src = track.thumbnail || '';
                 document.title = `▶ ${track.title || 'Play Tube'} ${isNookieMode ? '🔒' : ''}`;
+            }
+
+            function updatePlayerTopInfo(track) {
+                playerInfoTitle.textContent = track.title || '';
+                playerInfoArtist.textContent = track.channel || '';
             }
 
             function showNowPlayingBar() {
@@ -1007,16 +1105,8 @@
             // ===== BOTÕES LATERAIS =====
             window.openInYouTube = function() {
                 if (!currentVideoId) return;
-                
-                if (isNookieMode) {
-                    // Modo No-Cookies: usa yout-ube.com
-                    const nookieUrl = getNookieUrl(currentVideoId);
-                    window.open(nookieUrl, '_blank');
-                    showToast('🔒 Abrindo em modo No-Cookies');
-                } else {
-                    // Modo normal
-                    window.open(`https://www.youtube.com/watch?v=${currentVideoId}`, '_blank');
-                }
+                const url = isNookieMode ? getNookieUrl(currentVideoId) : `https://www.youtube.com/watch?v=${currentVideoId}`;
+                window.open(url, '_blank');
             };
 
             window.downloadVideo = function() {
@@ -1027,23 +1117,16 @@
             };
 
             window.togglePiP = async function() {
-                if (!currentVideoId) {
-                    showToast('⚠️ Selecione uma música');
-                    return;
-                }
+                if (!currentVideoId) { showToast('⚠️ Selecione uma música'); return; }
                 try {
                     if (document.pictureInPictureElement) {
                         await document.exitPictureInPicture();
                     } else {
-                        const iframe = document.querySelector('#hiddenPlayer iframe');
+                        const iframe = document.querySelector('#playerTop iframe') || document.querySelector('#hiddenPlayer iframe');
                         if (iframe) await iframe.requestPictureInPicture();
                     }
                 } catch (e) {
-                    if (isNookieMode) {
-                        window.open(getNookieUrl(currentVideoId), '_blank');
-                    } else {
-                        window.open(`https://www.youtube.com/watch?v=${currentVideoId}`, '_blank');
-                    }
+                    window.open(isNookieMode ? getNookieUrl(currentVideoId) : `https://www.youtube.com/watch?v=${currentVideoId}`, '_blank');
                 }
             };
 
@@ -1052,6 +1135,8 @@
                 currentQuery = searchInput.value;
                 nextPageToken = null;
                 prevPageToken = null;
+                sectionTitle.innerHTML = '<span>Resultados</span>';
+                sectionSubtitle.style.display = 'none';
                 searchYouTube(currentQuery);
             });
 
@@ -1060,13 +1145,15 @@
                     currentQuery = searchInput.value;
                     nextPageToken = null;
                     prevPageToken = null;
+                    sectionTitle.innerHTML = '<span>Resultados</span>';
+                    sectionSubtitle.style.display = 'none';
                     searchYouTube(currentQuery);
                 }
             });
 
-            async function searchYouTube(query, pageToken = null) {
+            async function searchYouTube(query, pageToken = null, isRelated = false) {
                 const trimmedQuery = query.trim();
-                if (!trimmedQuery) { showToast('⚠️ Digite uma música'); return; }
+                if (!trimmedQuery && !isRelated) { showToast('⚠️ Digite uma música'); return; }
 
                 showLoading(true);
                 paginationContainer.style.display = 'none';
@@ -1176,9 +1263,9 @@
 
             // ===== INIT =====
             setupMediaSession();
-            console.log('🎵 Play Tube - Spotify Mode v3');
-            console.log('🔒 No-Cookies Mode | 🍪 Play Like Button');
-            console.log('🌐 Player host: youtube-nocookie.com');
+            console.log('🎵 Play Tube - Player no Topo + Vídeos Relacionados');
+            console.log('📺 Player aparece ao tocar música');
+            console.log('🎤 Ao final: busca automática de vídeos do artista');
         })();
     </script>
 </body>
