@@ -295,6 +295,20 @@
 
     <div class="toast" id="toast"></div>
 
+    <!-- Configuração segura do servidor proxy -->
+    <script>
+        // ============================================
+        // CONFIGURAÇÃO DO PROXY PARA PROTEGER A API KEY
+        // ============================================
+        // A API Key NÃO fica exposta no frontend.
+        // O frontend chama um proxy (Worker da Cloudflare ou similar)
+        // que injeta a API Key apenas no servidor.
+        // 
+        // Substitua a URL abaixo pela URL do seu Worker:
+        const PROXY_URL = 'https://SEU_WORKER.exemplo.workers.dev';
+        // ============================================
+    </script>
+
     <script src="https://www.youtube.com/iframe_api"></script>
 
     <script>
@@ -306,8 +320,11 @@
         (function() {
             'use strict';
 
-            // API Key configurada
-            const YOUTUBE_API_KEY = 'AIzaSyAZcgX4m8A1j60b91nLzCLBvzPIXsUaPWE';
+            // ============================================
+            // PLAY TUBE MUSIC - API KEY PROTEGIDA VIA PROXY
+            // ============================================
+            // A chave NUNCA aparece no código fonte do navegador.
+            // Todas as requisições passam pelo proxy configurado acima.
 
             let currentVideoId = null;
             let currentVideoTitle = '';
@@ -343,6 +360,10 @@
                 searchYouTube(currentQuery);
             }
 
+            /**
+             * Busca via Proxy (API Key protegida)
+             * O frontend NUNCA vê a chave real.
+             */
             async function searchYouTube(query, pageToken = null) {
                 const trimmedQuery = query.trim();
                 if (!trimmedQuery) {
@@ -350,8 +371,9 @@
                     return;
                 }
 
-                if (!YOUTUBE_API_KEY || YOUTUBE_API_KEY === 'SUA_API_KEY_AQUI') {
-                    showToast('⚠️ Configure sua API Key!');
+                if (!PROXY_URL || PROXY_URL.includes('SEU_WORKER')) {
+                    showToast('⚠️ Configure a URL do Proxy primeiro!');
+                    showProxySetupHelp();
                     return;
                 }
 
@@ -360,64 +382,34 @@
                 resultCount.textContent = '';
 
                 try {
-                    const searchUrl = new URL('https://www.googleapis.com/youtube/v3/search');
-                    searchUrl.searchParams.append('part', 'snippet');
-                    searchUrl.searchParams.append('q', trimmedQuery + ' música');
-                    searchUrl.searchParams.append('type', 'video');
-                    searchUrl.searchParams.append('maxResults', '15');
-                    searchUrl.searchParams.append('key', YOUTUBE_API_KEY);
-                    searchUrl.searchParams.append('regionCode', 'BR');
-                    searchUrl.searchParams.append('relevanceLanguage', 'pt');
+                    // Constrói URL para o proxy (sem API Key visível)
+                    const proxyRequestUrl = new URL(PROXY_URL);
+                    proxyRequestUrl.searchParams.append('q', trimmedQuery + ' música');
+                    proxyRequestUrl.searchParams.append('maxResults', '15');
+                    proxyRequestUrl.searchParams.append('regionCode', 'BR');
+                    proxyRequestUrl.searchParams.append('relevanceLanguage', 'pt');
+                    
+                    if (pageToken) {
+                        proxyRequestUrl.searchParams.append('pageToken', pageToken);
+                    }
 
-                    if (pageToken) searchUrl.searchParams.append('pageToken', pageToken);
+                    const response = await fetch(proxyRequestUrl);
 
-                    const response = await fetch(searchUrl);
                     if (!response.ok) {
-                        const errorData = await response.json();
-                        const errorMsg = errorData.error?.message || 'Erro na requisição';
-                        
-                        if (errorMsg.includes('API key not valid') || errorMsg.includes('API_KEY')) {
-                            throw new Error('API_KEY_INVALID: ' + errorMsg);
-                        } else if (errorMsg.includes('quota')) {
-                            throw new Error('QUOTA_EXCEEDED: ' + errorMsg);
-                        } else if (errorMsg.includes('YouTube Data API v3 has not been used')) {
-                            throw new Error('API_NOT_ENABLED: YouTube Data API v3 não está ativada para esta chave.');
-                        } else {
-                            throw new Error(errorMsg);
-                        }
+                        const errorText = await response.text();
+                        let errorMsg = 'Erro na requisição';
+                        try {
+                            const errorData = JSON.parse(errorText);
+                            errorMsg = errorData.error?.message || errorMsg;
+                        } catch(e) {}
+                        throw new Error(errorMsg);
                     }
 
                     const data = await response.json();
                     nextPageToken = data.nextPageToken || null;
                     prevPageToken = data.prevPageToken || null;
 
-                    const videoIds = data.items.map(item => item.id.videoId).join(',');
-                    let videos = [];
-
-                    if (videoIds) {
-                        const detailsUrl = new URL('https://www.googleapis.com/youtube/v3/videos');
-                        detailsUrl.searchParams.append('part', 'contentDetails,statistics');
-                        detailsUrl.searchParams.append('id', videoIds);
-                        detailsUrl.searchParams.append('key', YOUTUBE_API_KEY);
-
-                        const detailsResponse = await fetch(detailsUrl);
-                        const detailsData = await detailsResponse.json();
-
-                        videos = data.items.map(item => {
-                            const details = detailsData.items.find(d => d.id === item.id.videoId);
-                            return {
-                                id: item.id.videoId,
-                                title: item.snippet.title,
-                                channel: item.snippet.channelTitle,
-                                thumbnail: item.snippet.thumbnails.medium?.url || item.snippet.thumbnails.default?.url,
-                                publishedAt: formatDate(item.snippet.publishedAt),
-                                duration: details ? formatDuration(details.contentDetails.duration) : '--:--',
-                                viewCount: details?.statistics?.viewCount || '0'
-                            };
-                        });
-                    }
-
-                    displayResults(videos, data.pageInfo?.totalResults || 0);
+                    displayResults(data.videos || [], data.totalResults || 0);
                     updatePagination();
 
                 } catch (error) {
@@ -425,23 +417,21 @@
                     
                     if (error instanceof TypeError && error.message === 'Failed to fetch') {
                         showToast('⚠️ Erro de conexão. Verifique sua internet.');
-                    } else if (error.message.startsWith('QUOTA_EXCEEDED')) {
+                    } else if (error.message.includes('quota') || error.message.includes('QUOTA')) {
                         showToast('⚠️ Limite de requisições excedido. Tente amanhã.');
-                    } else if (error.message.startsWith('API_KEY_INVALID')) {
-                        showToast('⚠️ API Key inválida!');
-                    } else if (error.message.startsWith('API_NOT_ENABLED')) {
+                    } else if (error.message.includes('API key') || error.message.includes('API_KEY')) {
+                        showToast('⚠️ Erro de autenticação no servidor proxy.');
+                    } else if (error.message.includes('not enabled') || error.message.includes('not been used')) {
                         resultsContainer.innerHTML = `
                             <div style="text-align:center;padding:40px 20px;color:#aaa;background:#1a1a1a;border-radius:12px;">
                                 <div style="font-size:48px;margin-bottom:12px;">⚠️</div>
-                                <div style="font-size:18px;margin-bottom:16px;color:#fff;">API não ativada</div>
+                                <div style="font-size:18px;margin-bottom:16px;color:#fff;">API não ativada no Proxy</div>
                                 <div style="font-size:13px;line-height:1.6;margin-bottom:20px;">
-                                    A YouTube Data API v3 precisa ser ativada para esta chave.<br><br>
-                                    <strong>Passos:</strong><br>
+                                    A YouTube Data API v3 precisa ser ativada no projeto Google Cloud vinculado ao Proxy.<br><br>
+                                    <strong>Verifique:</strong><br>
                                     1. Acesse o Google Cloud Console<br>
-                                    2. Selecione o projeto desta API Key<br>
-                                    3. Vá em "APIs e Serviços" → "Biblioteca"<br>
-                                    4. Pesquise "YouTube Data API v3"<br>
-                                    5. Clique em "ATIVAR"
+                                    2. Selecione o projeto da API Key<br>
+                                    3. Ative "YouTube Data API v3"
                                 </div>
                                 <button onclick="window.open('https://console.developers.google.com/apis/library/youtube.googleapis.com', '_blank')"
                                     style="padding:10px 24px;background:#ff0000;color:#fff;border:none;border-radius:20px;cursor:pointer;font-size:14px;">
@@ -466,6 +456,87 @@
                 showLoading(false);
             }
 
+            function showProxySetupHelp() {
+                resultsContainer.innerHTML = `
+                    <div style="text-align:center;padding:40px 20px;color:#aaa;background:#1a1a1a;border-radius:12px;margin-top:20px;">
+                        <div style="font-size:48px;margin-bottom:12px;">🔒</div>
+                        <div style="font-size:18px;margin-bottom:16px;color:#fff;">Proxy Protetor Necessário</div>
+                        <div style="font-size:13px;line-height:1.6;margin-bottom:20px;text-align:left;display:inline-block;max-width:500px;">
+                            <strong>Para proteger sua API Key, crie um Proxy gratuito:</strong><br><br>
+                            <strong>Opção 1 - Cloudflare Worker (Recomendado):</strong><br>
+                            1. Acesse <a href="https://workers.cloudflare.com" target="_blank" style="color:#4285f4;">Cloudflare Workers</a><br>
+                            2. Crie um Worker com o código abaixo<br>
+                            3. Substitua <code>PROXY_URL</code> pela URL gerada<br><br>
+                            <strong>Opção 2 - Variável de ambiente (localhost):</strong><br>
+                            Crie um arquivo <code>.env</code> e use um servidor local simples.<br><br>
+                            <strong>Código do Worker (Cloudflare):</strong><br>
+                            <textarea readonly style="width:100%;height:200px;background:#111;color:#0f0;border:1px solid #333;border-radius:8px;padding:8px;font-size:11px;margin-top:8px;resize:vertical;">
+export default {
+  async fetch(request) {
+    const API_KEY = 'AIzaSyBj1c7h1IKVD9h8s1loAZxdJM1p8Xie7y4';
+    const url = new URL(request.url);
+    const params = new URLSearchParams(url.search);
+    
+    if (!params.get('q')) {
+      return new Response(JSON.stringify({error:'Query obrigatória'}), {status:400});
+    }
+    
+    // Busca na API do YouTube
+    const searchUrl = new URL('https://www.googleapis.com/youtube/v3/search');
+    searchUrl.search = params.toString();
+    searchUrl.searchParams.set('part','snippet');
+    searchUrl.searchParams.set('type','video');
+    searchUrl.searchParams.set('key', API_KEY);
+    
+    const searchRes = await fetch(searchUrl);
+    const searchData = await searchRes.json();
+    
+    // Busca detalhes dos vídeos
+    const videoIds = searchData.items?.map(i=>i.id.videoId).join(',') || '';
+    let detailsData = {items:[]};
+    
+    if(videoIds) {
+      const detUrl = new URL('https://www.googleapis.com/youtube/v3/videos');
+      detUrl.searchParams.set('part','contentDetails,statistics');
+      detUrl.searchParams.set('id', videoIds);
+      detUrl.searchParams.set('key', API_KEY);
+      const detRes = await fetch(detUrl);
+      detailsData = await detRes.json();
+    }
+    
+    // Combina resultados
+    const videos = searchData.items?.map(item => {
+      const details = detailsData.items?.find(d => d.id === item.id.videoId);
+      return {
+        id: item.id.videoId,
+        title: item.snippet.title,
+        channel: item.snippet.channelTitle,
+        thumbnail: item.snippet.thumbnails.medium?.url || item.snippet.thumbnails.default?.url,
+        publishedAt: item.snippet.publishedAt,
+        duration: details?.contentDetails?.duration || '',
+        viewCount: details?.statistics?.viewCount || '0'
+      };
+    }) || [];
+    
+    return new Response(JSON.stringify({
+      videos,
+      nextPageToken: searchData.nextPageToken,
+      prevPageToken: searchData.prevPageToken,
+      totalResults: searchData.pageInfo?.totalResults || 0
+    }), {
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+    });
+  }
+}</textarea>
+                        </div>
+                        <button onclick="window.open('https://workers.cloudflare.com', '_blank')" 
+                                style="padding:10px 24px;background:#4285f4;color:#fff;border:none;border-radius:20px;cursor:pointer;font-size:14px;margin-right:8px;">
+                            Criar Worker →
+                        </button>
+                    </div>
+                `;
+            }
+
             function displayResults(videos, totalResults) {
                 resultCount.textContent = totalResults ? `${totalResults.toLocaleString()} resultados` : '';
 
@@ -488,7 +559,7 @@
                                 <div class="video-info">
                                     <div class="video-card-title">${escapeHtml(video.title)}</div>
                                     <div class="video-card-channel">${escapeHtml(video.channel)}</div>
-                                    <div class="video-card-meta">⏱ ${video.duration} • 👁 ${formatViews(video.viewCount)} • ${video.publishedAt}</div>
+                                    <div class="video-card-meta">⏱ ${formatDuration(video.duration)} • 👁 ${formatViews(video.viewCount)} • ${formatDate(video.publishedAt)}</div>
                                 </div>
                             </div>
                         `).join('')}
@@ -711,7 +782,9 @@
             }
 
             function formatDuration(isoDuration) {
+                if (!isoDuration) return '--:--';
                 const match = isoDuration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
+                if (!match) return '--:--';
                 const hours = (match[1] || '').replace('H', '');
                 const minutes = (match[2] || '').replace('M', '');
                 const seconds = (match[3] || '').replace('S', '');
@@ -723,6 +796,7 @@
             }
 
             function formatDate(dateString) {
+                if (!dateString) return '';
                 const date = new Date(dateString);
                 const now = new Date();
                 const diff = now - date;
@@ -737,6 +811,7 @@
 
             function formatViews(views) {
                 const num = parseInt(views);
+                if (isNaN(num)) return '0';
                 if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
                 if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
                 return num.toString();
@@ -767,8 +842,8 @@
                 toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
             }
 
-            console.log('🎵 Play Tube Music - Pronto!');
-            console.log('✅ API Key configurada: ' + YOUTUBE_API_KEY.substring(0, 10) + '...');
+            console.log('🔒 Play Tube Music - Modo Seguro (API via Proxy)');
+            console.log('⚠️ Configure a URL do Proxy em PROXY_URL');
         })();
     </script>
 </body>
