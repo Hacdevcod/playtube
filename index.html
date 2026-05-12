@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="theme-color" content="#0f0f0f">
-    <title>Play Tube - Player Avançado</title>
+    <title>Play Tube - PlayerTube</title>
     <style>
         :root {
             --yt-bg: #0f0f0f;
@@ -139,34 +139,7 @@
             font-size: 18px;
         }
 
-        /* Mode Selector */
-        .mode-selector {
-            display: flex;
-            gap: 8px;
-            padding: 8px 16px;
-            background: #1a1a1a;
-            border-bottom: 1px solid #303030;
-            overflow-x: auto;
-            white-space: nowrap;
-        }
-
-        .mode-btn {
-            padding: 6px 14px;
-            background: #272727;
-            border: none;
-            border-radius: 20px;
-            color: #fff;
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .mode-btn.active {
-            background: #ff0000;
-        }
-
-        /* Player Container - REDIMENSIONÁVEL */
+        /* Player Section */
         .player-section {
             position: relative;
             transition: all 0.3s ease;
@@ -479,12 +452,6 @@
         </div>
     </div>
 
-    <div class="mode-selector">
-        <button class="mode-btn active" data-mode="invidious">🌐 Invidious</button>
-        <button class="mode-btn" data-mode="piped">📡 Piped</button>
-        <button class="mode-btn" data-mode="download">⬇ Download</button>
-    </div>
-
     <div class="player-section">
         <div class="player-wrapper" id="playerWrapper">
             <div id="playerContainer" style="width:100%;height:100%;">
@@ -505,7 +472,7 @@
         <div class="video-meta">
             <div class="action-btns">
                 <button class="action-chip primary" onclick="openDownloadSheet()">⬇ MP3</button>
-                <button class="action-chip" onclick="refreshServer()">🔄 Trocar</button>
+                <button class="action-chip" onclick="refreshVideo()">🔄 Recarregar</button>
             </div>
         </div>
     </div>
@@ -513,8 +480,8 @@
     <div class="channel-row">
         <div class="channel-avatar" id="channelAvatar">🎵</div>
         <div class="channel-info">
-            <div class="channel-name" id="channelName">Play Tube</div>
-            <div class="channel-subs" id="channelSubs">Player Avançado</div>
+            <div class="channel-name" id="channelName">PlayerTube</div>
+            <div class="channel-subs" id="channelSubs">Player Otimizado</div>
         </div>
         <button class="action-chip" onclick="addAfterT()">🔗 Add-t</button>
     </div>
@@ -532,29 +499,13 @@
 
     <script>
         // ============================================
-        // PLAY TUBE PRO - PiP + BG + REDIMENSIONAMENTO
+        // PLAYER TUBE - PLAYER OTIMIZADO
+        // PiP + BG + MINI PLAYER
         // ============================================
 
         let currentVideoId = null;
-        let currentMode = 'invidious';
-        let serverIndex = 0;
         let isMiniPlayer = false;
-        let pipWindow = null;
-        let backgroundAudio = null;
         let isBackgroundMode = false;
-
-        // Servidores funcionais
-        const INVIDIOUS_SERVERS = [
-            'https://inv.riverside.rocks',
-            'https://inv.vern.cc',
-            'https://invidious.flokinet.to',
-            'https://invidious.nerdvpn.de'
-        ];
-
-        const PIPED_SERVERS = [
-            'https://piped.video',
-            'https://piped.kavin.rocks'
-        ];
 
         // ===== UTILS =====
         function extractVideoId(url) {
@@ -570,36 +521,67 @@
             setTimeout(() => toast.classList.remove('show'), 2500);
         }
 
-        // ===== CARREGAR VÍDEO =====
+        // ===== PLAYER TUBE - CARREGAR VÍDEO =====
         function loadVideo() {
             const url = document.getElementById('urlInput').value.trim();
-            if (!url) { showToast('Cole uma URL'); return; }
+            if (!url) {
+                showToast('Cole uma URL do YouTube');
+                return;
+            }
 
             const videoId = extractVideoId(url);
-            if (!videoId) { showToast('URL inválida'); return; }
+            if (!videoId) {
+                showToast('URL inválida');
+                return;
+            }
 
             currentVideoId = videoId;
             document.getElementById('videoTitle').textContent = `Carregando...`;
             localStorage.setItem('lastVideoId', videoId);
             
-            loadWithMode(videoId);
+            // PlayerTube - Embed otimizado do YouTube
+            const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=1&playsinline=1&rel=0&modestbranding=1`;
+            
+            document.getElementById('playerContainer').innerHTML = `
+                <iframe id="videoFrame" 
+                    src="${embedUrl}"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                    allowfullscreen
+                    style="width:100%;height:100%;border:none;">
+                </iframe>
+            `;
+            
+            document.getElementById('videoTitle').textContent = `Vídeo: ${videoId}`;
             loadThumbnail(videoId);
+            fetchVideoTitle(videoId);
+            showToast('🎬 PlayerTube - Vídeo carregado');
         }
 
-        function loadWithMode(videoId) {
-            if (currentMode === 'invidious') {
-                loadInvidious(videoId);
-            } else if (currentMode === 'piped') {
-                loadPiped(videoId);
-            } else if (currentMode === 'download') {
-                showDownloadOption(videoId);
+        // ===== BUSCAR TÍTULO DO VÍDEO =====
+        async function fetchVideoTitle(videoId) {
+            try {
+                const response = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('videoTitle').textContent = data.title || `Vídeo: ${videoId}`;
+                    document.getElementById('channelName').textContent = data.author_name || 'Canal';
+                }
+            } catch (e) {
+                // Mantém o título padrão
             }
         }
 
-        function loadInvidious(videoId) {
-            const server = INVIDIOUS_SERVERS[serverIndex % INVIDIOUS_SERVERS.length];
-            const embedUrl = `${server}/embed/${videoId}?autoplay=1`;
-            
+        function loadThumbnail(videoId) {
+            const avatar = document.getElementById('channelAvatar');
+            avatar.innerHTML = `<img src="https://i.ytimg.com/vi/${videoId}/default.jpg">`;
+        }
+
+        function refreshVideo() {
+            if (!currentVideoId) {
+                showToast('Carregue um vídeo primeiro');
+                return;
+            }
+            const embedUrl = `https://www.youtube.com/embed/${currentVideoId}?autoplay=1&enablejsapi=1&playsinline=1&rel=0`;
             document.getElementById('playerContainer').innerHTML = `
                 <iframe id="videoFrame" 
                     src="${embedUrl}"
@@ -608,36 +590,7 @@
                     style="width:100%;height:100%;border:none;">
                 </iframe>
             `;
-            
-            document.getElementById('videoTitle').textContent = `Vídeo: ${videoId}`;
-            showToast(`🌐 ${new URL(server).hostname}`);
-        }
-
-        function loadPiped(videoId) {
-            const server = PIPED_SERVERS[serverIndex % PIPED_SERVERS.length];
-            const embedUrl = `${server}/embed/${videoId}?autoplay=1`;
-            
-            document.getElementById('playerContainer').innerHTML = `
-                <iframe id="videoFrame" 
-                    src="${embedUrl}"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                    allowfullscreen
-                    style="width:100%;height:100%;border:none;">
-                </iframe>
-            `;
-            
-            document.getElementById('videoTitle').textContent = `Vídeo: ${videoId}`;
-            showToast(`📡 ${new URL(server).hostname}`);
-        }
-
-        function showDownloadOption(videoId) {
-            document.getElementById('playerContainer').innerHTML = `
-                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;background:#0a0a0a;gap:16px;">
-                    <div style="font-size:48px;">🎬</div>
-                    <button onclick="downloadVideo()" style="padding:12px 24px;background:#ff0000;border:none;border-radius:24px;color:#fff;">⬇ Baixar</button>
-                    <button onclick="openInYouTube()" style="padding:12px 24px;background:#333;border:none;border-radius:24px;color:#fff;">🎬 YouTube</button>
-                </div>
-            `;
+            showToast('🔄 Vídeo recarregado');
         }
 
         // ===== PICTURE-IN-PICTURE (NATIVO) =====
@@ -663,30 +616,21 @@
 
         // ===== MODO BACKGROUND (IGUAL SPOTIFY) =====
         function enableBackgroundMode() {
-            const video = document.querySelector('#videoFrame');
-            if (!video) {
-                showToast('Carregue um vídeo primeiro');
-                return;
-            }
-
             isBackgroundMode = !isBackgroundMode;
             const bgBtn = document.getElementById('bgBtn');
             
             if (isBackgroundMode) {
-                // Tenta extrair áudio do vídeo para background
                 showToast('🎵 Modo background ativado - Áudio continua');
                 bgBtn.style.background = '#ff0000';
+                bgBtn.style.transform = 'scale(1.1)';
                 
                 // Configura MediaSession (controles do sistema)
                 if ('mediaSession' in navigator) {
                     navigator.mediaSession.metadata = new MediaMetadata({
                         title: document.getElementById('videoTitle').textContent,
-                        artist: 'Play Tube',
+                        artist: 'PlayerTube',
                         artwork: [{ src: `https://i.ytimg.com/vi/${currentVideoId}/default.jpg` }]
                     });
-                    
-                    navigator.mediaSession.setActionHandler('play', () => {});
-                    navigator.mediaSession.setActionHandler('pause', () => {});
                 }
                 
                 // Evita tela desligar no mobile
@@ -696,6 +640,7 @@
             } else {
                 showToast('🎵 Modo background desativado');
                 bgBtn.style.background = '';
+                bgBtn.style.transform = '';
             }
         }
 
@@ -785,7 +730,7 @@
             if (currentVideoId) {
                 window.open(`https://yt5s.com/en?url=https://www.youtube.com/watch?v=${currentVideoId}`, '_blank');
                 closeDownloadSheet();
-                showToast('⬇ Download iniciado');
+                showToast('⬇ Download de vídeo iniciado');
             }
         }
 
@@ -803,37 +748,27 @@
             }
         }
 
-        function refreshServer() {
-            if (!currentVideoId) {
-                showToast('Carregue um vídeo');
-                return;
-            }
-            serverIndex++;
-            loadWithMode(currentVideoId);
-            showToast('🔄 Trocando servidor...');
-        }
-
-        // ===== INFO =====
-        function loadThumbnail(videoId) {
-            const avatar = document.getElementById('channelAvatar');
-            avatar.innerHTML = `<img src="https://i.ytimg.com/vi/${videoId}/default.jpg">`;
-        }
-
+        // ===== COMPARTILHAR =====
         function shareVideo() {
             if (currentVideoId) {
                 navigator.clipboard.writeText(`https://www.youtube.com/watch?v=${currentVideoId}`);
-                showToast('📋 Link copiado');
+                showToast('📋 Link copiado!');
+            } else {
+                showToast('Carregue um vídeo primeiro');
             }
         }
 
         function addAfterT() {
             const input = document.getElementById('urlInput');
             let url = input.value.trim();
-            if (!url) return;
+            if (!url) {
+                showToast('Insira uma URL');
+                return;
+            }
             const modified = url.replace('youtube.com', 'youtaddube.com');
             input.value = modified;
             navigator.clipboard.writeText(modified);
-            showToast('🔗 Link transformado');
+            showToast('🔗 Link transformado copiado!');
         }
 
         // ===== BOTTOM SHEET =====
@@ -852,17 +787,7 @@
             if (e.key === 'Enter') loadVideo();
         });
 
-        document.querySelectorAll('.mode-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentMode = btn.dataset.mode;
-                if (currentVideoId) loadWithMode(currentVideoId);
-                showToast(`Modo: ${btn.textContent}`);
-            });
-        });
-
-        // Swipe
+        // Swipe para fechar bottom sheet
         let touchStart = 0;
         const sheet = document.getElementById('downloadSheet');
         sheet.addEventListener('touchstart', (e) => {
@@ -879,21 +804,25 @@
             document.getElementById('urlInput').value = `https://www.youtube.com/watch?v=${lastVideo}`;
         }
 
-        // Expor funções globais
+        // Expor funções globalmente
+        window.loadVideo = loadVideo;
+        window.refreshVideo = refreshVideo;
         window.togglePictureInPicture = togglePictureInPicture;
         window.enableBackgroundMode = enableBackgroundMode;
         window.toggleMiniPlayer = toggleMiniPlayer;
         window.downloadVideo = downloadVideo;
         window.downloadAudio = downloadAudio;
         window.openInYouTube = openInYouTube;
-        window.refreshServer = refreshServer;
         window.shareVideo = shareVideo;
         window.addAfterT = addAfterT;
         window.openDownloadSheet = openDownloadSheet;
         window.closeDownloadSheet = closeDownloadSheet;
-        window.loadVideo = loadVideo;
 
-        console.log('✅ Play Tube PRO - PiP Nativo + Background + Mini Player');
+        console.log('✅ PlayerTube - Player Otimizado');
+        console.log('   - Picture-in-Picture nativo');
+        console.log('   - Modo Background (Spotify style)');
+        console.log('   - Mini player redimensionável');
+        console.log('   - Download de vídeo/MP3');
     </script>
 </body>
 </html>
