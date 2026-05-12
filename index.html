@@ -33,7 +33,6 @@
             min-height: 100vh;
         }
 
-        /* Top Bar */
         .topbar {
             position: sticky;
             top: 0;
@@ -47,49 +46,27 @@
             z-index: 100;
         }
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
+        .logo { display: flex; align-items: center; gap: 8px; }
         .logo-icon {
-            width: 36px;
-            height: 36px;
+            width: 36px; height: 36px;
             background: #ff0000;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             font-size: 18px;
         }
-
-        .logo-text {
-            font-size: 20px;
-            font-weight: 700;
-        }
-
-        .spacer {
-            flex: 1;
-        }
+        .logo-text { font-size: 20px; font-weight: 700; }
+        .spacer { flex: 1; }
 
         .icon-btn {
-            width: 40px;
-            height: 40px;
+            width: 40px; height: 40px;
             border-radius: 50%;
-            background: none;
-            border: none;
-            color: #fff;
-            font-size: 20px;
+            background: none; border: none;
+            color: #fff; font-size: 20px;
             cursor: pointer;
             transition: background 0.2s;
         }
+        .icon-btn:active { background: var(--yt-surface2); }
 
-        .icon-btn:active {
-            background: var(--yt-surface2);
-        }
-
-        /* Search Bar */
         .search-section {
             padding: 12px 16px;
             background: var(--yt-bg);
@@ -105,340 +82,170 @@
         }
 
         .search-box input {
-            flex: 1;
-            padding: 12px 16px;
-            background: transparent;
-            border: none;
-            color: #fff;
-            font-size: 16px;
+            flex: 1; padding: 12px 16px;
+            background: transparent; border: none;
+            color: #fff; font-size: 16px;
             outline: none;
         }
-
-        .search-box input::placeholder {
-            color: var(--yt-gray2);
-        }
+        .search-box input::placeholder { color: var(--yt-gray2); }
 
         .search-btn {
             width: 48px;
             background: var(--yt-surface2);
-            border: none;
-            color: #fff;
-            cursor: pointer;
-            font-size: 18px;
+            border: none; color: #fff;
+            cursor: pointer; font-size: 18px;
             transition: background 0.2s;
         }
+        .search-btn:active { background: #444; }
 
-        .search-btn:active {
-            background: #444;
-        }
-
-        /* Player Container */
-        .player-container {
-            position: relative;
-            width: 100%;
-            background: #000;
-        }
+        .player-container { position: relative; width: 100%; background: #000; }
 
         .player-wrapper {
-            width: 100%;
-            aspect-ratio: 16/9;
+            width: 100%; aspect-ratio: 16/9;
             position: relative;
             transition: all 0.3s ease;
         }
+        .player-wrapper iframe { width: 100%; height: 100%; border: none; }
 
-        .player-wrapper iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        /* Botões flutuantes do player */
         .player-buttons {
-            position: absolute;
-            bottom: 16px;
-            right: 16px;
-            display: flex;
-            gap: 12px;
-            z-index: 20;
+            position: absolute; bottom: 16px; right: 16px;
+            display: flex; gap: 12px; z-index: 20;
         }
 
         .float-btn {
-            width: 44px;
-            height: 44px;
+            width: 44px; height: 44px;
             border-radius: 50%;
             background: rgba(0,0,0,0.75);
-            border: none;
-            color: #fff;
-            font-size: 20px;
+            border: none; color: #fff; font-size: 20px;
             cursor: pointer;
             backdrop-filter: blur(4px);
             transition: transform 0.2s, background 0.2s;
         }
-
-        .float-btn:active {
-            transform: scale(0.95);
-        }
-
-        .float-btn.download {
-            background: #ff0000;
-        }
-
-        .float-btn.download:active {
-            background: #cc0000;
-        }
+        .float-btn:active { transform: scale(0.95); }
+        .float-btn.download { background: #ff0000; }
+        .float-btn.download:active { background: #cc0000; }
 
         .mini-toggle {
-            position: absolute;
-            top: 8px;
-            right: 56px;
-            width: 32px;
-            height: 32px;
+            position: absolute; top: 8px; right: 56px;
+            width: 32px; height: 32px;
             border-radius: 50%;
             background: rgba(0,0,0,0.6);
-            border: none;
-            color: #fff;
-            font-size: 14px;
-            cursor: pointer;
-            z-index: 20;
+            border: none; color: #fff; font-size: 14px;
+            cursor: pointer; z-index: 20;
             transition: right 0.3s;
         }
 
-        /* Mini Player */
         .player-wrapper.mini {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 300px;
-            height: 169px;
-            z-index: 1000;
-            border-radius: 12px;
+            position: fixed; bottom: 20px; right: 20px;
+            width: 300px; height: 169px;
+            z-index: 1000; border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 4px 20px rgba(0,0,0,0.6);
             cursor: grab;
             animation: slideIn 0.3s ease;
         }
-
-        .player-wrapper.mini:active {
-            cursor: grabbing;
-        }
-
-        .player-wrapper.mini .mini-toggle {
-            right: 8px;
-        }
-
-        .player-wrapper.mini .float-btn {
-            width: 36px;
-            height: 36px;
-            font-size: 16px;
-        }
+        .player-wrapper.mini:active { cursor: grabbing; }
+        .player-wrapper.mini .mini-toggle { right: 8px; }
+        .player-wrapper.mini .float-btn { width: 36px; height: 36px; font-size: 16px; }
 
         @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
 
-        /* Resultados da Busca */
-        .results-section {
-            padding: 16px;
-        }
+        .results-section { padding: 16px; }
 
         .section-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 12px;
-            padding-left: 4px;
-            display: flex;
-            align-items: center;
+            font-size: 18px; font-weight: 600;
+            margin-bottom: 12px; padding-left: 4px;
+            display: flex; align-items: center;
             justify-content: space-between;
         }
-
-        .result-count {
-            font-size: 12px;
-            color: var(--yt-gray2);
-            font-weight: 400;
-        }
+        .result-count { font-size: 12px; color: var(--yt-gray2); font-weight: 400; }
 
         .video-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            max-height: 500px;
-            overflow-y: auto;
-            padding-bottom: 16px;
+            display: flex; flex-direction: column;
+            gap: 12px; max-height: 500px;
+            overflow-y: auto; padding-bottom: 16px;
         }
 
         .video-card {
-            display: flex;
-            gap: 12px;
+            display: flex; gap: 12px;
             background: var(--yt-surface);
-            border-radius: 12px;
-            padding: 8px;
+            border-radius: 12px; padding: 8px;
             cursor: pointer;
             transition: background 0.2s, transform 0.1s;
         }
-
-        .video-card:hover {
-            background: var(--yt-surface2);
-        }
-
-        .video-card:active {
-            background: var(--yt-surface2);
-            transform: scale(0.98);
-        }
+        .video-card:hover { background: var(--yt-surface2); }
+        .video-card:active { background: var(--yt-surface2); transform: scale(0.98); }
 
         .video-thumb {
-            width: 120px;
-            height: 68px;
-            border-radius: 8px;
-            background: #333;
-            object-fit: cover;
-            flex-shrink: 0;
+            width: 120px; height: 68px;
+            border-radius: 8px; background: #333;
+            object-fit: cover; flex-shrink: 0;
         }
 
         .video-info {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            min-width: 0;
+            flex: 1; display: flex; flex-direction: column;
+            justify-content: center; min-width: 0;
         }
 
         .video-card-title {
-            font-size: 14px;
-            font-weight: 500;
-            margin-bottom: 4px;
-            line-height: 1.3;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            font-size: 14px; font-weight: 500;
+            margin-bottom: 4px; line-height: 1.3;
+            overflow: hidden; text-overflow: ellipsis;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
         }
+        .video-card-channel { font-size: 12px; color: var(--yt-gray); }
+        .video-card-meta { font-size: 11px; color: var(--yt-gray2); margin-top: 2px; }
 
-        .video-card-channel {
-            font-size: 12px;
-            color: var(--yt-gray);
-        }
-
-        .video-card-meta {
-            font-size: 11px;
-            color: var(--yt-gray2);
-            margin-top: 2px;
-        }
-
-        /* Loading */
-        .loading {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--yt-gray);
-        }
+        .loading { text-align: center; padding: 40px 20px; color: var(--yt-gray); }
 
         .spinner {
-            width: 40px;
-            height: 40px;
+            width: 40px; height: 40px;
             border: 3px solid #333;
             border-top-color: #ff0000;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 10px;
         }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Toast */
         .toast {
-            position: fixed;
-            bottom: 100px;
-            left: 50%;
+            position: fixed; bottom: 100px; left: 50%;
             transform: translateX(-50%) translateY(120px);
-            background: #333;
-            color: #fff;
-            padding: 12px 24px;
-            border-radius: 24px;
-            font-size: 13px;
-            z-index: 300;
+            background: #333; color: #fff;
+            padding: 12px 24px; border-radius: 24px;
+            font-size: 13px; z-index: 300;
             transition: transform 0.3s ease;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 90vw;
+            white-space: nowrap; overflow: hidden;
+            text-overflow: ellipsis; max-width: 90vw;
         }
+        .toast.show { transform: translateX(-50%) translateY(0); }
 
-        .toast.show {
-            transform: translateX(-50%) translateY(0);
-        }
-
-        /* Botão próxima página */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            padding: 16px;
-        }
-
+        .pagination { display: flex; justify-content: center; gap: 12px; padding: 16px; }
         .pagination button {
             padding: 10px 20px;
             background: var(--yt-surface);
             border: 1px solid var(--yt-border);
-            color: #fff;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 14px;
+            color: #fff; border-radius: 20px;
+            cursor: pointer; font-size: 14px;
             transition: background 0.2s;
         }
+        .pagination button:hover { background: var(--yt-surface2); }
+        .pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .pagination .page-info { color: var(--yt-gray); font-size: 12px; display: flex; align-items: center; }
 
-        .pagination button:hover {
-            background: var(--yt-surface2);
-        }
-
-        .pagination button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .pagination .page-info {
-            color: var(--yt-gray);
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-        }
-
-        /* Scrollbar */
-        .video-grid::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        .video-grid::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .video-grid::-webkit-scrollbar-thumb {
-            background: var(--yt-border);
-            border-radius: 4px;
-        }
+        .video-grid::-webkit-scrollbar { width: 4px; }
+        .video-grid::-webkit-scrollbar-track { background: transparent; }
+        .video-grid::-webkit-scrollbar-thumb { background: var(--yt-border); border-radius: 4px; }
 
         @media (max-width: 400px) {
-            .video-thumb {
-                width: 100px;
-                height: 56px;
-            }
-            .video-card-title {
-                font-size: 12px;
-            }
-            .player-wrapper.mini {
-                width: 260px;
-                height: 146px;
-                bottom: 10px;
-                right: 10px;
-            }
+            .video-thumb { width: 100px; height: 56px; }
+            .video-card-title { font-size: 12px; }
+            .player-wrapper.mini { width: 260px; height: 146px; bottom: 10px; right: 10px; }
         }
     </style>
 </head>
@@ -453,7 +260,6 @@
         <button class="icon-btn" id="fullscreenBtn" title="Tela cheia">⛶</button>
     </div>
 
-    <!-- Campo de Busca -->
     <div class="search-section">
         <div class="search-box">
             <input type="text" id="searchInput" placeholder="🔍 Buscar música, artista ou banda..." autocomplete="off">
@@ -461,7 +267,6 @@
         </div>
     </div>
 
-    <!-- Player Principal -->
     <div class="player-container">
         <div class="player-wrapper" id="playerWrapper">
             <div id="player"></div>
@@ -473,7 +278,6 @@
         </div>
     </div>
 
-    <!-- Resultados da Busca -->
     <div class="results-section">
         <div class="section-title">
             <span>🎵 Resultados</span>
@@ -491,14 +295,10 @@
 
     <div class="toast" id="toast"></div>
 
-    <!-- YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
 
     <script>
-        // ============================================
-        // CALLBACK GLOBAL - YouTube IFrame API
-        // Deve estar no escopo global
-        // ============================================
+        // Callback global da YouTube IFrame API
         function onYouTubeIframeAPIReady() {
             console.log('🎵 YouTube IFrame API pronta');
         }
@@ -506,13 +306,8 @@
         (function() {
             'use strict';
 
-            // ============================================
-            // PLAY TUBE MUSIC - API YOUTUBE DATA V3
-            // ============================================
-
-            // ⚠️ SUBSTITUA PELA SUA API KEY DO YOUTUBE DATA V3
-            // Obtenha em: https://console.cloud.google.com/apis/credentials
-            const YOUTUBE_API_KEY = 'SUA_API_KEY_AQUI';
+            // API Key configurada
+            const YOUTUBE_API_KEY = 'AIzaSyAZcgX4m8A1j60b91nLzCLBvzPIXsUaPWE';
 
             let currentVideoId = null;
             let currentVideoTitle = '';
@@ -523,7 +318,6 @@
             let currentQuery = '';
             let ytPlayer = null;
 
-            // ===== ELEMENTOS DOM =====
             const searchInput = document.getElementById('searchInput');
             const searchBtn = document.getElementById('searchBtn');
             const resultsContainer = document.getElementById('resultsContainer');
@@ -535,38 +329,29 @@
             const shareBtn = document.getElementById('shareBtn');
             const fullscreenBtn = document.getElementById('fullscreenBtn');
 
-            // ===== EVENT LISTENERS =====
-            searchBtn.addEventListener('click', () => {
+            searchBtn.addEventListener('click', () => performSearch());
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') performSearch();
+            });
+            shareBtn.addEventListener('click', shareVideo);
+            fullscreenBtn.addEventListener('click', toggleFullscreen);
+
+            function performSearch() {
                 currentQuery = searchInput.value;
                 nextPageToken = null;
                 prevPageToken = null;
                 searchYouTube(currentQuery);
-            });
+            }
 
-            searchInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    currentQuery = searchInput.value;
-                    nextPageToken = null;
-                    prevPageToken = null;
-                    searchYouTube(currentQuery);
-                }
-            });
-
-            shareBtn.addEventListener('click', shareVideo);
-            fullscreenBtn.addEventListener('click', toggleFullscreen);
-
-            // ===== API YOUTUBE DATA V3 =====
             async function searchYouTube(query, pageToken = null) {
                 const trimmedQuery = query.trim();
-
                 if (!trimmedQuery) {
                     showToast('⚠️ Digite uma música para buscar');
                     return;
                 }
 
                 if (!YOUTUBE_API_KEY || YOUTUBE_API_KEY === 'SUA_API_KEY_AQUI') {
-                    showToast('⚠️ Configure sua API Key do YouTube!');
-                    showApiKeyHelp();
+                    showToast('⚠️ Configure sua API Key!');
                     return;
                 }
 
@@ -584,26 +369,31 @@
                     searchUrl.searchParams.append('regionCode', 'BR');
                     searchUrl.searchParams.append('relevanceLanguage', 'pt');
 
-                    if (pageToken) {
-                        searchUrl.searchParams.append('pageToken', pageToken);
-                    }
+                    if (pageToken) searchUrl.searchParams.append('pageToken', pageToken);
 
                     const response = await fetch(searchUrl);
-
                     if (!response.ok) {
                         const errorData = await response.json();
-                        throw new Error(errorData.error?.message || 'Erro na requisição');
+                        const errorMsg = errorData.error?.message || 'Erro na requisição';
+                        
+                        if (errorMsg.includes('API key not valid') || errorMsg.includes('API_KEY')) {
+                            throw new Error('API_KEY_INVALID: ' + errorMsg);
+                        } else if (errorMsg.includes('quota')) {
+                            throw new Error('QUOTA_EXCEEDED: ' + errorMsg);
+                        } else if (errorMsg.includes('YouTube Data API v3 has not been used')) {
+                            throw new Error('API_NOT_ENABLED: YouTube Data API v3 não está ativada para esta chave.');
+                        } else {
+                            throw new Error(errorMsg);
+                        }
                     }
 
                     const data = await response.json();
-
-                    // Atualiza tokens de paginação
                     nextPageToken = data.nextPageToken || null;
                     prevPageToken = data.prevPageToken || null;
 
-                    // Busca detalhes adicionais (duração) dos vídeos
                     const videoIds = data.items.map(item => item.id.videoId).join(',');
-                    
+                    let videos = [];
+
                     if (videoIds) {
                         const detailsUrl = new URL('https://www.googleapis.com/youtube/v3/videos');
                         detailsUrl.searchParams.append('part', 'contentDetails,statistics');
@@ -613,8 +403,7 @@
                         const detailsResponse = await fetch(detailsUrl);
                         const detailsData = await detailsResponse.json();
 
-                        // Combina os dados
-                        var videos = data.items.map(item => {
+                        videos = data.items.map(item => {
                             const details = detailsData.items.find(d => d.id === item.id.videoId);
                             return {
                                 id: item.id.videoId,
@@ -626,32 +415,50 @@
                                 viewCount: details?.statistics?.viewCount || '0'
                             };
                         });
-                    } else {
-                        var videos = [];
                     }
 
                     displayResults(videos, data.pageInfo?.totalResults || 0);
                     updatePagination();
 
                 } catch (error) {
-                    console.error('Erro na busca:', error);
+                    console.error('Erro:', error);
                     
                     if (error instanceof TypeError && error.message === 'Failed to fetch') {
                         showToast('⚠️ Erro de conexão. Verifique sua internet.');
-                    } else if (error.message.includes('quota')) {
-                        showToast('⚠️ Limite de requisições atingido. Tente mais tarde.');
-                    } else if (error.message.includes('API key not valid') || error.message.includes('API_KEY')) {
-                        showToast('⚠️ API Key inválida! Configure corretamente.');
-                        showApiKeyHelp();
+                    } else if (error.message.startsWith('QUOTA_EXCEEDED')) {
+                        showToast('⚠️ Limite de requisições excedido. Tente amanhã.');
+                    } else if (error.message.startsWith('API_KEY_INVALID')) {
+                        showToast('⚠️ API Key inválida!');
+                    } else if (error.message.startsWith('API_NOT_ENABLED')) {
+                        resultsContainer.innerHTML = `
+                            <div style="text-align:center;padding:40px 20px;color:#aaa;background:#1a1a1a;border-radius:12px;">
+                                <div style="font-size:48px;margin-bottom:12px;">⚠️</div>
+                                <div style="font-size:18px;margin-bottom:16px;color:#fff;">API não ativada</div>
+                                <div style="font-size:13px;line-height:1.6;margin-bottom:20px;">
+                                    A YouTube Data API v3 precisa ser ativada para esta chave.<br><br>
+                                    <strong>Passos:</strong><br>
+                                    1. Acesse o Google Cloud Console<br>
+                                    2. Selecione o projeto desta API Key<br>
+                                    3. Vá em "APIs e Serviços" → "Biblioteca"<br>
+                                    4. Pesquise "YouTube Data API v3"<br>
+                                    5. Clique em "ATIVAR"
+                                </div>
+                                <button onclick="window.open('https://console.developers.google.com/apis/library/youtube.googleapis.com', '_blank')"
+                                    style="padding:10px 24px;background:#ff0000;color:#fff;border:none;border-radius:20px;cursor:pointer;font-size:14px;">
+                                    Ativar API →
+                                </button>
+                            </div>
+                        `;
+                        return;
                     } else {
-                        showToast('⚠️ Erro na busca: ' + error.message);
+                        showToast('⚠️ ' + error.message);
                     }
                     
                     resultsContainer.innerHTML = `
                         <div style="text-align:center;padding:40px 20px;color:#aaa;">
                             <div style="font-size:48px;margin-bottom:12px;">😢</div>
                             <div style="font-size:16px;margin-bottom:8px;">Erro ao buscar "${escapeHtml(trimmedQuery)}"</div>
-                            <div style="font-size:12px;color:#ff4444;max-width:400px;margin:0 auto;">${escapeHtml(error.message)}</div>
+                            <div style="font-size:12px;color:#ff4444;">${escapeHtml(error.message)}</div>
                         </div>
                     `;
                 }
@@ -677,24 +484,17 @@
                     <div class="video-grid">
                         ${videos.map(video => `
                             <div class="video-card" onclick="playVideoById('${video.id}', '${escapeHtml(video.title)}', '${escapeHtml(video.channel)}')" title="${escapeHtml(video.title)}">
-                                <img class="video-thumb" 
-                                     src="${video.thumbnail}" 
-                                     alt="${escapeHtml(video.title)}"
-                                     loading="lazy"
-                                     onerror="this.style.opacity='0.3'">
+                                <img class="video-thumb" src="${video.thumbnail}" alt="${escapeHtml(video.title)}" loading="lazy" onerror="this.style.opacity='0.3'">
                                 <div class="video-info">
                                     <div class="video-card-title">${escapeHtml(video.title)}</div>
                                     <div class="video-card-channel">${escapeHtml(video.channel)}</div>
-                                    <div class="video-card-meta">
-                                        ⏱ ${video.duration} • 👁 ${formatViews(video.viewCount)} • ${video.publishedAt}
-                                    </div>
+                                    <div class="video-card-meta">⏱ ${video.duration} • 👁 ${formatViews(video.viewCount)} • ${video.publishedAt}</div>
                                 </div>
                             </div>
                         `).join('')}
                     </div>
                 `;
 
-                // Scroll para os resultados
                 document.querySelector('.results-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
 
@@ -703,20 +503,14 @@
                     paginationContainer.style.display = 'none';
                     return;
                 }
-
                 paginationContainer.style.display = 'flex';
                 paginationContainer.innerHTML = `
-                    <button onclick="searchPage('prev')" ${!prevPageToken ? 'disabled' : ''}>
-                        ⬅ Anterior
-                    </button>
+                    <button onclick="searchPage('prev')" ${!prevPageToken ? 'disabled' : ''}>⬅ Anterior</button>
                     <span class="page-info">Página</span>
-                    <button onclick="searchPage('next')" ${!nextPageToken ? 'disabled' : ''}>
-                        Próximo ➡
-                    </button>
+                    <button onclick="searchPage('next')" ${!nextPageToken ? 'disabled' : ''}>Próximo ➡</button>
                 `;
             }
 
-            // ===== FUNÇÕES GLOBAIS (atribuídas ao window) =====
             window.searchPage = function(direction) {
                 const token = direction === 'next' ? nextPageToken : prevPageToken;
                 if (token && currentQuery) {
@@ -725,46 +519,18 @@
                 }
             };
 
-            function showApiKeyHelp() {
-                resultsContainer.innerHTML = `
-                    <div style="text-align:center;padding:40px 20px;color:#aaa;background:#1a1a1a;border-radius:12px;margin-top:20px;">
-                        <div style="font-size:48px;margin-bottom:12px;">🔑</div>
-                        <div style="font-size:18px;margin-bottom:16px;color:#fff;">API Key Necessária</div>
-                        <div style="font-size:13px;line-height:1.6;margin-bottom:20px;text-align:left;display:inline-block;max-width:400px;">
-                            <strong>Como obter uma API Key gratuita:</strong><br><br>
-                            1. Acesse: <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color:#4285f4;">Google Cloud Console</a><br>
-                            2. Crie um projeto<br>
-                            3. Ative a "YouTube Data API v3"<br>
-                            4. Crie uma credencial "API Key"<br>
-                            5. Cole a chave no código (variável YOUTUBE_API_KEY)<br><br>
-                            <em style="color:#717171;">Limite gratuito: 10.000 requisições/dia</em>
-                        </div>
-                        <button onclick="window.open('https://console.cloud.google.com/apis/credentials', '_blank')" 
-                                style="padding:10px 24px;background:#ff0000;color:#fff;border:none;border-radius:20px;cursor:pointer;font-size:14px;">
-                            Obter API Key →
-                        </button>
-                    </div>
-                `;
-            }
-
-            // ===== PLAYER COM YOUTUBE IFRAME API =====
             window.playVideoById = function(videoId, title, channel) {
                 currentVideoId = videoId;
                 currentVideoTitle = title;
                 
-                if (ytPlayer) {
-                    ytPlayer.destroy();
-                }
+                if (ytPlayer) ytPlayer.destroy();
 
                 ytPlayer = new YT.Player('player', {
                     videoId: videoId,
                     playerVars: {
-                        autoplay: 1,
-                        playsinline: 1,
-                        rel: 0,
-                        modestbranding: 1,
-                        controls: 1,
-                        fs: 1,
+                        autoplay: 1, playsinline: 1,
+                        rel: 0, modestbranding: 1,
+                        controls: 1, fs: 1,
                         iv_load_policy: 3
                     },
                     events: {
@@ -772,40 +538,29 @@
                             showToast(`▶ ${title}`);
                             document.title = `${title} - Play Tube`;
                         },
-                        onError: (e) => {
-                            console.error('Erro no player:', e);
-                            fallbackPlayer(videoId);
-                        }
+                        onError: () => fallbackPlayer(videoId)
                     }
                 });
 
-                // Sai do mini player se estiver ativo
-                if (isMiniPlayer) {
-                    toggleMiniPlayer();
-                }
-
+                if (isMiniPlayer) toggleMiniPlayer();
                 document.querySelector('.player-container').scrollIntoView({ behavior: 'smooth' });
             };
 
             function fallbackPlayer(videoId) {
                 playerDiv.innerHTML = `
-                    <iframe 
-                        src="https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0&modestbranding=1"
+                    <iframe src="https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0&modestbranding=1"
                         allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-                        allowfullscreen
-                        style="width:100%;height:100%;border:none;">
+                        allowfullscreen style="width:100%;height:100%;border:none;">
                     </iframe>
                 `;
             }
 
-            // ===== PICTURE-IN-PICTURE =====
             window.togglePiP = async function() {
                 const iframe = document.querySelector('#player iframe');
                 if (!iframe && !ytPlayer) {
                     showToast('⚠️ Selecione uma música primeiro');
                     return;
                 }
-
                 try {
                     if (document.pictureInPictureElement) {
                         await document.exitPictureInPicture();
@@ -822,22 +577,17 @@
                 }
             };
 
-            // ===== DOWNLOAD =====
             window.downloadVideo = function() {
                 if (!currentVideoId) {
                     showToast('⚠️ Selecione uma música primeiro');
                     return;
                 }
-                
-                // Abre serviço de download
                 window.open(`https://yt5s.com/en?url=https://www.youtube.com/watch?v=${currentVideoId}`, '_blank');
                 showToast('⬇ Abrindo download...');
             };
 
-            // ===== MINI PLAYER =====
             window.toggleMiniPlayer = function() {
                 isMiniPlayer = !isMiniPlayer;
-
                 if (isMiniPlayer) {
                     playerWrapper.classList.add('mini');
                     setupDrag(playerWrapper);
@@ -856,22 +606,17 @@
                 const onMouseDown = (e) => {
                     if (e.target.closest('button') || e.target.closest('iframe')) return;
                     e.preventDefault();
-                    initialX = e.clientX;
-                    initialY = e.clientY;
-                    posX = element.offsetLeft;
-                    posY = element.offsetTop;
+                    initialX = e.clientX; initialY = e.clientY;
+                    posX = element.offsetLeft; posY = element.offsetTop;
                     document.addEventListener('mousemove', onMouseMove);
                     document.addEventListener('mouseup', onMouseUp);
                 };
-
                 const onMouseMove = (e) => {
                     e.preventDefault();
                     element.style.left = (posX + (e.clientX - initialX)) + 'px';
                     element.style.top = (posY + (e.clientY - initialY)) + 'px';
-                    element.style.right = 'auto';
-                    element.style.bottom = 'auto';
+                    element.style.right = 'auto'; element.style.bottom = 'auto';
                 };
-
                 const onMouseUp = () => {
                     document.removeEventListener('mousemove', onMouseMove);
                     document.removeEventListener('mouseup', onMouseUp);
@@ -880,22 +625,17 @@
                 const onTouchStart = (e) => {
                     if (e.target.closest('button') || e.target.closest('iframe')) return;
                     e.preventDefault();
-                    initialX = e.touches[0].clientX;
-                    initialY = e.touches[0].clientY;
-                    posX = element.offsetLeft;
-                    posY = element.offsetTop;
+                    initialX = e.touches[0].clientX; initialY = e.touches[0].clientY;
+                    posX = element.offsetLeft; posY = element.offsetTop;
                     document.addEventListener('touchmove', onTouchMove, { passive: false });
                     document.addEventListener('touchend', onTouchEnd);
                 };
-
                 const onTouchMove = (e) => {
                     e.preventDefault();
                     element.style.left = (posX + (e.touches[0].clientX - initialX)) + 'px';
                     element.style.top = (posY + (e.touches[0].clientY - initialY)) + 'px';
-                    element.style.right = 'auto';
-                    element.style.bottom = 'auto';
+                    element.style.right = 'auto'; element.style.bottom = 'auto';
                 };
-
                 const onTouchEnd = () => {
                     document.removeEventListener('touchmove', onTouchMove);
                     document.removeEventListener('touchend', onTouchEnd);
@@ -922,23 +662,15 @@
                 element.style.left = '';
             }
 
-            // ===== COMPARTILHAR =====
             function shareVideo() {
                 if (!currentVideoId) {
                     showToast('⚠️ Selecione uma música para compartilhar');
                     return;
                 }
-
                 const shareUrl = `https://youtu.be/${currentVideoId}`;
-
                 if (navigator.share) {
-                    navigator.share({
-                        title: currentVideoTitle,
-                        text: `🎵 ${currentVideoTitle}`,
-                        url: shareUrl
-                    }).catch(() => {
-                        copyToClipboard(shareUrl);
-                    });
+                    navigator.share({ title: currentVideoTitle, text: `🎵 ${currentVideoTitle}`, url: shareUrl })
+                        .catch(() => copyToClipboard(shareUrl));
                 } else {
                     copyToClipboard(shareUrl);
                 }
@@ -946,11 +678,8 @@
 
             function copyToClipboard(text) {
                 if (navigator.clipboard) {
-                    navigator.clipboard.writeText(text).then(() => {
-                        showToast('🔗 Link copiado!');
-                    }).catch(() => {
-                        fallbackCopy(text);
-                    });
+                    navigator.clipboard.writeText(text).then(() => showToast('🔗 Link copiado!'))
+                        .catch(() => fallbackCopy(text));
                 } else {
                     fallbackCopy(text);
                 }
@@ -968,13 +697,11 @@
                 showToast('🔗 Link copiado!');
             }
 
-            // ===== TELA CHEIA =====
             function toggleFullscreen() {
                 if (!currentVideoId) {
                     showToast('⚠️ Selecione uma música primeiro');
                     return;
                 }
-
                 const playerContainer = document.querySelector('.player-container');
                 if (document.fullscreenElement) {
                     document.exitFullscreen();
@@ -983,13 +710,11 @@
                 }
             }
 
-            // ===== UTILITÁRIOS =====
             function formatDuration(isoDuration) {
                 const match = isoDuration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
                 const hours = (match[1] || '').replace('H', '');
                 const minutes = (match[2] || '').replace('M', '');
                 const seconds = (match[3] || '').replace('S', '');
-                
                 let result = '';
                 if (hours) result += hours + ':';
                 result += (minutes ? minutes.padStart(2, '0') : '00') + ':';
@@ -1002,7 +727,6 @@
                 const now = new Date();
                 const diff = now - date;
                 const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                
                 if (days === 0) return 'Hoje';
                 if (days === 1) return 'Ontem';
                 if (days < 7) return `${days} dias atrás`;
@@ -1040,16 +764,11 @@
                 if (toastTimeout) clearTimeout(toastTimeout);
                 toast.textContent = message;
                 toast.classList.add('show');
-                toastTimeout = setTimeout(() => {
-                    toast.classList.remove('show');
-                }, 3000);
+                toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
             }
 
-            // ===== INIT =====
-            console.log('🎵 Play Tube Music - YouTube API v3');
-            console.log('✅ Funcionalidades: Busca real, Player, Mini player, PiP, Download, Compartilhar');
-            console.log('⚠️ Configure sua API Key em YOUTUBE_API_KEY');
-
+            console.log('🎵 Play Tube Music - Pronto!');
+            console.log('✅ API Key configurada: ' + YOUTUBE_API_KEY.substring(0, 10) + '...');
         })();
     </script>
 </body>
