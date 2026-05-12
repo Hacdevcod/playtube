@@ -298,7 +298,6 @@
     <script src="https://www.youtube.com/iframe_api"></script>
 
     <script>
-        // Callback global da YouTube IFrame API
         function onYouTubeIframeAPIReady() {
             console.log('🎵 YouTube IFrame API pronta');
         }
@@ -306,11 +305,8 @@
         (function() {
             'use strict';
 
-            // ============================================
-            // PLAY TUBE MUSIC - API KEY PROTEGIDA VIA PROXY
-            // ============================================
-            // Worker URL configurada - API Key NUNCA visível
-            const PROXY_URL = 'https://playtube.402e3d94bfb32aba2b5d886c4743794f.workers.dev';
+            // Worker URL - API Key protegida no servidor
+            const PROXY_URL = 'https://playtube-proxy.codw23.workers.dev';
 
             let currentVideoId = null;
             let currentVideoTitle = '';
@@ -358,17 +354,17 @@
                 resultCount.textContent = '';
 
                 try {
-                    const proxyRequestUrl = new URL(PROXY_URL + '/search');
-                    proxyRequestUrl.searchParams.append('q', trimmedQuery + ' música');
-                    proxyRequestUrl.searchParams.append('maxResults', '15');
-                    proxyRequestUrl.searchParams.append('regionCode', 'BR');
-                    proxyRequestUrl.searchParams.append('relevanceLanguage', 'pt');
+                    const proxyUrl = new URL(PROXY_URL);
+                    proxyUrl.searchParams.append('q', trimmedQuery + ' música');
+                    proxyUrl.searchParams.append('maxResults', '15');
+                    proxyUrl.searchParams.append('regionCode', 'BR');
+                    proxyUrl.searchParams.append('relevanceLanguage', 'pt');
                     
                     if (pageToken) {
-                        proxyRequestUrl.searchParams.append('pageToken', pageToken);
+                        proxyUrl.searchParams.append('pageToken', pageToken);
                     }
 
-                    const response = await fetch(proxyRequestUrl);
+                    const response = await fetch(proxyUrl);
 
                     if (!response.ok) {
                         const errorData = await response.json().catch(() => ({}));
@@ -708,9 +704,8 @@
                 toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
             }
 
-            console.log('🔒 Play Tube Music - Modo Seguro');
-            console.log('🌐 Worker: ' + PROXY_URL);
-            console.log('✅ API Key protegida!');
+            console.log('🔒 Play Tube Music - API Protegida');
+            console.log('🌐 Proxy: ' + PROXY_URL);
         })();
     </script>
 </body>
