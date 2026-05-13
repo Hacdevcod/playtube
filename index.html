@@ -87,7 +87,7 @@
     <div class="results-section">
         <div class="section-title" id="sectionTitle"><span>Resultados</span><span class="result-count" id="resultCount"></span></div>
         <div class="section-subtitle" id="sectionSubtitle" style="display:none;"></div>
-        <div id="resultsContainer"><div style="text-align:center;padding:60px 20px;color:#aaa;"><div style="font-size:64px;margin-bottom:16px;">🎧</div><div style="font-size:18px;margin-bottom:8px;">Busque suas músicas</div><div style="font-size:12px;color:#717171;">🔒 Sempre sem propaganda (No-Cookies)</div></div></div>
+        <div id="resultsContainer"><div style="text-align:center;padding:60px 20px;color:#aaa;"><div style="font-size:64px;margin-bottom:16px;">🎧</div><div style="font-size:18px;margin-bottom:8px;">Busque suas músicas</div><div style="font-size:12px;color:#717171;">🔒 No-Cookies nativo | PiP | BG Play</div></div></div>
         <div id="paginationContainer" class="pagination" style="display:none;"></div>
     </div>
 
@@ -176,13 +176,13 @@
             window.closePlayer = function() { playerTop.classList.remove('active'); playerTop.classList.remove('rainbow-border'); if (ytTopPlayer) ytTopPlayer.stopVideo(); };
             function initTopPlayer() { playerWrapper.innerHTML = '<div id="topPlayerElement"></div>'; ytTopPlayer = new YT.Player('topPlayerElement', {videoId:currentVideoId, playerVars:{autoplay:1,playsinline:1,controls:1,rel:0,modestbranding:1,fs:1}, events:{onReady:()=>{if(ytPlayer?.getCurrentTime)ytTopPlayer.seekTo(ytPlayer.getCurrentTime());}, onStateChange:(e)=>{if(e.data===YT.PlayerState.PLAYING&&ytPlayer?.pauseVideo)ytPlayer.pauseVideo();}}}); }
 
-            // ABRIR NO YOUTUBE (SEMPRE yout-ube.com)
+            // ABRIR NO YOUTUBE (SEMPRE yout-ube.com - SEM PROPAGANDA)
             window.openInYouTube = function() { if (!currentVideoId) return; window.open(`https://www.yout-ube.com/watch?v=${currentVideoId}`, '_blank'); };
             if (window.history?.replaceState) window.history.replaceState({}, document.title, window.location.pathname);
 
             // YOUTUBE IFRAME API (SEMPRE youtube-nocookie.com)
             window.onYouTubeIframeAPIReady = function() { initHiddenPlayer(); };
-            function initHiddenPlayer() { if (ytPlayer) ytPlayer.destroy(); ytPlayer = new YT.Player('hiddenPlayer', {height:'100%',width:'100%',host:'https://www.youtube-nocookie.com',playerVars:{autoplay:0,playsinline:1,controls:0,disablekb:1,fs:0,rel:0,modestbranding:1,iv_load_policy:3,origin:window.location.origin,enablejsapi:1,widgetid:1,mute:0,volume:100},events:{onReady:function(event){console.log('✅ Player BG pronto (no-cookie)');event.target.setVolume(100);event.target.unMute();},onStateChange:onPlayerStateChange,onError:function(e){console.error('❌ Erro:',e.data);}}}); }
+            function initHiddenPlayer() { if (ytPlayer) ytPlayer.destroy(); ytPlayer = new YT.Player('hiddenPlayer', {height:'100%',width:'100%',host:'https://www.youtube-nocookie.com',playerVars:{autoplay:0,playsinline:1,controls:0,disablekb:1,fs:0,rel:0,modestbranding:1,iv_load_policy:3,origin:window.location.origin,enablejsapi:1,widgetid:1,mute:0,volume:100},events:{onReady:function(event){console.log('✅ Player BG (no-cookie)');event.target.setVolume(100);event.target.unMute();},onStateChange:onPlayerStateChange,onError:function(e){console.error('❌ Erro:',e.data);}}}); }
             function onPlayerStateChange(event) { if (event.data === YT.PlayerState.PLAYING) { isPlaying = true; playPauseBtn.textContent = '⏸'; npEqualizer.style.display = 'flex'; bgIndicator.style.display = 'flex'; hasShownRelatedVideos = false; updateMediaSession(true); } else if (event.data === YT.PlayerState.PAUSED) { isPlaying = false; playPauseBtn.textContent = '▶'; npEqualizer.style.display = 'none'; bgIndicator.style.display = 'none'; updateMediaSession(false); } else if (event.data === YT.PlayerState.ENDED) { if (!hasShownRelatedVideos && currentArtist) { hasShownRelatedVideos = true; showRelatedVideos(currentArtist); } else nextTrack(); } }
             async function showRelatedVideos(artist) { showToast(`🎵 Mais de ${artist}...`); sectionTitle.innerHTML = `<span>🎤 Mais de ${escapeHtml(artist)}</span>`; sectionSubtitle.style.display = 'block'; nextPageToken = null; prevPageToken = null; currentQuery = artist; await searchYouTube(artist, null, true); document.querySelector('.results-section').scrollIntoView({behavior:'smooth'}); }
 
@@ -204,30 +204,47 @@
             window.toggleSelectVideo = function(videoId, event) { event.stopPropagation(); if (selectedVideos.has(videoId)) selectedVideos.delete(videoId); else selectedVideos.add(videoId); document.querySelectorAll('.video-card').forEach(c => { if (c.getAttribute('data-video-id') === videoId) c.classList.toggle('selected', selectedVideos.has(videoId)); }); updatePlaylistUI(); };
             window.playVideoFromResults = function(videoId, title, channel, thumbnail) { const video = {id:videoId,title,channel,thumbnail}; playlist = playlist.filter(t => t.id !== video.id); playlist.unshift(video); currentTrackIndex = 0; selectedVideos.clear(); playTrack(0); updatePlaylistUI(); showToast('▶ Tocando agora'); };
 
-            // ===== PICTURE-IN-PICTURE =====
+            // ===== PICTURE-IN-PICTURE CORRIGIDO (MÚLTIPLOS FALLBACKS) =====
             window.togglePiP = async function() {
-                if (!currentVideoId) { showToast('⚠️ Selecione uma música'); return; }
+                if (!currentVideoId) { showToast('⚠️ Selecione uma música primeiro'); return; }
                 try {
                     if (document.pictureInPictureElement) {
                         await document.exitPictureInPicture();
-                        if (pipVideoElement && document.body.contains(pipVideoElement)) { document.body.removeChild(pipVideoElement); pipVideoElement = null; }
                         showToast('📺 PiP desativado'); return;
                     }
-                    if (!pipVideoElement) {
-                        pipVideoElement = document.createElement('video');
-                        pipVideoElement.setAttribute('playsinline', 'true');
-                        pipVideoElement.setAttribute('autoplay', 'true');
-                        pipVideoElement.style.cssText = 'position:fixed;bottom:5px;right:5px;width:120px;height:68px;z-index:9998;background:#000;border-radius:4px;';
-                        document.body.appendChild(pipVideoElement);
+                    // Método 1: iframe do hiddenPlayer
+                    const hiddenIframe = document.querySelector('#hiddenPlayer iframe');
+                    if (hiddenIframe && hiddenIframe.requestPictureInPicture) {
+                        try { await hiddenIframe.requestPictureInPicture(); showToast('📺 PiP ativado!'); return; } catch(e) {}
                     }
-                    pipVideoElement.src = `https://www.youtube-nocookie.com/embed/${currentVideoId}?autoplay=1&playsinline=1`;
-                    await new Promise((resolve) => { pipVideoElement.addEventListener('loadedmetadata', resolve, { once: true }); setTimeout(resolve, 3000); });
-                    await pipVideoElement.requestPictureInPicture();
-                    showToast('📺 PiP ativado!');
+                    // Método 2: iframe do playerTop
+                    const topIframe = document.querySelector('#playerTop iframe');
+                    if (topIframe && topIframe.requestPictureInPicture) {
+                        try { await topIframe.requestPictureInPicture(); showToast('📺 PiP ativado!'); return; } catch(e) {}
+                    }
+                    // Método 3: elemento video temporário
+                    const tempVideo = document.createElement('video');
+                    tempVideo.setAttribute('playsinline', 'true');
+                    tempVideo.setAttribute('autoplay', 'true');
+                    tempVideo.setAttribute('muted', 'true');
+                    tempVideo.style.cssText = 'position:fixed;bottom:10px;right:10px;width:1px;height:1px;opacity:0.01;z-index:9999;';
+                    tempVideo.src = `https://www.youtube-nocookie.com/embed/${currentVideoId}?autoplay=1&playsinline=1&mute=1`;
+                    document.body.appendChild(tempVideo);
+                    await tempVideo.play().catch(() => {});
+                    await new Promise((resolve) => { tempVideo.addEventListener('loadedmetadata', resolve, { once: true }); setTimeout(resolve, 3000); });
+                    if (tempVideo.requestPictureInPicture) {
+                        await tempVideo.requestPictureInPicture();
+                        showToast('📺 PiP ativado!');
+                        setTimeout(() => { if (document.body.contains(tempVideo)) document.body.removeChild(tempVideo); }, 2000);
+                        return;
+                    }
+                    document.body.removeChild(tempVideo);
+                    // Método 4: janela flutuante
+                    window.open(`https://www.youtube-nocookie.com/embed/${currentVideoId}?autoplay=1&playsinline=1`, '_blank', 'width=320,height=240,top=100,left=100');
+                    showToast('📺 Player flutuante aberto');
                 } catch (error) {
                     console.error('Erro PiP:', error);
-                    if (pipVideoElement && document.body.contains(pipVideoElement)) { document.body.removeChild(pipVideoElement); pipVideoElement = null; }
-                    window.open(`https://www.yout-ube.com/watch?v=${currentVideoId}`, '_blank');
+                    window.open(`https://www.youtube-nocookie.com/embed/${currentVideoId}?autoplay=1`, '_blank');
                 }
             };
 
@@ -256,8 +273,8 @@
 
             // INIT
             setupMediaSession();
-            console.log('🔊 Play Tube - NO-COOKIES NATIVO');
-            console.log('✅ Player sempre youtube-nocookie.com | Links sempre yout-ube.com');
+            console.log('🔊 Play Tube - COMPLETO');
+            console.log('✅ No-Cookies Nativo | PiP Multi-fallback | Background Play | Playlist');
         })();
     </script>
 </body>
