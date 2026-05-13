@@ -54,7 +54,14 @@
         .side-buttons{position:fixed;right:16px;bottom:50%;transform:translateY(50%);display:flex;flex-direction:column;gap:12px;z-index:150;transition:opacity 0.3s,transform 0.3s}.side-buttons.hidden{opacity:0;transform:translateY(50%)translateX(100%);pointer-events:none}.side-btn{width:44px;height:44px;border-radius:50%;border:none;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.4);position:relative;transition:transform 0.2s}.side-btn:active{transform:scale(0.9)}.side-btn.youtube{background:#f00}.side-btn.download{background:#1db954}.side-btn.pip{background:#2196F3}
         .download-modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);z-index:500;display:none;align-items:center;justify-content:center;flex-direction:column}.download-modal.active{display:flex}.download-box{background:#1a1a1a;border-radius:16px;padding:24px;width:90%;max-width:360px;text-align:center;border:1px solid #333}.download-title{font-size:18px;font-weight:600;margin-bottom:20px;color:#fff}.download-progress{width:100%;height:8px;background:#333;border-radius:4px;overflow:hidden;margin-bottom:16px}.download-bar{height:100%;background:#1db954;width:0%;transition:width 0.3s;border-radius:4px}.download-percent{font-size:24px;font-weight:700;color:#1db954;margin-bottom:8px}.download-status{font-size:12px;color:#aaa;margin-bottom:16px}.download-options{display:flex;flex-direction:column;gap:8px;margin-top:16px}.download-option{padding:12px;background:#272727;border:1px solid #333;border-radius:12px;color:#fff;cursor:pointer;font-size:14px;transition:background 0.2s;display:flex;align-items:center;gap:10px}.download-option:active{background:#333}.download-close{margin-top:16px;padding:10px 24px;background:#f00;border:none;color:#fff;border-radius:20px;cursor:pointer;font-size:14px}
         .playlist-modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.95);z-index:500;display:none;flex-direction:column}.playlist-modal.active{display:flex}.playlist-modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid #333}.playlist-modal-title{font-size:18px;font-weight:700;color:#1db954}.playlist-modal-close{width:36px;height:36px;border-radius:50%;background:#333;border:none;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}.playlist-modal-list{flex:1;overflow-y:auto;padding:8px}.playlist-item{display:flex;gap:10px;padding:10px 8px;border-radius:8px;align-items:center;transition:background 0.15s}.playlist-item:active{background:#222}.playlist-item.playing{background:#1a2a1a;border-left:3px solid #1db954}.playlist-item-thumb{width:44px;height:44px;border-radius:6px;object-fit:cover;flex-shrink:0;background:#333}.playlist-item-info{flex:1;min-width:0}.playlist-item-title{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.playlist-item-artist{font-size:11px;color:#aaa}.playlist-item-remove{background:none;border:none;color:#f44;font-size:16px;cursor:pointer;padding:8px}
-        .screen-lock-simulator{position:fixed;top:0;left:0;right:0;bottom:0;background:#000;z-index:9999;display:none;flex-direction:column;align-items:center;justify-content:center;cursor:pointer}.screen-lock-simulator.active{display:flex}.lock-text{color:#fff;font-size:16px;font-weight:700;margin-bottom:4px}.lock-hint{color:#aaa;font-size:11px}.lock-now-playing{background:rgba(255,0,0,0.8);padding:16px 24px;border-radius:12px;margin-top:20px;text-align:center;min-width:260px}.lock-np-title{color:#fff;font-size:13px;font-weight:600}.lock-np-artist{color:rgba(255,255,255,0.7);font-size:10px;margin-top:2px}.lock-controls{display:flex;gap:20px;margin-top:12px;justify-content:center}.lock-btn{background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:8px}
+        
+        /* TELA BLOQUEADA + AVATAR */
+        .screen-lock-simulator{position:fixed;top:0;left:0;right:0;bottom:0;background:#000;z-index:9999;display:none;flex-direction:column;align-items:center;justify-content:center;cursor:pointer}
+        .screen-lock-simulator.active{display:flex}
+        .lock-text{color:#fff;font-size:16px;font-weight:700;margin-bottom:4px}.lock-hint{color:#aaa;font-size:11px}
+        .lock-now-playing{background:rgba(255,0,0,0.8);padding:16px 24px;border-radius:12px;margin-top:20px;text-align:center;min-width:260px}
+        .lock-np-title{color:#fff;font-size:13px;font-weight:600}.lock-np-artist{color:rgba(255,255,255,0.7);font-size:10px;margin-top:2px}
+        .lock-controls{display:flex;gap:20px;margin-top:12px;justify-content:center}.lock-btn{background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:8px}
 
         .pragmata-avatar{position:relative;width:120px;height:170px;margin-bottom:25px;animation:pragmataDance 1.8s ease-in-out infinite,pragmataBodyGlow 2.5s ease-in-out infinite}.avatar-body{position:relative;width:100%;height:100%;display:flex;flex-direction:column;align-items:center}.avatar-head{width:62px;height:68px;background:linear-gradient(180deg,#0a0a1a 0%,#1a1a3e 50%,#0f0f2e 100%);border-radius:50% 50% 42% 42%;position:relative;border:2.5px solid rgba(0,200,255,0.5);box-shadow:0 0 25px rgba(0,200,255,0.3),inset 0 5px 15px rgba(0,200,255,0.1);z-index:3;overflow:hidden}.avatar-head::before{content:'';position:absolute;top:5px;left:8px;right:8px;height:2px;background:linear-gradient(90deg,transparent,rgba(0,200,255,0.6),transparent);border-radius:50%}.avatar-visor{width:48px;height:26px;background:linear-gradient(135deg,#00d4ff,#00ff88,#00d4ff);background-size:200% auto;border-radius:45%;position:absolute;top:22px;left:50%;transform:translateX(-50%);box-shadow:0 0 30px rgba(0,200,255,0.9),0 0 60px rgba(0,255,136,0.4),inset 0 2px 10px rgba(255,255,255,0.6);animation:pragmataGlow 2s ease-in-out infinite,visorScan 3s linear infinite}.avatar-visor::after{content:'';position:absolute;top:3px;left:8px;width:14px;height:6px;background:rgba(255,255,255,0.7);border-radius:50%;transform:rotate(-15deg)}.avatar-torso{width:42px;height:52px;background:linear-gradient(180deg,#1a1a3e 0%,#0f3460 40%,#16213e 100%);border-radius:12px 12px 6px 6px;position:relative;border:2px solid rgba(255,0,120,0.4);box-shadow:0 5px 20px rgba(0,0,0,0.5)}.avatar-arm-left,.avatar-arm-right{width:14px;height:45px;background:linear-gradient(180deg,#0f3460,#1a1a2e);border-radius:7px;position:absolute;top:0;border:1px solid rgba(0,200,255,0.3);transform-origin:top center}.avatar-arm-left{left:-18px;animation:pragmataArms 1s ease-in-out infinite}.avatar-arm-right{right:-18px;animation:pragmataArms 1s ease-in-out 0.5s infinite}.avatar-legs{display:flex;justify-content:center;gap:10px;margin-top:-2px}.avatar-leg-left,.avatar-leg-right{width:16px;height:40px;background:linear-gradient(180deg,#0f3460,#16213e);border-radius:5px 5px 8px 8px;border:1px solid rgba(255,0,100,0.3);transform-origin:top center}.avatar-leg-left{animation:pragmataLegs 0.8s ease-in-out infinite}.avatar-leg-right{animation:pragmataLegs 0.8s ease-in-out 0.4s infinite}.music-notes{position:absolute;width:100%;height:100%;top:0;left:0;pointer-events:none}.note{position:absolute;font-size:20px;animation:noteFloat 2s ease-out infinite}.note:nth-child(1){left:-20px;top:30px;animation-delay:0s}.note:nth-child(2){right:-20px;top:40px;animation-delay:0.6s}.note:nth-child(3){left:-10px;top:10px;animation-delay:1.2s;font-size:14px}.note:nth-child(4){right:-10px;top:15px;animation-delay:1.8s;font-size:16px}.bg-stars{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;overflow:hidden}.star{position:absolute;width:3px;height:3px;background:#fff;border-radius:50%;animation:starPulse 2s ease-in-out infinite}.star:nth-child(1){left:10%;top:20%;animation-delay:0s}.star:nth-child(2){left:80%;top:15%;animation-delay:0.5s}.star:nth-child(3){left:30%;top:60%;animation-delay:1s}.star:nth-child(4){left:70%;top:50%;animation-delay:1.5s}.star:nth-child(5){left:50%;top:10%;animation-delay:0.3s}.star:nth-child(6){left:15%;top:80%;animation-delay:0.8s}.star:nth-child(7){left:85%;top:75%;animation-delay:1.3s}.star:nth-child(8){left:45%;top:40%;animation-delay:1.8s}.star:nth-child(9){left:60%;top:30%;animation-delay:0.2s}.star:nth-child(10){left:25%;top:45%;animation-delay:0.7s}
 
@@ -90,7 +97,6 @@
         <button class="playlist-action-btn clear" onclick="clearPlaylist()">🗑 Limpar</button>
     </div>
 
-    <!-- PLAYER OCULTO - TAMANHO REAL PARA BACKGROUND PLAY -->
     <div class="hidden-player" id="hiddenPlayer"></div>
 
     <button class="tape-btn" id="tapeBtn" onclick="togglePlaylistModal()"><div class="tape-reel"></div><div class="tape-reel"></div>📼</button>
@@ -120,7 +126,7 @@
         </div>
     </div>
 
-    <!-- SIMULADOR DE TELA BLOQUEADA COM AVATAR DANÇANTE -->
+    <!-- TELA BLOQUEADA COM AVATAR DANÇANTE -->
     <div class="screen-lock-simulator" id="screenLockSimulator" onclick="hideLockScreen()">
         <div class="bg-stars">
             <div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div>
@@ -182,7 +188,7 @@
             let currentTrackIndex = -1, isPlaying = false, currentVideoId = null, currentArtist = '';
             let toastTimeout = null, nextPageToken = null, prevPageToken = null, currentQuery = '';
             let hideButtonsTimeout = null, isNookieMode = false, hasShownRelatedVideos = false;
-            let isVideoMode = true, downloadInterval = null, wakeLock = null;
+            let isVideoMode = true, downloadInterval = null, wakeLock = null, pipVideoElement = null;
 
             // DOM
             const $ = (id) => document.getElementById(id);
@@ -215,8 +221,17 @@
             }
             function notifySW(action, data = {}) { if (navigator.serviceWorker && navigator.serviceWorker.controller) { navigator.serviceWorker.controller.postMessage({action, ...data}); } }
 
-            // SIMULADOR
-            window.simulateLockScreen = function() { if (isPlaying) { screenLockSimulator.classList.add('active'); lockNpTitle.textContent = npTitle.textContent; lockNpArtist.textContent = npArtist.textContent; lockPlayBtn.textContent = isPlaying ? '⏸' : '▶'; } else { showToast('⚠️ Toque uma música primeiro'); } };
+            // SIMULADOR DE TELA BLOQUEADA
+            window.simulateLockScreen = function() {
+                if (isPlaying) {
+                    screenLockSimulator.classList.add('active');
+                    lockNpTitle.textContent = npTitle.textContent;
+                    lockNpArtist.textContent = npArtist.textContent;
+                    lockPlayBtn.textContent = isPlaying ? '⏸' : '▶';
+                } else {
+                    showToast('⚠️ Toque uma música primeiro');
+                }
+            };
             window.hideLockScreen = function() { screenLockSimulator.classList.remove('active'); };
 
             // MODO
@@ -272,8 +287,33 @@
             window.toggleSelectVideo = function(videoId, event) { event.stopPropagation(); if (selectedVideos.has(videoId)) selectedVideos.delete(videoId); else selectedVideos.add(videoId); document.querySelectorAll('.video-card').forEach(c => { if (c.getAttribute('data-video-id') === videoId) c.classList.toggle('selected', selectedVideos.has(videoId)); }); updatePlaylistUI(); };
             window.playVideoFromResults = function(videoId, title, channel, thumbnail) { const video = {id:videoId,title,channel,thumbnail}; playlist = playlist.filter(t => t.id !== video.id); playlist.unshift(video); currentTrackIndex = 0; selectedVideos.clear(); playTrack(0); updatePlaylistUI(); showToast('▶ Tocando agora'); };
 
-            // PIP
-            window.togglePiP = async function() { if (!currentVideoId) { showToast('⚠️ Selecione uma música'); return; } try { if (document.pictureInPictureElement) await document.exitPictureInPicture(); else { const iframe = document.querySelector('#playerTop iframe') || document.querySelector('#hiddenPlayer iframe'); if (iframe) await iframe.requestPictureInPicture(); } } catch (e) { window.open(`https://www.youtube.com/watch?v=${currentVideoId}`, '_blank'); } };
+            // ===== PICTURE-IN-PICTURE CORRIGIDO =====
+            window.togglePiP = async function() {
+                if (!currentVideoId) { showToast('⚠️ Selecione uma música'); return; }
+                try {
+                    if (document.pictureInPictureElement) {
+                        await document.exitPictureInPicture();
+                        if (pipVideoElement && document.body.contains(pipVideoElement)) { document.body.removeChild(pipVideoElement); pipVideoElement = null; }
+                        showToast('📺 PiP desativado'); return;
+                    }
+                    if (!pipVideoElement) {
+                        pipVideoElement = document.createElement('video');
+                        pipVideoElement.setAttribute('playsinline', 'true');
+                        pipVideoElement.setAttribute('autoplay', 'true');
+                        pipVideoElement.style.cssText = 'position:fixed;bottom:5px;right:5px;width:120px;height:68px;z-index:9998;background:#000;border-radius:4px;';
+                        document.body.appendChild(pipVideoElement);
+                    }
+                    pipVideoElement.src = `https://www.youtube.com/embed/${currentVideoId}?autoplay=1&playsinline=1`;
+                    await new Promise((resolve) => { pipVideoElement.addEventListener('loadedmetadata', resolve, { once: true }); setTimeout(resolve, 3000); });
+                    await pipVideoElement.requestPictureInPicture();
+                    showToast('📺 PiP ativado!');
+                } catch (error) {
+                    console.error('Erro PiP:', error);
+                    if (pipVideoElement && document.body.contains(pipVideoElement)) { document.body.removeChild(pipVideoElement); pipVideoElement = null; }
+                    window.open(`https://www.youtube.com/watch?v=${currentVideoId}`, '_blank');
+                    showToast('📺 Abrindo no YouTube');
+                }
+            };
 
             // DOWNLOAD
             window.downloadVideo = function() { if (!currentVideoId) { showToast('⚠️ Selecione uma música'); return; } downloadModal.classList.add('active'); const track = playlist[currentTrackIndex]||{}; $('downloadTitle').textContent = `⬇ ${track.title||'Música'}`; $('downloadBar').style.width = '0%'; $('downloadPercent').textContent = '0%'; simulateDownload(); };
@@ -300,7 +340,22 @@
 
             // ===== BACKGROUND PLAY ABSOLUTO =====
             async function lockScreen() { try { if ('wakeLock' in navigator) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => { if (isPlaying) lockScreen(); }); } } catch (err) {} }
-            document.addEventListener('visibilitychange', function() { if (document.hidden && isPlaying) { if (ytPlayer) { try { if (ytPlayer.getPlayerState() !== 1) { ytPlayer.playVideo(); ytPlayer.unMute(); ytPlayer.setVolume(100); } } catch(e) {} } lockScreen(); if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing'; } });
+            document.addEventListener('visibilitychange', function() {
+                if (document.hidden && isPlaying) {
+                    // ATIVA A TELA BLOQUEADA AUTOMATICAMENTE
+                    screenLockSimulator.classList.add('active');
+                    lockNpTitle.textContent = npTitle.textContent;
+                    lockNpArtist.textContent = npArtist.textContent;
+                    lockPlayBtn.textContent = '⏸';
+                    
+                    if (ytPlayer) { try { if (ytPlayer.getPlayerState() !== 1) { ytPlayer.playVideo(); ytPlayer.unMute(); ytPlayer.setVolume(100); } } catch(e) {} }
+                    lockScreen();
+                    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
+                } else if (!document.hidden) {
+                    // Remove a tela bloqueada quando volta
+                    screenLockSimulator.classList.remove('active');
+                }
+            });
             window.addEventListener('pagehide', function(e) { if (isPlaying) { e.preventDefault(); e.returnValue = 'Música tocando...'; return 'Música tocando...'; } });
             window.addEventListener('freeze', function(e) { if (isPlaying) e.preventDefault(); });
             setInterval(function() { if (isPlaying && ytPlayer) { try { var state = ytPlayer.getPlayerState(); if (state !== 1 && state !== 3) { ytPlayer.playVideo(); ytPlayer.unMute(); ytPlayer.setVolume(100); } } catch(e) { initHiddenPlayer(); if (currentVideoId) { setTimeout(function() { if (ytPlayer && ytPlayer.loadVideoById) { ytPlayer.loadVideoById({videoId: currentVideoId, startSeconds: 0}); setTimeout(() => { ytPlayer.playVideo(); ytPlayer.unMute(); ytPlayer.setVolume(100); }, 500); } }, 500); } } } }, 1000);
@@ -311,8 +366,8 @@
 
             // INIT
             setupMediaSession();
-            console.log('🔊 Play Tube - Background Play ABSOLUTO');
-            console.log('✅ Player 100% | Wake Lock | Monitor 1s | pagehide | freeze | audioSession | Auto-recreate');
+            console.log('🔊 Play Tube - Completo');
+            console.log('✅ Player 100% | Wake Lock | PiP | Avatar | Tela Bloqueada Auto');
         })();
     </script>
 </body>
