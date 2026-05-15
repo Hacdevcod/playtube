@@ -8,747 +8,716 @@
     <meta name="theme-color" content="#0f0f0f">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="HandheldFriendly" content="true">
-    <meta http-equiv="Content-Security-Policy" content="media-src *; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://s.ytimg.com;">
-    
-    <link rel="manifest" href="/manifest.json">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><circle cx='96' cy='96' r='96' fill='%23ff0000'/><polygon points='80,60 80,132 140,96' fill='white'/></svg>">
     
     <title>Play Tube Music</title>
     
     <style>
         :root { 
-            --yt-bg:#0f0f0f;
-            --yt-surface:#1a1a1a;
-            --yt-surface2:#272727;
-            --yt-red:#f00;
-            --yt-white:#fff;
-            --yt-gray:#aaa;
-            --yt-gray2:#717171;
-            --yt-border:#303030;
-            --yt-input-bg:#1a1a1a;
-            --yt-input-text:#ffffff;
-            --yt-input-placeholder:#717171;
-            --spotify-green:#1db954;
-            --player-height: 80px;
-            --safe-bottom: 0px;
-        }
-        
-        [data-theme="dark"] {
-            --yt-bg:#0f0f0f;
-            --yt-surface:#1a1a1a;
-            --yt-surface2:#272727;
-            --yt-border:#303030;
-            --yt-white:#ffffff;
-            --yt-gray:#aaaaaa;
-            --yt-gray2:#717171;
-            --yt-input-bg:#1a1a1a;
-            --yt-input-text:#ffffff;
-            --yt-input-placeholder:#717171;
+            --bg: #0f0f0f;
+            --surface: #1a1a1a;
+            --surface2: #272727;
+            --red: #f00;
+            --text: #fff;
+            --text2: #aaa;
+            --text3: #717171;
+            --border: #303030;
+            --input-bg: #1a1a1a;
+            --input-text: #fff;
+            --input-ph: #717171;
+            --green: #1db954;
+            --player-h: 80px;
+            --safe-b: 0px;
         }
         
         [data-theme="light"] {
-            --yt-bg:#ffffff;
-            --yt-surface:#f5f5f5;
-            --yt-surface2:#e8e8e8;
-            --yt-border:#dddddd;
-            --yt-white:#000000;
-            --yt-gray:#555555;
-            --yt-gray2:#888888;
-            --yt-input-bg:#ffffff;
-            --yt-input-text:#000000;
-            --yt-input-placeholder:#888888;
+            --bg: #fff; --surface: #f5f5f5; --surface2: #e8e8e8; --border: #ddd;
+            --text: #000; --text2: #555; --text3: #888; --input-bg: #fff; --input-text: #000; --input-ph: #888;
         }
         
         [data-theme="amoled"] {
-            --yt-bg:#000000;
-            --yt-surface:#0a0a0a;
-            --yt-surface2:#111111;
-            --yt-border:#1a1a1a;
-            --yt-white:#ffffff;
-            --yt-gray:#aaaaaa;
-            --yt-gray2:#717171;
-            --yt-input-bg:#0a0a0a;
-            --yt-input-text:#ffffff;
-            --yt-input-placeholder:#555555;
+            --bg: #000; --surface: #0a0a0a; --surface2: #111; --border: #1a1a1a;
+            --text: #fff; --text2: #aaa; --text3: #717171; --input-bg: #0a0a0a; --input-text: #fff; --input-ph: #555;
         }
 
         * { margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent; }
-        html { font-size: 16px; }
+        html { font-size:16px; }
         body { 
-            font-family:-apple-system,'Roboto',sans-serif;
-            background:var(--yt-bg);
-            color:var(--yt-white);
-            min-height:100vh;
-            min-height:100dvh;
-            overflow-x:hidden;
-            transition: background 0.3s, color 0.3s;
-            padding-bottom: calc(var(--player-height) + var(--safe-bottom) + 15px);
+            font-family: -apple-system, 'Roboto', sans-serif;
+            background: var(--bg); color: var(--text);
+            min-height: 100vh; min-height: 100dvh;
+            overflow-x: hidden; transition: background 0.3s, color 0.3s;
+            padding-bottom: calc(var(--player-h) + var(--safe-b) + 15px);
         }
 
-        @keyframes pulseLogo{0%,100%{box-shadow:0 0 20px rgba(255,0,0,0.4)}50%{box-shadow:0 0 40px rgba(255,0,0,0.8),0 0 60px rgba(255,0,0,0.4)}}
-        @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
-        @keyframes shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
-        @keyframes slideDown{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}
-        @keyframes fadeInUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
-        @keyframes spin{to{transform:rotate(360deg)}}
-        @keyframes rainbow{0%{border-color:#f00}25%{border-color:#f80}50%{border-color:#0c0}75%{border-color:#21f}100%{border-color:#f00}}
-        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-        @keyframes splashPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
-        @keyframes slideUp{from{transform:translateY(100px);opacity:0}to{transform:translateY(0);opacity:1}}
-        @keyframes progressGlow{0%,100%{box-shadow:0 0 5px rgba(29,185,84,0.5)}50%{box-shadow:0 0 15px rgba(29,185,84,0.8)}}
-        @keyframes downloading{0%,100%{opacity:1}50%{opacity:0.5}}
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes slideUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes fadeInUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+        @keyframes shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+        @keyframes progressGlow { 0%,100% { box-shadow: 0 0 5px rgba(29,185,84,0.5); } 50% { box-shadow: 0 0 15px rgba(29,185,84,0.8); } }
+        @keyframes downloading { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
 
-        /* Splash Screen */
-        #splashScreen {
-            position:fixed;top:0;left:0;right:0;bottom:0;
-            background:linear-gradient(135deg, #000000, #1a1a1a);
-            display:flex;align-items:center;justify-content:center;
-            z-index:10000;transition:opacity 0.5s;
-        }
-        .splash-content{text-align:center;}
-        .splash-logo{width:100px;height:100px;background:linear-gradient(135deg,#f00,#ff4444);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;animation:splashPulse 1.5s ease-in-out infinite;font-size:40px;color:white;}
-        .splash-title{color:white;font-size:28px;font-weight:bold;text-shadow:0 0 20px rgba(255,0,0,0.5);}
-        .splash-title sup{color:#f00;font-size:14px;}
-        .splash-subtitle{color:#aaa;margin-top:10px;font-size:12px;}
-        .splash-loading{margin-top:20px;display:flex;gap:4px;justify-content:center;}
-        .splash-dot{width:8px;height:8px;background:#f00;border-radius:50%;animation:pulse 1s infinite;}
-        .splash-dot:nth-child(2){animation-delay:0.2s}
-        .splash-dot:nth-child(3){animation-delay:0.4s}
+        .hidden-player { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.99; }
 
-        /* Player Topo (Vídeo) */
-        .player-container {
-            width:100%;background:#000;display:none;position:relative;
-            animation:slideDown 0.4s ease;border-bottom:2px solid #f00;
+        .topbar {
+            position: sticky; top: 0; background: var(--bg);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            height: 50px; display: flex; align-items: center; padding: 0 12px; gap: 10px;
+            border-bottom: 1px solid var(--border); z-index: 100;
         }
-        .player-container.active{display:block}
-        .player-container.rainbow-border{animation:rainbow 3s linear infinite;border-width:2px;border-style:solid}
-        .player-wrapper{width:100%;aspect-ratio:16/9;position:relative}
-        .player-wrapper iframe{width:100%;height:100%;border:none}
-        .player-close-btn{
-            position:absolute;top:8px;right:8px;width:32px;height:32px;
-            border-radius:50%;background:rgba(0,0,0,0.7);border:none;
-            color:#fff;font-size:16px;cursor:pointer;z-index:10;
-            display:flex;align-items:center;justify-content:center;
-        }
-        .player-mode-indicator{
-            position:absolute;top:8px;right:48px;width:32px;height:32px;
-            border-radius:50%;background:rgba(29,185,84,0.8);border:none;
-            color:#fff;font-size:14px;cursor:pointer;z-index:10;
-            display:flex;align-items:center;justify-content:center;
-        }
+        .logo { display: flex; align-items: center; gap: 6px; animation: float 3s ease-in-out infinite; }
+        .logo-icon { width: 28px; height: 28px; background: var(--red); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #fff; }
+        .logo-text { font-size: 1rem; font-weight: 700; color: var(--text); }
+        .logo-text sup { font-size: 7px; background: var(--red); color: #fff; padding: 1px 3px; border-radius: 3px; }
+        .spacer { flex: 1; }
+        .theme-btn { background: none; border: none; color: var(--text); font-size: 1.1rem; cursor: pointer; padding: 4px; }
 
-        /* Barra Spotify */
+        .search-section { padding: 8px 12px; background: var(--bg); z-index: 50; }
+        .search-box { display: flex; background: var(--input-bg); border: 2px solid var(--border); border-radius: 20px; overflow: hidden; }
+        .search-box:focus-within { border-color: var(--red); }
+        .search-box input { flex: 1; padding: 10px 14px; background: transparent; border: none; color: var(--input-text); font-size: 0.9rem; outline: none; min-width: 0; }
+        .search-box input::placeholder { color: var(--input-ph); }
+        .search-btn { width: 42px; background: var(--surface2); border: none; color: var(--text); cursor: pointer; font-size: 1rem; }
+
+        .tabs-container { display: flex; gap: 4px; padding: 4px 12px 8px; background: var(--bg); overflow-x: auto; }
+        .tabs-container::-webkit-scrollbar { height: 0; }
+        .tab-btn { padding: 6px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; color: var(--text2); font-size: 0.75rem; cursor: pointer; white-space: nowrap; }
+        .tab-btn.active { background: var(--red); color: #fff; border-color: var(--red); }
+
+        .results-section { padding: 4px 12px 20px; background: var(--bg); min-height: 200px; }
+        .section-title { font-size: 0.8rem; font-weight: 600; margin-bottom: 8px; color: var(--text2); text-transform: uppercase; }
+        .video-card { display: flex; gap: 10px; background: var(--surface); border-radius: 8px; padding: 8px; cursor: pointer; margin-bottom: 6px; position: relative; border: 2px solid transparent; }
+        .video-card:active { background: var(--surface2); transform: scale(0.98); }
+        .video-thumb { width: 48px; height: 48px; border-radius: 6px; object-fit: cover; flex-shrink: 0; background: var(--surface2); }
+        .video-info { flex: 1; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+        .video-title { font-size: 0.85rem; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .video-channel { font-size: 0.7rem; color: var(--text2); margin-top: 2px; }
+        .video-actions { position: absolute; bottom: 6px; right: 6px; display: flex; gap: 4px; z-index: 5; }
+        .v-btn { width: 26px; height: 26px; border-radius: 50%; background: rgba(0,0,0,0.5); border: none; color: #fff; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .v-btn.fav-active { color: #f00; background: rgba(255,0,0,0.3); }
+
         .spotify-bar {
-            position:fixed;bottom:0;left:0;right:0;
-            height:var(--player-height);
-            background:linear-gradient(135deg, #1a1a1a, #2a2a2a);
-            backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-            display:none;align-items:center;padding:0 12px;gap:10px;
-            z-index:200;border-top:1px solid rgba(255,255,255,0.1);
-            box-shadow:0 -4px 20px rgba(0,0,0,0.5);
-            animation:slideUp 0.4s ease;
+            position: fixed; bottom: 0; left: 0; right: 0; height: var(--player-h);
+            background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+            display: none; align-items: center; padding: 0 12px; gap: 10px;
+            z-index: 200; border-top: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.5); animation: slideUp 0.4s ease;
         }
-        .spotify-bar.active{display:flex}
-        .spotify-bar.playing{background:linear-gradient(135deg, #0a1a0a, #1a2a1a)}
-        
-        .spotify-album-art {
-            width:52px;height:52px;border-radius:8px;object-fit:cover;
-            flex-shrink:0;cursor:pointer;transition:transform 0.3s;
-            box-shadow:0 2px 8px rgba(0,0,0,0.3);
-        }
-        .spotify-album-art.playing{animation:spin 8s linear infinite;border-radius:50%;box-shadow:0 0 15px rgba(29,185,84,0.3)}
-        .spotify-album-art:active{transform:scale(0.95)}
-        
-        .spotify-track-info{flex:1;min-width:0;cursor:pointer;display:flex;flex-direction:column;gap:2px}
-        .spotify-track-title{font-size:0.9rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-        .spotify-track-artist{font-size:0.7rem;color:rgba(255,255,255,0.7);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-        
-        .spotify-progress-container{position:absolute;top:-2px;left:0;right:0;height:3px;background:rgba(255,255,255,0.1);cursor:pointer}
-        .spotify-progress-bar{height:100%;background:linear-gradient(90deg, #1db954, #1ed760);width:0%;transition:width 0.3s linear;animation:progressGlow 2s ease-in-out infinite}
-        
-        .spotify-controls{display:flex;gap:12px;align-items:center}
-        .spotify-btn{background:none;border:none;color:rgba(255,255,255,0.9);font-size:1rem;cursor:pointer;padding:6px;transition:all 0.2s;display:flex;align-items:center;justify-content:center}
-        .spotify-btn:active{transform:scale(0.85);color:#fff}
-        .spotify-btn.main-play{width:44px;height:44px;background:#fff;border-radius:50%;color:#000;font-size:1rem;box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:all 0.2s}
-        .spotify-btn.main-play:active{transform:scale(0.9)}
-        .spotify-btn.main-play.playing{background:#1db954;color:#fff}
-        
-        .spotify-download-btn{background:rgba(29,185,84,0.15);border:none;color:#1db954;font-size:0.75rem;cursor:pointer;padding:6px 10px;border-radius:15px;transition:all 0.2s;display:flex;align-items:center;gap:3px}
-        .spotify-download-btn:active{background:rgba(29,185,84,0.3);transform:scale(0.95)}
-        .spotify-download-btn.downloading{animation:downloading 0.8s infinite;background:rgba(29,185,84,0.3)}
-        
-        .spotify-mode-badge{position:absolute;top:6px;right:8px;background:rgba(29,185,84,0.2);color:#1db954;padding:2px 8px;border-radius:10px;font-size:8px;font-weight:600}
+        .spotify-bar.active { display: flex; }
+        .spotify-bar.playing { background: linear-gradient(135deg, #0a1a0a, #1a2a1a); }
+        .sp-art { width: 52px; height: 52px; border-radius: 8px; object-fit: cover; flex-shrink: 0; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+        .sp-art.playing { animation: spin 8s linear infinite; border-radius: 50%; }
+        .sp-info { flex: 1; min-width: 0; cursor: pointer; }
+        .sp-title { font-size: 0.9rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sp-artist { font-size: 0.7rem; color: rgba(255,255,255,0.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sp-progress { position: absolute; top: -2px; left: 0; right: 0; height: 3px; background: rgba(255,255,255,0.1); cursor: pointer; }
+        .sp-progress-bar { height: 100%; background: linear-gradient(90deg, #1db954, #1ed760); width: 0%; transition: width 0.3s linear; }
+        .sp-controls { display: flex; gap: 12px; align-items: center; }
+        .sp-btn { background: none; border: none; color: rgba(255,255,255,0.9); font-size: 1rem; cursor: pointer; padding: 6px; }
+        .sp-btn:active { transform: scale(0.85); }
+        .sp-btn.play { width: 44px; height: 44px; background: #fff; border-radius: 50%; color: #000; font-size: 1rem; }
+        .sp-btn.play.playing { background: var(--green); color: #fff; }
+        .sp-dl { background: rgba(29,185,84,0.15); border: none; color: var(--green); font-size: 0.75rem; cursor: pointer; padding: 6px 10px; border-radius: 15px; }
 
-        .topbar{
-            position:sticky;top:0;background:var(--yt-bg);
-            backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-            height:50px;display:flex;align-items:center;padding:0 12px;gap:10px;
-            border-bottom:1px solid var(--yt-border);z-index:100;
-            transition: background 0.3s, border-color 0.3s;
-        }
-        .logo{display:flex;align-items:center;gap:6px;animation:float 3s ease-in-out infinite}
-        .logo-icon{width:28px;height:28px;background:#f00;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;color:white;animation:pulseLogo 2s ease-in-out infinite}
-        .logo-text{font-size:1rem;font-weight:700;background:linear-gradient(90deg,var(--yt-white),#f44,var(--yt-white),#f66);background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 3s linear infinite}
-        .logo-text sup{font-size:7px;background:#f00;color:#fff;padding:1px 3px;border-radius:3px;-webkit-text-fill-color:#fff}
-        .spacer{flex:1}
-        .bg-indicator{font-size:9px;color:#1db954;display:flex;align-items:center;gap:3px;margin-right:8px}
-        .bg-dot{width:7px;height:7px;background:#1db954;border-radius:50%;animation:pulse 1s infinite}
-        .theme-btn{background:none;border:none;color:var(--yt-white);font-size:1.1rem;cursor:pointer;padding:4px;transition:color 0.3s}
+        .toast { position: fixed; bottom: calc(var(--player-h) + 20px); left: 50%; transform: translateX(-50%) translateY(120px); background: #333; color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 0.75rem; z-index: 600; transition: transform 0.3s; pointer-events: none; }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        .loading { text-align: center; padding: 40px; color: var(--text2); }
+        .spinner { width: 30px; height: 30px; border: 3px solid var(--border); border-top-color: var(--red); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px; }
 
-        .search-section{padding:8px 12px;background:var(--yt-bg);z-index:50;transition:background 0.3s}
-        .search-box{display:flex;background:var(--yt-input-bg);border:2px solid var(--yt-border);border-radius:20px;overflow:hidden;transition:border-color 0.3s,box-shadow 0.3s, background 0.3s}
-        .search-box:focus-within{border-color:#f00;box-shadow:0 0 0 2px rgba(255,0,0,0.2)}
-        .search-box input{flex:1;padding:10px 14px;background:var(--yt-input-bg);border:none;color:var(--yt-input-text);font-size:0.9rem;outline:none;transition:background 0.3s, color 0.3s;min-width:0}
-        .search-box input::placeholder{color:var(--yt-input-placeholder);opacity:1}
-        .search-btn{width:42px;background:var(--yt-surface2);border:none;color:var(--yt-white);cursor:pointer;font-size:1rem;transition:background 0.2s, color 0.3s;display:flex;align-items:center;justify-content:center}
-        .search-btn:active{background:#f00;color:#fff}
-        
-        .hidden-player{position:fixed;top:0;left:0;width:1px;height:1px;opacity:0.01;pointer-events:none;z-index:-1}
-        
-        .tabs-container{display:flex;gap:4px;padding:4px 12px 8px;background:var(--yt-bg);overflow-x:auto;transition:background 0.3s;-webkit-overflow-scrolling:touch}
-        .tabs-container::-webkit-scrollbar{height:0}
-        .tab-btn{padding:6px 14px;background:var(--yt-surface);border:1px solid var(--yt-border);border-radius:16px;color:var(--yt-gray);font-size:0.75rem;cursor:pointer;white-space:nowrap;transition:all 0.2s}
-        .tab-btn.active{background:#f00;color:#fff;border-color:#f00}
-        .tab-btn .badge{background:#1db954;color:#fff;padding:1px 5px;border-radius:8px;font-size:9px;margin-left:3px}
-
-        .results-section{padding:4px 12px 20px;background:var(--yt-bg);transition:background 0.3s;min-height:200px}
-        .section-title{font-size:0.8rem;font-weight:600;margin-bottom:8px;padding-left:4px;display:flex;align-items:center;justify-content:space-between;color:var(--yt-gray);text-transform:uppercase;letter-spacing:1px}
-        .result-count{font-size:0.65rem;color:var(--yt-gray2);font-weight:400}
-        .section-subtitle{font-size:0.7rem;color:var(--spotify-green);margin-bottom:8px;padding-left:4px}
-        
-        .video-card{display:flex;gap:10px;background:var(--yt-surface);border-radius:8px;padding:8px;cursor:pointer;transition:background 0.15s,transform 0.15s;animation:fadeInUp 0.3s ease forwards;opacity:0;position:relative;border:2px solid transparent;margin-bottom:6px}
-        .video-card:nth-child(1){animation-delay:0.05s}.video-card:nth-child(2){animation-delay:0.1s}.video-card:nth-child(3){animation-delay:0.15s}.video-card:nth-child(4){animation-delay:0.2s}.video-card:nth-child(5){animation-delay:0.25s}.video-card:nth-child(6){animation-delay:0.3s}
-        .video-card:active{background:var(--yt-surface2);transform:scale(0.98)}
-        .video-card.selected{border:2px solid #1db954;background:rgba(29,185,84,0.1)}
-        .video-card.favorite{border-left:3px solid #f00}
-        .video-thumb{width:48px;height:48px;border-radius:6px;object-fit:cover;flex-shrink:0;background:var(--yt-surface2)}
-        .video-info{flex:1;display:flex;flex-direction:column;justify-content:center;min-width:0}
-        .video-card-title{font-size:0.85rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--yt-white)}
-        .video-card-channel{font-size:0.7rem;color:var(--yt-gray);margin-top:2px}
-        .video-card-meta{font-size:0.65rem;color:var(--yt-gray2);margin-top:1px}
-        
-        .video-actions{position:absolute;bottom:6px;right:6px;display:flex;gap:4px;z-index:5}
-        .video-action-btn{width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,0.5);border:none;color:#fff;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
-        .video-action-btn:active{transform:scale(1.1)}
-        .video-action-btn.fav-active{color:#f00;background:rgba(255,0,0,0.3)}
-        .video-action-btn.download:active{background:#1db954}
-
-        .loading{text-align:center;padding:40px;color:var(--yt-gray)}
-        .spinner{width:30px;height:30px;border:3px solid var(--yt-border);border-top-color:#f00;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 10px}
-        
-        .toast{position:fixed;bottom:calc(var(--player-height) + 20px);left:50%;transform:translateX(-50%)translateY(120px);background:#333;color:#fff;padding:8px 16px;border-radius:20px;font-size:0.75rem;z-index:600;transition:transform 0.3s;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
-        .toast.show{transform:translateX(-50%)translateY(0)}
-        
-        .pagination{display:flex;justify-content:center;gap:10px;padding:12px}
-        .pagination button{padding:6px 14px;background:var(--yt-surface);border:1px solid var(--yt-border);color:var(--yt-white);border-radius:16px;cursor:pointer;font-size:0.75rem;transition:background 0.2s}
-        .pagination button:hover{background:var(--yt-surface2)}
-        .pagination button:disabled{opacity:0.4;cursor:not-allowed}
-        
-        .download-progress{position:fixed;bottom:calc(var(--player-height) + 10px);left:12px;right:12px;background:var(--yt-surface);border-radius:10px;padding:10px;z-index:300;display:none;box-shadow:0 4px 20px rgba(0,0,0,0.5)}
-        .download-progress.active{display:block}
-        .download-progress-bar{height:3px;background:var(--yt-border);border-radius:2px;overflow:hidden;margin-top:6px}
-        .download-progress-fill{height:100%;background:linear-gradient(90deg,#1db954,#00e676);width:0%;transition:width 0.3s}
-        .download-progress span{color:var(--yt-white);font-size:0.75rem}
-
-        @media(max-width:360px){
-            .spotify-album-art{width:42px;height:42px}
-            .spotify-btn.main-play{width:38px;height:38px;font-size:0.9rem}
-            .video-thumb{width:40px;height:40px}
-        }
-        @media(min-width:768px){body{max-width:550px;margin:0 auto;box-shadow:0 0 30px rgba(0,0,0,0.3)}}
-        @media(orientation:landscape) and (max-height:500px){
-            :root{--player-height:60px}
-            .spotify-album-art{width:38px;height:38px}
-            .results-section{max-height:35vh;overflow-y:auto}
-        }
+        @media (max-width: 360px) { .sp-art { width: 42px; height: 42px; } .sp-btn.play { width: 38px; height: 38px; } }
+        @media (min-width: 768px) { body { max-width: 550px; margin: 0 auto; } }
+        @media (orientation: landscape) and (max-height: 500px) { :root { --player-h: 60px; } .sp-art { width: 38px; height: 38px; } }
     </style>
 </head>
 <body data-theme="dark">
 
-    <!-- Splash Screen -->
-    <div id="splashScreen">
-        <div class="splash-content">
-            <div class="splash-logo">♪</div>
-            <div class="splash-title">Play Tube <sup>MUSIC</sup></div>
-            <div class="splash-subtitle">Background Play • PiP • Download</div>
-            <div class="splash-loading">
-                <div class="splash-dot"></div>
-                <div class="splash-dot"></div>
-                <div class="splash-dot"></div>
-            </div>
-        </div>
-    </div>
+    <!-- PLAYER OCULTO (PRECISA SER VISÍVEL PARA O YOUTUBE) -->
+    <div class="hidden-player" id="hiddenPlayer"></div>
 
     <div class="topbar">
         <div class="logo"><div class="logo-icon">♪</div><span class="logo-text">Play Tube<sup>MUSIC</sup></span></div>
         <div class="spacer"></div>
-        <div class="bg-indicator" id="bgIndicator" style="display:none;"><div class="bg-dot"></div><span>BG</span></div>
-        <button class="theme-btn" onclick="calibrarTela(); themeManager.cycleTheme()" title="Alternar tema">🎨</button>
-    </div>
-
-    <!-- Player de Vídeo -->
-    <div class="player-container" id="playerContainer">
-        <div class="player-wrapper" id="playerWrapper"></div>
-        <button class="player-close-btn" onclick="closeVideoPlayer()">✕</button>
-        <button class="player-mode-indicator" id="playerModeIndicator" onclick="switchToAudioMode()">🎬</button>
+        <button class="theme-btn" onclick="T.cycle()">🎨</button>
     </div>
 
     <div class="search-section">
         <div class="search-box">
-            <input type="text" id="searchInput" placeholder="🎵 O que você quer ouvir?" autocomplete="off" enterkeyhint="search">
+            <input type="text" id="searchInput" placeholder="🎵 Buscar música..." autocomplete="off">
             <button class="search-btn" id="searchBtn">🔍</button>
         </div>
     </div>
 
     <div class="tabs-container">
         <button class="tab-btn active" onclick="switchTab('search')">🔍 Buscar</button>
-        <button class="tab-btn" onclick="switchTab('favorites')">❤️ Favoritos <span class="badge" id="favCount">0</span></button>
+        <button class="tab-btn" onclick="switchTab('favorites')">❤️ Favoritos</button>
         <button class="tab-btn" onclick="switchTab('history')">🕐 Histórico</button>
-        <button class="tab-btn" onclick="switchTab('downloads')">⬇️ Downloads</button>
-    </div>
-
-    <div class="hidden-player" id="hiddenPlayer"></div>
-
-    <div class="download-progress" id="downloadProgress">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-            <span>⬇️ Baixando...</span>
-            <span style="color:var(--yt-gray);" id="downloadPercent">0%</span>
-        </div>
-        <div class="download-progress-bar"><div class="download-progress-fill" id="downloadFill"></div></div>
     </div>
 
     <div class="results-section">
-        <div class="section-title" id="sectionTitle"><span>Resultados</span><span class="result-count" id="resultCount"></span></div>
-        <div class="section-subtitle" id="sectionSubtitle" style="display:none;"></div>
-        <div id="resultsContainer"><div style="text-align:center;padding:50px 20px;color:var(--yt-gray);"><div style="font-size:3rem;margin-bottom:12px;">🎧</div><div style="font-size:1.1rem;margin-bottom:6px;color:var(--yt-white);">Busque suas músicas</div><div style="font-size:0.75rem;color:var(--yt-gray2);">Play Tube Music</div></div></div>
-        <div id="paginationContainer" class="pagination" style="display:none;"></div>
+        <div class="section-title" id="sectionTitle">Resultados</div>
+        <div id="resultsContainer">
+            <div style="text-align:center;padding:50px;color:var(--text2);">
+                <div style="font-size:3rem;">🎧</div>
+                <div style="font-size:1.1rem;color:var(--text);">Busque uma música</div>
+            </div>
+        </div>
     </div>
 
-    <!-- Barra Spotify -->
+    <!-- BARRA SPOTIFY -->
     <div class="spotify-bar" id="spotifyBar">
-        <div class="spotify-progress-container" id="progressContainer" onclick="seekTrack(event)">
-            <div class="spotify-progress-bar" id="progressBar"></div>
+        <div class="sp-progress" id="progressContainer" onclick="seekTrack(event)">
+            <div class="sp-progress-bar" id="progressBar"></div>
         </div>
-        <img class="spotify-album-art" id="spotifyAlbumArt" src="" alt="" onclick="showVideoPlayer()">
-        <div class="spotify-track-info" onclick="showVideoPlayer()">
-            <div class="spotify-track-title" id="spotifyTitle">Nenhuma música</div>
-            <div class="spotify-track-artist" id="spotifyArtist">Toque para assistir</div>
+        <img class="sp-art" id="spArt" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23333'/%3E%3Ctext x='50' y='55' text-anchor='middle' fill='%23fff' font-size='40'%3E♪%3C/text%3E%3C/svg%3E" alt="" onclick="togglePlay()">
+        <div class="sp-info">
+            <div class="sp-title" id="spTitle">Nenhuma música</div>
+            <div class="sp-artist" id="spArtist">Toque para tocar</div>
         </div>
-        <div class="spotify-controls">
-            <button class="spotify-btn" onclick="previousTrack()">⏮</button>
-            <button class="spotify-btn main-play" id="spotifyPlayBtn" onclick="togglePlayPause()">▶</button>
-            <button class="spotify-btn" onclick="nextTrack()">⏭</button>
+        <div class="sp-controls">
+            <button class="sp-btn" onclick="prevTrack()">⏮</button>
+            <button class="sp-btn play" id="spPlay" onclick="togglePlay()">▶</button>
+            <button class="sp-btn" onclick="nextTrack()">⏭</button>
         </div>
-        <button class="spotify-download-btn" id="spotifyDownloadBtn" onclick="downloadCurrentTrack()" title="Download">⬇</button>
-        <div class="spotify-mode-badge" id="spotifyModeBadge">🎵 ÁUDIO</div>
+        <button class="sp-dl" onclick="downloadCurrent()">⬇</button>
     </div>
 
     <div class="toast" id="toast"></div>
 
+    <!-- YOUTUBE API (DEVE SER CARREGADA PRIMEIRO) -->
     <script src="https://www.youtube.com/iframe_api"></script>
 
     <script>
-        (function() {
-            'use strict';
-            const PROXY_URL = 'https://playtube-proxy.codw23.workers.dev';
+    // ===== CÓDIGO PRINCIPAL =====
+    console.log('🚀 Play Tube Music - Iniciando...');
 
-            // ===== FUNÇÃO CALIBRAR TELA =====
-            function calibrarTela() {
-                const w = window.innerWidth;
-                const h = window.innerHeight;
-                const portrait = h > w;
-                const mobile = w < 768;
-                
-                // Player height
-                let ph = 80;
-                if (mobile && portrait) ph = 70;
-                else if (mobile && !portrait) ph = 55;
-                else if (w < 1024) ph = 75;
-                
-                document.documentElement.style.setProperty('--player-height', ph + 'px');
-                
-                // Safe area
-                const sb = parseInt(getComputedStyle(document.documentElement).getPropertyValue('env(safe-area-inset-bottom)')) || 0;
-                document.documentElement.style.setProperty('--safe-bottom', sb + 'px');
-                document.body.style.paddingBottom = `calc(${ph}px + ${sb}px + 15px)`;
-                
-                // Font size
-                let fs = 16;
-                if (w < 360) fs = 13;
-                else if (w < 768) fs = 14;
-                document.documentElement.style.fontSize = fs + 'px';
-                
-                // Elementos específicos
-                const art = document.getElementById('spotifyAlbumArt');
-                const play = document.getElementById('spotifyPlayBtn');
-                if (art && mobile) { const s = portrait ? '44px' : '38px'; art.style.width = s; art.style.height = s; }
-                if (play && mobile) { const s = portrait ? '40px' : '36px'; play.style.width = s; play.style.height = s; }
-                
-                console.log('📱 Calibrado:', { w, h, portrait, mobile, ph, fs, sb });
-            }
+    // Variáveis globais
+    let player = null;
+    let playlist = [];
+    let currentIndex = -1;
+    let isPlaying = false;
+    let currentVideoId = null;
+    let toastTimeout = null;
+    let progressInterval = null;
+    let currentQuery = '';
 
-            // ===== SISTEMA DE TEMAS =====
-            class ThemeManager {
-                constructor() {
-                    this.themes = ['dark', 'light', 'amoled'];
-                    this.current = localStorage.getItem('theme') || 'dark';
-                    this.apply();
-                }
-                apply() {
-                    document.body.setAttribute('data-theme', this.current);
-                    document.documentElement.style.setProperty('color-scheme', this.current === 'light' ? 'light' : 'dark');
-                    document.querySelector('meta[name="theme-color"]').setAttribute('content', 
-                        this.current === 'light' ? '#fff' : this.current === 'amoled' ? '#000' : '#0f0f0f');
-                    localStorage.setItem('theme', this.current);
-                }
-                cycleTheme() {
-                    const i = this.themes.indexOf(this.current);
-                    this.current = this.themes[(i + 1) % this.themes.length];
-                    this.apply();
-                    showToast('🎨 ' + ({dark:'Escuro 🌙', light:'Claro ☀️', amoled:'AMOLED 🌑'})[this.current]);
-                }
-            }
+    const PROXY_URL = 'https://playtube-proxy.codw23.workers.dev';
 
-            // ===== FAVORITOS =====
-            class FavoritesManager {
-                constructor() {
-                    this.favorites = JSON.parse(localStorage.getItem('favs') || '[]');
-                    this.history = JSON.parse(localStorage.getItem('hist') || '[]');
-                }
-                toggle(track) {
-                    const i = this.favorites.findIndex(f => f.id === track.id);
-                    if (i > -1) { this.favorites.splice(i, 1); showToast('💔 Removido'); }
-                    else { this.favorites.unshift(track); showToast('❤️ Favoritado'); }
-                    localStorage.setItem('favs', JSON.stringify(this.favorites));
-                    this.updateBadge();
-                    return i === -1;
-                }
-                isFav(id) { return this.favorites.some(f => f.id === id); }
-                addHistory(track) {
-                    this.history = this.history.filter(h => h.id !== track.id);
-                    this.history.unshift({...track, at: new Date().toISOString()});
-                    if (this.history.length > 50) this.history.pop();
-                    localStorage.setItem('hist', JSON.stringify(this.history));
-                }
-                updateBadge() {
-                    const b = document.getElementById('favCount');
-                    if (b) b.textContent = this.favorites.length;
-                }
-            }
+    // DOM Elements
+    const $ = (id) => document.getElementById(id);
+    const searchInput = $('searchInput');
+    const searchBtn = $('searchBtn');
+    const resultsContainer = $('resultsContainer');
+    const toast = $('toast');
+    const spotifyBar = $('spotifyBar');
+    const spArt = $('spArt');
+    const spTitle = $('spTitle');
+    const spArtist = $('spArtist');
+    const spPlay = $('spPlay');
+    const progressBar = $('progressBar');
+    const progressContainer = $('progressContainer');
 
-            // ===== DOWNLOADS =====
-            class DownloadManager {
-                constructor() {
-                    this.items = JSON.parse(localStorage.getItem('dls') || '[]');
-                }
-                async download(id, title, channel, thumb) {
-                    showToast('⬇️ Baixando...');
-                    const el = document.getElementById('downloadProgress');
-                    const fill = document.getElementById('downloadFill');
-                    const pct = document.getElementById('downloadPercent');
-                    el.classList.add('active'); fill.style.width = '0%'; pct.textContent = '0%';
-                    
-                    for (let i = 0; i <= 100; i += 25) {
-                        await new Promise(r => setTimeout(r, 250));
-                        fill.style.width = i + '%'; pct.textContent = i + '%';
+    // ===== TEMA =====
+    const T = {
+        themes: ['dark', 'light', 'amoled'],
+        current: 'dark',
+        apply() {
+            document.body.setAttribute('data-theme', this.current);
+            localStorage.setItem('theme', this.current);
+        },
+        cycle() {
+            const i = this.themes.indexOf(this.current);
+            this.current = this.themes[(i + 1) % this.themes.length];
+            this.apply();
+            showToast('🎨 Tema: ' + this.current);
+        }
+    };
+    T.apply();
+
+    // ===== FAVORITOS =====
+    const Fav = {
+        favs: JSON.parse(localStorage.getItem('favs') || '[]'),
+        hist: JSON.parse(localStorage.getItem('hist') || '[]'),
+        toggle(tr) {
+            const i = this.favs.findIndex(f => f.id === tr.id);
+            if (i > -1) { this.favs.splice(i, 1); showToast('💔 Removido'); }
+            else { this.favs.unshift(tr); showToast('❤️ Favoritado'); }
+            localStorage.setItem('favs', JSON.stringify(this.favs));
+            return i === -1;
+        },
+        is(id) { return this.favs.some(f => f.id === id); },
+        addHist(tr) {
+            this.hist = this.hist.filter(h => h.id !== tr.id);
+            this.hist.unshift({...tr, at: new Date().toISOString()});
+            if (this.hist.length > 50) this.hist.pop();
+            localStorage.setItem('hist', JSON.stringify(this.hist));
+        }
+    };
+
+    // ===== YOUTUBE API - FUNÇÃO PRINCIPAL =====
+    function onYouTubeIframeAPIReady() {
+        console.log('✅ YouTube API Ready');
+        createPlayer();
+    }
+
+    function createPlayer() {
+        if (player) {
+            player.destroy();
+        }
+        
+        try {
+            player = new YT.Player('hiddenPlayer', {
+                height: '360',
+                width: '640',
+                videoId: '',
+                host: 'https://www.youtube-nocookie.com',
+                playerVars: {
+                    autoplay: 0,
+                    playsinline: 1,
+                    controls: 0,
+                    disablekb: 1,
+                    fs: 0,
+                    rel: 0,
+                    modestbranding: 1,
+                    iv_load_policy: 3,
+                    origin: window.location.origin,
+                    enablejsapi: 1,
+                    mute: 0,
+                    volume: 100
+                },
+                events: {
+                    onReady: function(event) {
+                        console.log('✅ Player pronto!');
+                        event.target.setVolume(100);
+                        event.target.unMute();
+                    },
+                    onStateChange: onPlayerStateChange,
+                    onError: function(event) {
+                        console.error('❌ Erro no player:', event.data);
+                        showToast('❌ Erro ao carregar vídeo');
                     }
-                    
-                    this.items.unshift({id, title, channel, thumbnail:thumb, at: new Date().toISOString()});
-                    localStorage.setItem('dls', JSON.stringify(this.items));
-                    showToast('✅ Concluído!');
-                    setTimeout(() => el.classList.remove('active'), 800);
                 }
-                has(id) { return this.items.some(d => d.id === id); }
-                all() { return this.items; }
-            }
-
-            const themeManager = new ThemeManager();
-            const favMan = new FavoritesManager();
-            const dlMan = new DownloadManager();
-
-            // ===== ESTADO =====
-            let ytPlayer = null, ytTop = null, playlist = [], sel = new Set();
-            let idx = -1, playing = false, vid = null, artist = '';
-            let toastTO = null, nextPT = null, prevPT = null, query = '';
-            let isVideo = false, wakeLock = null, tab = 'search', progInt = null, shownRel = false;
-
-            // DOM
-            const $ = id => document.getElementById(id);
-            const sInput = $('searchInput'), sBtn = $('searchBtn');
-            const resCont = $('resultsContainer'), resCount = $('resultCount');
-            const sTitle = $('sectionTitle'), sSub = $('sectionSubtitle');
-            const pagCont = $('paginationContainer');
-            const vidCont = $('playerContainer'), vidWrap = $('playerWrapper');
-            const toast = $('toast');
-            const bgInd = $('bgIndicator');
+            });
             
-            const spBar = $('spotifyBar'), spArt = $('spotifyAlbumArt');
-            const spTitle = $('spotifyTitle'), spArtist = $('spotifyArtist');
-            const spPlay = $('spotifyPlayBtn'), spMode = $('spotifyModeBadge');
-            const spDL = $('spotifyDownloadBtn');
-            const progBar = $('progressBar'), progCont = $('progressContainer');
+            console.log('✅ Player criado com sucesso');
+        } catch(e) {
+            console.error('❌ Falha ao criar player:', e);
+        }
+    }
 
-            // ===== SERVICE WORKER =====
-            if ('serviceWorker' in navigator) {
-                const sw = `const C='pt-v4';self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>self.clients.claim());self.addEventListener('message',e=>{const{a}=e.data;self.clients.matchAll().then(c=>c.forEach(x=>x.postMessage(e.data)));if(a==='META'&&'mediaSession' in self){self.registration.mediaSession.metadata=new MediaMetadata(e.data.meta)}});`;
-                navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(()=>{});
-                navigator.serviceWorker.addEventListener('message', e => {
-                    const {a} = e.data;
-                    if (a === 'PLAY' && ytPlayer && vid) ytPlayer.playVideo();
-                    else if (a === 'PAUSE' && ytPlayer) ytPlayer.pauseVideo();
-                    else if (a === 'NEXT') nextTrack();
-                    else if (a === 'PREV') previousTrack();
-                });
-            }
-            function notifySW(a, d = {}) {
-                if (navigator.serviceWorker?.controller) navigator.serviceWorker.controller.postMessage({a, ...d});
-            }
+    function onPlayerStateChange(event) {
+        console.log('🔄 Estado do player:', event.data);
+        
+        if (event.data === YT.PlayerState.PLAYING) {
+            console.log('▶ Tocando!');
+            isPlaying = true;
+            spPlay.textContent = '⏸';
+            spPlay.classList.add('playing');
+            spotifyBar.classList.add('playing');
+            spArt.classList.add('playing');
+            startProgress();
+        } 
+        else if (event.data === YT.PlayerState.PAUSED) {
+            console.log('⏸ Pausado');
+            isPlaying = false;
+            spPlay.textContent = '▶';
+            spPlay.classList.remove('playing');
+            spotifyBar.classList.remove('playing');
+            spArt.classList.remove('playing');
+            stopProgress();
+        } 
+        else if (event.data === YT.PlayerState.ENDED) {
+            console.log('⏹ Finalizado');
+            stopProgress();
+            progressBar.style.width = '0%';
+            nextTrack();
+        }
+        else if (event.data === YT.PlayerState.BUFFERING) {
+            console.log('🔄 Bufferizando...');
+        }
+    }
 
-            // ===== MODO =====
-            window.switchToAudioMode = function() {
-                isVideo = false; closeVideoPlayer();
-                spMode.textContent = '🎵 ÁUDIO'; updateSpBar(true);
-                if (vid) togglePiP(); showToast('🎵 Modo áudio');
-            };
-            window.showVideoPlayer = function() {
-                if (!vid) return;
-                isVideo = true; spMode.textContent = '🎬 VÍDEO';
-                vidCont.classList.add('active','rainbow-border');
-                if (!ytTop) initTop(); else ytTop.loadVideoById({videoId:vid, startSeconds:ytPlayer?.getCurrentTime?.()||0});
-                vidCont.scrollIntoView({behavior:'smooth'}); updateSpBar(false);
-            };
-            window.closeVideoPlayer = function() {
-                vidCont.classList.remove('active','rainbow-border');
-                if (ytTop) ytTop.stopVideo();
-                isVideo = false; spMode.textContent = '🎵 ÁUDIO'; updateSpBar(true);
-                if (vid) togglePiP();
-            };
-
-            function updateSpBar(show) {
-                if (vid && (show || !isVideo)) { spBar.classList.add('active'); if (playing) { spBar.classList.add('playing'); spArt.classList.add('playing'); spPlay.classList.add('playing'); } }
-                else if (!vid) spBar.classList.remove('active');
-                if (!show && isVideo) spBar.classList.add('active');
-            }
-
-            function updateSpInfo(t) {
-                spTitle.textContent = t.title||''; spArtist.textContent = t.channel||'';
-                spArt.src = t.thumbnail||''; document.title = '▶ '+(t.title||'Play Tube Music');
-            }
-
-            function updatePlayState() {
-                if (playing) { spPlay.textContent='⏸'; spBar.classList.add('playing'); spArt.classList.add('playing'); spPlay.classList.add('playing'); bgInd.style.display='flex'; }
-                else { spPlay.textContent='▶'; spBar.classList.remove('playing'); spArt.classList.remove('playing'); spPlay.classList.remove('playing'); bgInd.style.display='none'; }
-            }
-
-            function startProg() { stopProg(); progInt = setInterval(()=>{ if(!ytPlayer||!playing)return; try{const d=ytPlayer.getDuration(),c=ytPlayer.getCurrentTime();if(d>0)progBar.style.width=(c/d)*100+'%'}catch(e){}}, 1000); }
-            function stopProg() { if(progInt){clearInterval(progInt);progInt=null} }
-            window.seekTrack = function(e) { if(!ytPlayer||!vid)return; const r=progCont.getBoundingClientRect(),d=ytPlayer.getDuration(); if(d>0)ytPlayer.seekTo(((e.clientX-r.left)/r.width)*d,true) };
-
-            // ===== PLAYER =====
-            function initTop() {
-                vidWrap.innerHTML = '<div id="topPlayerElement"></div>';
-                ytTop = new YT.Player('topPlayerElement', {
-                    videoId:vid, playerVars:{autoplay:1,playsinline:1,controls:1,rel:0,modestbranding:1,fs:1},
-                    events:{onReady:()=>{if(ytPlayer?.getCurrentTime)ytTop.seekTo(ytPlayer.getCurrentTime())},onStateChange:e=>{if(e.data===1&&ytPlayer?.pauseVideo)ytPlayer.pauseVideo();if(e.data===0)closeVideoPlayer()}}
-                });
-            }
-
-            window.onYouTubeIframeAPIReady = function() { initHidden(); };
-            function initHidden() {
-                if (ytPlayer) ytPlayer.destroy();
-                ytPlayer = new YT.Player('hiddenPlayer', {
-                    height:'360',width:'640',videoId:'',host:'https://www.youtube-nocookie.com',
-                    playerVars:{autoplay:0,playsinline:1,controls:0,disablekb:1,fs:0,rel:0,modestbranding:1,iv_load_policy:3,origin:window.location.origin,enablejsapi:1,mute:0,volume:100,pictureInPicture:1,pip:1},
-                    events:{onReady:e=>{e.target.setVolume(100);e.target.unMute()},onStateChange:onState,onError:e=>console.error('Erro:',e.data)}
-                });
-            }
-
-            function onState(e) {
-                if (e.data === 1) { playing=true; updatePlayState(); updateSpBar(true); startProg(); shownRel=false; updateMS(true); }
-                else if (e.data === 2) { playing=false; updatePlayState(); stopProg(); updateMS(false); }
-                else if (e.data === 0) { stopProg(); progBar.style.width='0%'; if(!shownRel&&artist){shownRel=true;showRel(artist)}else nextTrack(); }
-            }
-
-            async function showRel(a) {
-                showToast('🎵 Mais de '+a+'...'); sTitle.innerHTML='<span>🎤 Mais de '+escapeHtml(a)+'</span>';
-                sSub.style.display='block'; nextPT=null;prevPT=null;query=a;
-                await searchYT(a,null,true); document.querySelector('.results-section').scrollIntoView({behavior:'smooth'});
-            }
-
-            // ===== CONTROLES =====
-            function playTrack(i = -1) {
-                if (i>=0&&i<playlist.length) idx=i;
-                if (idx<0||idx>=playlist.length) return;
-                const t = playlist[idx]; vid=t.id; artist=t.channel; shownRel=false;
-                favMan.addHistory(t); progBar.style.width='0%';
-                if (ytPlayer?.loadVideoById) {
-                    ytPlayer.loadVideoById({videoId:t.id,startSeconds:0});
-                    setTimeout(()=>{if(ytPlayer?.playVideo){ytPlayer.playVideo();ytPlayer.unMute();ytPlayer.setVolume(100)}},300);
+    // ===== PROGRESSO =====
+    function startProgress() {
+        stopProgress();
+        progressInterval = setInterval(function() {
+            if (!player || !isPlaying) return;
+            try {
+                const duration = player.getDuration();
+                const currentTime = player.getCurrentTime();
+                if (duration > 0) {
+                    const percent = (currentTime / duration) * 100;
+                    progressBar.style.width = percent + '%';
                 }
-                updateSpInfo(t); updateSpBar(true); updatePlayState();
-                isVideo=false; spMode.textContent='🎵 ÁUDIO'; closeVideoPlayer(); togglePiP();
-            }
-            window.togglePlayPause = function() {
-                if (!ytPlayer) return;
-                if (playing) { ytPlayer.pauseVideo(); if(ytTop)ytTop.pauseVideo(); }
-                else if (vid) { ytPlayer.playVideo(); ytPlayer.unMute(); ytPlayer.setVolume(100); }
-                else if (playlist.length>0) playTrack(0);
-            };
-            window.nextTrack = function() { if(!playlist.length)return; progBar.style.width='0%'; playTrack((idx+1)%playlist.length); };
-            window.previousTrack = function() { if(!playlist.length)return; progBar.style.width='0%'; playTrack((idx-1+playlist.length)%playlist.length); };
-            function stopPlayback() {
-                if(ytPlayer)ytPlayer.stopVideo(); if(ytTop)ytTop.stopVideo();
-                playing=false; updatePlayState(); stopProg(); progBar.style.width='0%';
-                spBar.classList.remove('active'); vidCont.classList.remove('active');
-                if('mediaSession' in navigator) navigator.mediaSession.playbackState='none';
-            }
+            } catch(e) {}
+        }, 1000);
+    }
 
-            // ===== DOWNLOAD =====
-            window.downloadCurrentTrack = function() {
-                if (!vid || idx<0) { showToast('⚠️ Nenhuma música'); return; }
-                const t = playlist[idx]; spDL.classList.add('downloading');
-                dlMan.download(t.id, t.title, t.channel, t.thumbnail).finally(() => spDL.classList.remove('downloading'));
-            };
+    function stopProgress() {
+        if (progressInterval) {
+            clearInterval(progressInterval);
+            progressInterval = null;
+        }
+    }
 
-            // ===== PIP =====
-            window.togglePiP = async function() {
-                if (!vid) return;
-                try { if (document.pictureInPictureElement) { await document.exitPictureInPicture(); return; }
-                    const ifr = document.querySelector('#hiddenPlayer iframe');
-                    if (ifr) { try { await ifr.requestPictureInPicture(); return; } catch(e) {} }
-                } catch(e) {}
-            };
+    // ===== CONTROLES =====
+    function playTrack(index) {
+        console.log('🎵 playTrack chamado, index:', index, 'playlist length:', playlist.length);
+        
+        if (index >= 0 && index < playlist.length) {
+            currentIndex = index;
+        }
+        
+        if (currentIndex < 0 || currentIndex >= playlist.length) {
+            console.warn('⚠️ Índice inválido');
+            return;
+        }
+        
+        const track = playlist[currentIndex];
+        console.log('🎵 Tocando:', track.title, 'ID:', track.id);
+        
+        currentVideoId = track.id;
+        progressBar.style.width = '0%';
+        
+        // Atualizar UI
+        spTitle.textContent = track.title || 'Sem título';
+        spArtist.textContent = track.channel || 'Desconhecido';
+        spArt.src = track.thumbnail || '';
+        document.title = '▶ ' + (track.title || 'Play Tube Music');
+        spotifyBar.classList.add('active');
+        
+        // Tocar no YouTube
+        if (player && player.loadVideoById) {
+            console.log('✅ Carregando vídeo:', track.id);
+            player.loadVideoById({
+                videoId: track.id,
+                startSeconds: 0
+            });
+            
+            // Pequeno delay para garantir carregamento
+            setTimeout(function() {
+                if (player && player.playVideo) {
+                    console.log('▶ Iniciando reprodução');
+                    player.playVideo();
+                    player.unMute();
+                    player.setVolume(100);
+                }
+            }, 500);
+        } else {
+            console.error('❌ Player não está pronto!');
+            showToast('❌ Player não carregado');
+            
+            // Tentar recriar o player
+            if (typeof YT !== 'undefined' && YT.Player) {
+                console.log('🔄 Tentando recriar player...');
+                createPlayer();
+                setTimeout(function() {
+                    if (player && player.loadVideoById) {
+                        player.loadVideoById({ videoId: track.id, startSeconds: 0 });
+                        setTimeout(function() {
+                            player.playVideo();
+                            player.unMute();
+                        }, 500);
+                    }
+                }, 1000);
+            }
+        }
+        
+        // Adicionar ao histórico
+        Fav.addHist(track);
+    }
 
-            // ===== RESULTADOS =====
-            window.playVideoFromResults = function(id, title, channel, thumb) {
-                const v = {id,title,channel,thumbnail:thumb};
-                playlist = playlist.filter(t=>t.id!==v.id); playlist.unshift(v);
-                idx=0; sel.clear(); playTrack(0); showToast('▶ '+title.substring(0,30));
-            };
-            window.toggleFav = function(id, title, channel, thumb, e) {
-                e.stopPropagation(); favMan.toggle({id,title,channel,thumbnail:thumb});
-                updateFavBtns();
-            };
-            window.downloadFromCard = function(id, title, channel, thumb, e) {
-                e.stopPropagation(); dlMan.download(id, title, channel, thumb);
-            };
-            function updateFavBtns() {
-                document.querySelectorAll('.video-action-btn.fav').forEach(b => {
-                    const fid = b.getAttribute('data-id');
-                    const isF = favMan.isFav(fid);
-                    b.classList.toggle('fav-active', isF);
-                    b.textContent = isF ? '❤️' : '🤍';
-                });
-            }
+    window.togglePlay = function() {
+        console.log('🎮 togglePlay chamado, player existe?', !!player, 'isPlaying?', isPlaying);
+        
+        if (!player) {
+            console.error('❌ Player não existe!');
+            showToast('❌ Player não carregado');
+            return;
+        }
+        
+        if (isPlaying) {
+            console.log('⏸ Pausando');
+            player.pauseVideo();
+        } else if (currentVideoId) {
+            console.log('▶ Retomando');
+            player.playVideo();
+            player.unMute();
+            player.setVolume(100);
+        } else if (playlist.length > 0) {
+            console.log('▶ Iniciando playlist');
+            playTrack(0);
+        } else {
+            showToast('⚠️ Busque uma música primeiro');
+        }
+    };
 
-            // ===== TABS =====
-            window.switchTab = function(t) {
-                tab=t;
-                document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-                [...document.querySelectorAll('.tab-btn')].forEach(b=>{if(b.textContent.toLowerCase().includes(t==='search'?'buscar':t==='favorites'?'favoritos':t==='history'?'histórico':'downloads'))b.classList.add('active')});
-                sSub.style.display='none';
-                if (t==='search') { sTitle.innerHTML='<span>Resultados</span>'; if(query)searchYT(query); else resCont.innerHTML='<div style="text-align:center;padding:50px;color:var(--yt-gray);"><div style="font-size:3rem;">🎧</div><div>Busque suas músicas</div></div>'; pagCont.style.display='none'; }
-                else if (t==='favorites') { sTitle.innerHTML='<span>❤️ Favoritos</span>'; const f=favMan.favorites; resCount.textContent=f.length+' items'; resCont.innerHTML=f.length?f.map(v=>card(v,true)).join(''):'<div style="text-align:center;padding:40px;color:var(--yt-gray);">❤️ Vazio</div>'; pagCont.style.display='none'; updateFavBtns(); }
-                else if (t==='history') { sTitle.innerHTML='<span>🕐 Histórico</span>'; const h=favMan.history; resCount.textContent=h.length+' itens'; resCont.innerHTML=h.length?h.map(v=>card(v)).join(''):'<div style="text-align:center;padding:40px;color:var(--yt-gray);">🕐 Vazio</div>'; pagCont.style.display='none'; updateFavBtns(); }
-                else if (t==='downloads') { sTitle.innerHTML='<span>⬇️ Downloads</span>'; const d=dlMan.all(); resCount.textContent=d.length+' itens'; resCont.innerHTML=d.length?d.map(v=>card(v)).join(''):'<div style="text-align:center;padding:40px;color:var(--yt-gray);">📥 Vazio</div>'; pagCont.style.display='none'; updateFavBtns(); }
-            };
+    window.nextTrack = function() {
+        if (playlist.length === 0) return;
+        progressBar.style.width = '0%';
+        const next = (currentIndex + 1) % playlist.length;
+        playTrack(next);
+        showToast('⏭ Próxima');
+    };
 
-            function card(v, isF=false) {
-                const f = favMan.isFav(v.id); const d = dlMan.has(v.id);
-                return `<div class="video-card${isF?' favorite':''}" onclick="playVideoFromResults('${v.id}','${escapeHtml(v.title)}','${escapeHtml(v.channel)}','${v.thumbnail}')">
-                    <img class="video-thumb" src="${v.thumbnail}" loading="lazy" onerror="this.style.opacity='0.3'">
-                    <div class="video-info"><div class="video-card-title">${escapeHtml(v.title)}</div><div class="video-card-channel">${escapeHtml(v.channel)}</div>${v.at?`<div class="video-card-meta">🕐 ${new Date(v.at).toLocaleDateString()}</div>`:''}</div>
-                    <div class="video-actions">
-                        <button class="video-action-btn fav${f?' fav-active':''}" data-id="${v.id}" onclick="toggleFav('${v.id}','${escapeHtml(v.title)}','${escapeHtml(v.channel)}','${v.thumbnail}',event)">${f?'❤️':'🤍'}</button>
-                        ${!d?`<button class="video-action-btn download" onclick="downloadFromCard('${v.id}','${escapeHtml(v.title)}','${escapeHtml(v.channel)}','${v.thumbnail}',event)">⬇</button>`:''}
-                    </div></div>`;
-            }
+    window.prevTrack = function() {
+        if (playlist.length === 0) return;
+        progressBar.style.width = '0%';
+        const prev = (currentIndex - 1 + playlist.length) % playlist.length;
+        playTrack(prev);
+        showToast('⏮ Anterior');
+    };
 
-            // ===== BUSCA =====
-            sBtn.addEventListener('click',()=>{query=sInput.value;nextPT=null;prevPT=null;sTitle.innerHTML='<span>Resultados</span>';sSub.style.display='none';searchYT(query)});
-            sInput.addEventListener('keydown',e=>{if(e.key==='Enter'){query=sInput.value;nextPT=null;prevPT=null;sTitle.innerHTML='<span>Resultados</span>';sSub.style.display='none';searchYT(query)}});
-            async function searchYT(q, pt=null) {
-                const tq=q.trim(); if(!tq){showToast('⚠️ Digite algo');return}
-                showLoad(true); pagCont.style.display='none'; resCount.textContent='';
-                try {
-                    const u=new URL(PROXY_URL); u.searchParams.append('q',tq+' música'); u.searchParams.append('maxResults','15'); u.searchParams.append('regionCode','BR'); u.searchParams.append('relevanceLanguage','pt');
-                    if(pt)u.searchParams.append('pageToken',pt);
-                    const r=await fetch(u); if(!r.ok)throw new Error('Erro');
-                    const d=await r.json(); nextPT=d.nextPageToken||null; prevPT=d.prevPageToken||null;
-                    dispRes(d.videos||[],d.totalResults||0); updatePag();
-                }catch(e){showToast('⚠️ Erro')}
-                showLoad(false);
-            }
-            function dispRes(vids, tot) {
-                resCount.textContent=tot?`${tot} resultados`:'';
-                if(!vids?.length){resCont.innerHTML='<div style="text-align:center;padding:40px;color:var(--yt-gray);">Nenhum resultado</div>';return}
-                resCont.innerHTML=vids.map(v=>card(v)).join(''); updateFavBtns();
-            }
-            function updatePag() {
-                if(!nextPT&&!prevPT){pagCont.style.display='none';return}
-                pagCont.style.display='flex'; pagCont.innerHTML=`<button onclick="searchPage('prev')"${!prevPT?' disabled':''}>⬅</button><button onclick="searchPage('next')"${!nextPT?' disabled':''}>➡</button>`;
-            }
-            window.searchPage = function(d) { const t=d==='next'?nextPT:prevPT; if(t&&query)searchYT(query,t); };
+    window.seekTrack = function(event) {
+        if (!player || !currentVideoId) return;
+        const rect = progressContainer.getBoundingClientRect();
+        const percent = (event.clientX - rect.left) / rect.width;
+        const duration = player.getDuration();
+        if (duration > 0) {
+            player.seekTo(percent * duration, true);
+        }
+    };
 
-            // ===== MEDIA SESSION =====
-            function setupMS() {
-                if (!('mediaSession' in navigator)) return;
-                navigator.mediaSession.setActionHandler('play',togglePlayPause);
-                navigator.mediaSession.setActionHandler('pause',togglePlayPause);
-                navigator.mediaSession.setActionHandler('previoustrack',previousTrack);
-                navigator.mediaSession.setActionHandler('nexttrack',nextTrack);
-                navigator.mediaSession.setActionHandler('stop',stopPlayback);
+    window.downloadCurrent = function() {
+        if (!currentVideoId || currentIndex < 0) {
+            showToast('⚠️ Nenhuma música');
+            return;
+        }
+        showToast('⬇️ Download simulado');
+    };
+
+    // ===== RESULTADOS =====
+    window.playFromResults = function(videoId, title, channel, thumbnail) {
+        console.log('🎵 playFromResults:', title, videoId);
+        
+        const video = {
+            id: videoId,
+            title: title,
+            channel: channel,
+            thumbnail: thumbnail
+        };
+        
+        // Adicionar à playlist
+        const exists = playlist.findIndex(function(t) { return t.id === videoId; });
+        if (exists === -1) {
+            playlist.push(video);
+            currentIndex = playlist.length - 1;
+        } else {
+            currentIndex = exists;
+        }
+        
+        console.log('📋 Playlist agora tem', playlist.length, 'músicas');
+        playTrack(currentIndex);
+        showToast('▶ ' + title.substring(0, 30));
+    };
+
+    window.toggleFav = function(videoId, title, channel, thumbnail, event) {
+        event.stopPropagation();
+        const track = { id: videoId, title: title, channel: channel, thumbnail: thumbnail };
+        Fav.toggle(track);
+        updateFavButtons();
+    };
+
+    function updateFavButtons() {
+        document.querySelectorAll('.v-btn.fav').forEach(function(btn) {
+            const fid = btn.getAttribute('data-id');
+            const isFav = Fav.is(fid);
+            btn.classList.toggle('fav-active', isFav);
+            btn.textContent = isFav ? '❤️' : '🤍';
+        });
+    }
+
+    function createCard(v) {
+        const isFav = Fav.is(v.id);
+        return '<div class="video-card" onclick="playFromResults(\'' + v.id + '\',\'' + esc(v.title) + '\',\'' + esc(v.channel) + '\',\'' + (v.thumbnail || '') + '\')">' +
+            '<img class="video-thumb" src="' + (v.thumbnail || '') + '" loading="lazy" onerror="this.style.opacity=\'0.3\'">' +
+            '<div class="video-info">' +
+                '<div class="video-title">' + esc(v.title) + '</div>' +
+                '<div class="video-channel">' + esc(v.channel) + '</div>' +
+            '</div>' +
+            '<div class="video-actions">' +
+                '<button class="v-btn fav' + (isFav ? ' fav-active' : '') + '" data-id="' + v.id + '" onclick="toggleFav(\'' + v.id + '\',\'' + esc(v.title) + '\',\'' + esc(v.channel) + '\',\'' + (v.thumbnail || '') + '\',event)">' + (isFav ? '❤️' : '🤍') + '</button>' +
+            '</div>' +
+        '</div>';
+    }
+
+    // ===== TABS =====
+    window.switchTab = function(tab) {
+        document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+        var buttons = document.querySelectorAll('.tab-btn');
+        buttons.forEach(function(b) {
+            if (b.textContent.toLowerCase().indexOf(tab === 'search' ? 'buscar' : tab === 'favorites' ? 'favoritos' : 'histórico') > -1) {
+                b.classList.add('active');
             }
-            function updateMS(p) {
-                if (!('mediaSession' in navigator)) return;
-                navigator.mediaSession.playbackState = p?'playing':'paused';
-                if (idx>=0&&playlist[idx]) {
-                    const t=playlist[idx]; const m={title:t.title||'Play Tube',artist:t.channel||'YouTube',album:'Play Tube Music',artwork:[{src:t.thumbnail||'',sizes:'512x512',type:'image/jpg'}]};
-                    navigator.mediaSession.metadata = new MediaMetadata(m);
-                    notifySW('META',{meta:m});
+        });
+        
+        if (tab === 'search') {
+            document.getElementById('sectionTitle').textContent = 'Resultados';
+            if (currentQuery) searchYouTube(currentQuery);
+        } else if (tab === 'favorites') {
+            document.getElementById('sectionTitle').textContent = '❤️ Favoritos';
+            var favs = Fav.favs;
+            resultsContainer.innerHTML = favs.length === 0 ? 
+                '<div style="text-align:center;padding:40px;color:var(--text2);">❤️ Nenhum favorito</div>' :
+                favs.map(function(v) { return createCard(v); }).join('');
+            updateFavButtons();
+        } else if (tab === 'history') {
+            document.getElementById('sectionTitle').textContent = '🕐 Histórico';
+            var hist = Fav.hist;
+            resultsContainer.innerHTML = hist.length === 0 ?
+                '<div style="text-align:center;padding:40px;color:var(--text2);">🕐 Nenhum histórico</div>' :
+                hist.map(function(v) { return createCard(v); }).join('');
+            updateFavButtons();
+        }
+    };
+
+    // ===== BUSCA =====
+    searchBtn.addEventListener('click', function() {
+        currentQuery = searchInput.value;
+        searchYouTube(currentQuery);
+    });
+
+    searchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            currentQuery = searchInput.value;
+            searchYouTube(currentQuery);
+        }
+    });
+
+    async function searchYouTube(query) {
+        var q = query.trim();
+        if (!q) { showToast('⚠️ Digite algo'); return; }
+        
+        console.log('🔍 Buscando:', q);
+        resultsContainer.innerHTML = '<div class="loading"><div class="spinner"></div><div>Buscando...</div></div>';
+        
+        try {
+            var proxyUrl = new URL(PROXY_URL);
+            proxyUrl.searchParams.append('q', q + ' música oficial');
+            proxyUrl.searchParams.append('maxResults', '10');
+            proxyUrl.searchParams.append('regionCode', 'BR');
+            proxyUrl.searchParams.append('relevanceLanguage', 'pt');
+            
+            console.log('📡 URL:', proxyUrl.toString());
+            
+            var response = await fetch(proxyUrl);
+            console.log('📡 Response status:', response.status);
+            
+            if (!response.ok) throw new Error('Erro HTTP: ' + response.status);
+            
+            var data = await response.json();
+            console.log('✅ Dados recebidos:', data.videos ? data.videos.length : 0, 'vídeos');
+            
+            if (data.videos && data.videos.length > 0) {
+                resultsContainer.innerHTML = data.videos.map(function(v) {
+                    return createCard(v);
+                }).join('');
+                updateFavButtons();
+            } else {
+                resultsContainer.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text2);">Nenhum resultado</div>';
+            }
+        } catch(e) {
+            console.error('❌ Erro na busca:', e);
+            resultsContainer.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text2);">Erro na busca: ' + e.message + '</div>';
+            showToast('⚠️ Erro na busca');
+        }
+    }
+
+    // ===== UTILS =====
+    function esc(text) {
+        if (!text) return '';
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function showToast(message) {
+        if (toastTimeout) clearTimeout(toastTimeout);
+        toast.textContent = message;
+        toast.classList.add('show');
+        toastTimeout = setTimeout(function() {
+            toast.classList.remove('show');
+        }, 2500);
+    }
+
+    // ===== BACKGROUND PLAY =====
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden && isPlaying && player) {
+            try {
+                if (player.getPlayerState() !== 1) {
+                    player.playVideo();
+                    player.unMute();
+                }
+            } catch(e) {}
+        }
+    });
+
+    // Keep-alive
+    setInterval(function() {
+        if (isPlaying && player) {
+            try {
+                var state = player.getPlayerState();
+                if (state !== 1 && state !== 3) {
+                    player.playVideo();
+                    player.unMute();
+                }
+            } catch(e) {
+                console.log('🔄 Reconectando player...');
+                createPlayer();
+                if (currentVideoId) {
+                    setTimeout(function() {
+                        if (player && player.loadVideoById) {
+                            player.loadVideoById({ videoId: currentVideoId, startSeconds: 0 });
+                            setTimeout(function() {
+                                player.playVideo();
+                                player.unMute();
+                            }, 500);
+                        }
+                    }, 1000);
                 }
             }
+        }
+    }, 1000);
 
-            // ===== UTILS =====
-            function escapeHtml(t){if(!t)return'';const d=document.createElement('div');d.textContent=t;return d.innerHTML}
-            function showLoad(s){if(s)resCont.innerHTML='<div class="loading"><div class="spinner"></div><div>Buscando...</div></div>'}
-            function showToast(m){if(toastTO)clearTimeout(toastTO);toast.textContent=m;toast.classList.add('show');toastTO=setTimeout(()=>toast.classList.remove('show'),2500)}
+    // ===== MEDIA SESSION =====
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.setActionHandler('play', togglePlay);
+        navigator.mediaSession.setActionHandler('pause', togglePlay);
+        navigator.mediaSession.setActionHandler('nexttrack', nextTrack);
+        navigator.mediaSession.setActionHandler('previoustrack', prevTrack);
+    }
 
-            // ===== BACKGROUND PLAY =====
-            async function lockScr(){try{if('wakeLock' in navigator){wakeLock=await navigator.wakeLock.request('screen');wakeLock.addEventListener('release',()=>{if(playing)lockScr()})}}catch(e){}}
-            document.addEventListener('visibilitychange',()=>{if(document.hidden&&playing&&ytPlayer){try{if(ytPlayer.getPlayerState()!==1){ytPlayer.playVideo();ytPlayer.unMute()}}catch(e){}lockScr();if('mediaSession' in navigator)navigator.mediaSession.playbackState='playing'}});
-            setInterval(()=>{if(playing&&ytPlayer){try{const s=ytPlayer.getPlayerState();if(s!==1&&s!==3){ytPlayer.playVideo();ytPlayer.unMute()}}catch(e){initHidden();if(vid){setTimeout(()=>{if(ytPlayer?.loadVideoById){ytPlayer.loadVideoById({videoId:vid,startSeconds:0});setTimeout(()=>{ytPlayer.playVideo();ytPlayer.unMute()},500)}},500)}}}},1000);
-            if('audioSession' in navigator)navigator.audioSession.type='playback';
-            lockScr();
-
-            // ===== INIT =====
-            function init() {
-                setupMS(); calibrarTela(); favMan.updateBadge();
-                setTimeout(()=>{const sp=document.getElementById('splashScreen');if(sp){sp.style.opacity='0';setTimeout(()=>sp.remove(),500)}},1500);
-                console.log('✅ Play Tube Music - v4');
-                console.log('✅ calibrarTela() | Sidebar removida | Download integrado');
+    // ===== INIT =====
+    function init() {
+        console.log('🎧 Play Tube Music inicializado');
+        console.log('⏳ Aguardando YouTube API...');
+        
+        // Fallback: se a API não carregar em 5 segundos
+        setTimeout(function() {
+            if (!player) {
+                console.warn('⚠️ API não carregou, tentando manualmente...');
+                if (typeof YT !== 'undefined' && YT.Player) {
+                    onYouTubeIframeAPIReady();
+                }
             }
+        }, 5000);
+    }
 
-            window.addEventListener('resize',()=>{clearTimeout(window._rt);window._rt=setTimeout(calibrarTela,250)});
-            window.addEventListener('orientationchange',()=>setTimeout(calibrarTela,300));
-            window.addEventListener('load', init);
+    // Expor funções globalmente
+    window.togglePlay = togglePlay;
+    window.nextTrack = nextTrack;
+    window.prevTrack = prevTrack;
+    window.playFromResults = playFromResults;
+    window.toggleFav = toggleFav;
+    window.seekTrack = seekTrack;
+    window.downloadCurrent = downloadCurrent;
+    window.switchTab = switchTab;
+    window.T = T;
 
-            // Expor globais
-            window.calibrarTela = calibrarTela;
-            window.themeManager = themeManager;
-            window.togglePlayPause = togglePlayPause;
-            window.nextTrack = nextTrack;
-            window.previousTrack = previousTrack;
-            window.playVideoFromResults = playVideoFromResults;
-            window.toggleFav = toggleFav;
-            window.downloadFromCard = downloadFromCard;
-            window.downloadCurrentTrack = downloadCurrentTrack;
-            window.switchTab = switchTab;
-            window.seekTrack = seekTrack;
-            window.switchToAudioMode = switchToAudioMode;
-            window.showVideoPlayer = showVideoPlayer;
-            window.closeVideoPlayer = closeVideoPlayer;
-        })();
+    // Iniciar quando carregar
+    window.addEventListener('load', init);
+
+    console.log('📜 Script carregado com sucesso');
     </script>
 </body>
 </html>
