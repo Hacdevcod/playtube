@@ -33,27 +33,106 @@
         @keyframes modeSwitch{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
         @keyframes checkBounce{0%,100%{transform:scale(1)}50%{transform:scale(1.3)}}
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+        @keyframes equalize3d{0%,100%{height:20px;transform:rotateX(0deg) translateZ(0)}50%{height:100px;transform:rotateX(20deg) translateZ(20px)}}
+        @keyframes splashPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+        @keyframes slideUp{from{transform:translateY(100px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+        /* Splash Screen */
+        #splashScreen {
+            position:fixed;top:0;left:0;right:0;bottom:0;
+            background:linear-gradient(135deg, #000000, #1a1a1a);
+            display:flex;align-items:center;justify-content:center;
+            z-index:10000;transition:opacity 0.5s;
+        }
+        .splash-content{text-align:center;}
+        .splash-logo{width:100px;height:100px;background:linear-gradient(135deg,#f00,#ff4444);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;animation:splashPulse 1.5s ease-in-out infinite;font-size:40px;color:white;}
+        .splash-title{color:white;font-size:28px;font-weight:bold;text-shadow:0 0 20px rgba(255,0,0,0.5);}
+        .splash-title sup{color:#f00;font-size:14px;}
+        .splash-subtitle{color:#aaa;margin-top:10px;font-size:12px;}
+        .splash-loading{margin-top:20px;display:flex;gap:4px;justify-content:center;}
+        .splash-dot{width:8px;height:8px;background:#f00;border-radius:50%;animation:pulse 1s infinite;}
+        .splash-dot:nth-child(2){animation-delay:0.2s}
+        .splash-dot:nth-child(3){animation-delay:0.4s}
 
         .player-top{width:100%;background:#000;display:none;position:relative;animation:slideDown 0.4s ease;border-bottom:2px solid #f00}.player-top.active{display:block}.player-top.rainbow-border{animation:rainbow 3s linear infinite;border-width:2px;border-style:solid}.player-wrapper{width:100%;aspect-ratio:16/9;position:relative}.player-wrapper iframe{width:100%;height:100%;border:none}.player-close{position:absolute;top:8px;right:8px;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,0.7);border:none;color:#fff;font-size:16px;cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center}.player-mode-btn{position:absolute;top:8px;right:48px;width:32px;height:32px;border-radius:50%;background:rgba(29,185,84,0.8);border:none;color:#fff;font-size:14px;cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center;animation:modeSwitch 2s ease-in-out infinite}.player-mode-btn.audio-mode{background:rgba(255,0,0,0.8)}.player-info-overlay{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,0.9));padding:40px 12px 12px;pointer-events:none}.player-info-title{font-size:14px;font-weight:600;color:#fff}.player-info-artist{font-size:11px;color:#ccc;margin-top:2px}
         .topbar{position:sticky;top:0;background:rgba(15,15,15,0.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);height:56px;display:flex;align-items:center;padding:0 16px;gap:12px;border-bottom:1px solid var(--yt-border);z-index:100}.logo{display:flex;align-items:center;gap:8px;animation:float 3s ease-in-out infinite}.logo-icon{width:34px;height:34px;background:#f00;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;animation:pulseLogo 2s ease-in-out infinite}.logo-text{font-size:18px;font-weight:700;background:linear-gradient(90deg,#fff,#f44,#fff,#f66);background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 3s linear infinite}.logo-text sup{font-size:8px;background:#f00;color:#fff;padding:2px 4px;border-radius:4px;-webkit-text-fill-color:#fff}.spacer{flex:1}.bg-indicator{font-size:10px;color:#1db954;display:flex;align-items:center;gap:4px;margin-right:8px}.bg-dot{width:8px;height:8px;background:#1db954;border-radius:50%;animation:pulse 1s infinite}
+        .theme-btn{background:none;border:none;color:#fff;font-size:18px;cursor:pointer;padding:4px;margin-right:8px;}
+        
+        /* Equalizador 3D */
+        .equalizer-container{position:fixed;bottom:140px;left:50%;transform:translateX(-50%);display:flex;gap:4px;z-index:150;perspective:1000px;display:none;}
+        .equalizer-container.active{display:flex;}
+        .bar-3d{width:8px;background:linear-gradient(to top,#f00,#f80,#ff0);border-radius:2px;transform-origin:bottom;animation:equalize3d 0.5s ease-in-out infinite;}
+        .bar-3d:nth-child(1){animation-delay:0s;height:40px;}
+        .bar-3d:nth-child(2){animation-delay:0.1s;height:60px;}
+        .bar-3d:nth-child(3){animation-delay:0.2s;height:80px;}
+        .bar-3d:nth-child(4){animation-delay:0.3s;height:60px;}
+        .bar-3d:nth-child(5){animation-delay:0.4s;height:40px;}
+
         .search-section{padding:12px 16px;background:var(--yt-bg);z-index:50}.search-box{display:flex;background:var(--yt-surface);border:1px solid var(--yt-border);border-radius:24px;overflow:hidden;transition:border-color 0.3s,box-shadow 0.3s}.search-box:focus-within{border-color:#f00;box-shadow:0 0 0 2px rgba(255,0,0,0.2)}.search-box input{flex:1;padding:12px 16px;background:transparent;border:none;color:#fff;font-size:16px;outline:none}.search-box input::placeholder{color:var(--yt-gray2)}.search-btn{width:48px;background:var(--yt-surface2);border:none;color:#fff;cursor:pointer;font-size:18px;transition:background 0.2s}.search-btn:active{background:#f00}
         .hidden-player{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;opacity:0.99}
         .playlist-bar{display:flex;align-items:center;gap:8px;padding:8px 16px;background:var(--yt-surface);border-bottom:1px solid var(--yt-border);overflow-x:auto;white-space:nowrap}.playlist-bar::-webkit-scrollbar{height:0}.playlist-tag{padding:6px 12px;background:var(--yt-surface2);border:1px solid var(--yt-border);border-radius:16px;font-size:11px;color:#aaa;cursor:pointer;transition:all 0.2s;flex-shrink:0}.playlist-tag.active{background:#f00;color:#fff;border-color:#f00}.playlist-tag.selected{background:#1db954;color:#fff;border-color:#1db954}.playlist-actions{display:flex;gap:6px;padding:4px 16px 8px;background:var(--yt-surface);border-bottom:1px solid var(--yt-border)}.playlist-action-btn{padding:8px 14px;border-radius:20px;border:none;font-size:11px;cursor:pointer;font-weight:600;transition:all 0.2s;display:flex;align-items:center;gap:4px}.playlist-action-btn.play-all{background:#1db954;color:#fff}.playlist-action-btn.play-selected{background:#f00;color:#fff}.playlist-action-btn.clear{background:#333;color:#fff}
-        .results-section{padding:8px 16px 120px 16px}.section-title{font-size:13px;font-weight:600;margin-bottom:10px;padding-left:4px;display:flex;align-items:center;justify-content:space-between;color:#aaa;text-transform:uppercase;letter-spacing:1px}.result-count{font-size:10px;color:var(--yt-gray2);font-weight:400}.section-subtitle{font-size:11px;color:var(--spotify-green);margin-bottom:10px;padding-left:4px}.video-grid{display:flex;flex-direction:column;gap:8px}.video-card{display:flex;gap:12px;background:var(--yt-surface);border-radius:8px;padding:8px;cursor:pointer;transition:background 0.15s,transform 0.15s;animation:fadeInUp 0.3s ease forwards;opacity:0;position:relative}.video-card:nth-child(1){animation-delay:0.05s}.video-card:nth-child(2){animation-delay:0.1s}.video-card:nth-child(3){animation-delay:0.15s}.video-card:nth-child(4){animation-delay:0.2s}.video-card:nth-child(5){animation-delay:0.25s}.video-card:nth-child(6){animation-delay:0.3s}.video-card:nth-child(7){animation-delay:0.35s}.video-card:nth-child(8){animation-delay:0.4s}.video-card:nth-child(n+9){animation-delay:0.45s}.video-card:active{background:var(--yt-surface2);transform:scale(0.98)}.video-card.selected{border:2px solid #1db954;background:#1a2a1a}.video-check{position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:50%;border:2px solid #555;background:#111;display:flex;align-items:center;justify-content:center;font-size:12px;color:transparent;transition:all 0.2s;z-index:5}.video-card.selected .video-check{background:#1db954;border-color:#1db954;color:#fff;animation:checkBounce 0.3s ease}.video-thumb{width:52px;height:52px;border-radius:6px;object-fit:cover;flex-shrink:0;background:#333}.video-info{flex:1;display:flex;flex-direction:column;justify-content:center;min-width:0}.video-card-title{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.video-card-channel{font-size:11px;color:var(--yt-gray);margin-top:3px}.video-card-meta{font-size:10px;color:var(--yt-gray2);margin-top:2px}
-        .now-playing-bar{position:fixed;bottom:0;left:0;right:0;height:68px;background:#f00;display:flex;align-items:center;padding:0 12px;gap:10px;z-index:200;box-shadow:0 -4px 20px rgba(255,0,0,0.3)}.np-thumb{width:44px;height:44px;border-radius:6px;object-fit:cover;flex-shrink:0;background:rgba(0,0,0,0.3);border:2px solid rgba(255,255,255,0.3);cursor:pointer}.np-thumb:active{transform:scale(0.95)}.np-info{flex:1;min-width:0;cursor:pointer}.np-title{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff}.np-artist{font-size:10px;color:rgba(255,255,255,0.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.np-equalizer{display:flex;gap:2px;align-items:flex-end;height:18px}.np-equalizer .bar{width:3px;background:#fff;border-radius:2px;animation:equalizer 0.8s ease-in-out infinite}.np-equalizer .bar:nth-child(1){animation-delay:0s}.np-equalizer .bar:nth-child(2){animation-delay:0.15s}.np-equalizer .bar:nth-child(3){animation-delay:0.3s}.np-equalizer .bar:nth-child(4){animation-delay:0.45s}.np-controls{display:flex;gap:12px;align-items:center}.np-btn{background:none;border:none;color:#fff;font-size:18px;cursor:pointer;padding:4px;transition:transform 0.15s;opacity:0.9}.np-btn:active{transform:scale(0.85);opacity:1}.np-btn.play-btn{width:36px;height:36px;background:#fff;border-radius:50%;color:#f00;font-size:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.3)}.np-btn.play-btn:active{transform:scale(0.9)}.mode-toggle{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;padding:4px;animation:modeSwitch 2s ease-in-out infinite;transition:transform 0.2s}.mode-toggle:active{transform:scale(0.85)}.mode-toggle.video-mode{animation:none;color:#1db954}
+        
+        /* Tabs */
+        .tabs-container{display:flex;gap:4px;padding:8px 16px;background:var(--yt-bg);overflow-x:auto;}
+        .tabs-container::-webkit-scrollbar{height:0;}
+        .tab-btn{padding:8px 16px;background:var(--yt-surface);border:1px solid var(--yt-border);border-radius:20px;color:#aaa;font-size:12px;cursor:pointer;white-space:nowrap;transition:all 0.2s;}
+        .tab-btn.active{background:#f00;color:#fff;border-color:#f00;}
+        .tab-btn .badge{background:#1db954;color:#fff;padding:2px 6px;border-radius:10px;font-size:10px;margin-left:4px;}
+
+        .results-section{padding:8px 16px 120px 16px}.section-title{font-size:13px;font-weight:600;margin-bottom:10px;padding-left:4px;display:flex;align-items:center;justify-content:space-between;color:#aaa;text-transform:uppercase;letter-spacing:1px}.result-count{font-size:10px;color:var(--yt-gray2);font-weight:400}.section-subtitle{font-size:11px;color:var(--spotify-green);margin-bottom:10px;padding-left:4px}.video-grid{display:flex;flex-direction:column;gap:8px}.video-card{display:flex;gap:12px;background:var(--yt-surface);border-radius:8px;padding:8px;cursor:pointer;transition:background 0.15s,transform 0.15s;animation:fadeInUp 0.3s ease forwards;opacity:0;position:relative}.video-card:nth-child(1){animation-delay:0.05s}.video-card:nth-child(2){animation-delay:0.1s}.video-card:nth-child(3){animation-delay:0.15s}.video-card:nth-child(4){animation-delay:0.2s}.video-card:nth-child(5){animation-delay:0.25s}.video-card:nth-child(6){animation-delay:0.3s}.video-card:nth-child(7){animation-delay:0.35s}.video-card:nth-child(8){animation-delay:0.4s}.video-card:nth-child(n+9){animation-delay:0.45s}.video-card:active{background:var(--yt-surface2);transform:scale(0.98)}.video-card.selected{border:2px solid #1db954;background:#1a2a1a}
+        .video-card.favorite{border-left:3px solid #f00;}
+        .video-check{position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:50%;border:2px solid #555;background:#111;display:flex;align-items:center;justify-content:center;font-size:12px;color:transparent;transition:all 0.2s;z-index:5}.video-card.selected .video-check{background:#1db954;border-color:#1db954;color:#fff;animation:checkBounce 0.3s ease}
+        .video-fav{position:absolute;top:8px;right:36px;width:24px;height:24px;border-radius:50%;border:none;background:transparent;color:#aaa;font-size:14px;cursor:pointer;z-index:5;transition:all 0.2s;}
+        .video-fav.active{color:#f00;animation:checkBounce 0.3s ease;}
+        .video-download{position:absolute;bottom:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,0.6);border:none;color:#fff;font-size:12px;cursor:pointer;z-index:5;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+        .video-download:active{background:#1db954;transform:scale(1.2);}
+        .video-thumb{width:52px;height:52px;border-radius:6px;object-fit:cover;flex-shrink:0;background:#333}.video-info{flex:1;display:flex;flex-direction:column;justify-content:center;min-width:0}.video-card-title{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.video-card-channel{font-size:11px;color:var(--yt-gray);margin-top:3px}.video-card-meta{font-size:10px;color:var(--yt-gray2);margin-top:2px}
+        
+        .now-playing-bar{position:fixed;bottom:0;left:0;right:0;height:68px;background:#f00;display:flex;align-items:center;padding:0 12px;gap:10px;z-index:200;box-shadow:0 -4px 20px rgba(255,0,0,0.3);animation:slideUp 0.3s ease;}.np-thumb{width:44px;height:44px;border-radius:6px;object-fit:cover;flex-shrink:0;background:rgba(0,0,0,0.3);border:2px solid rgba(255,255,255,0.3);cursor:pointer}.np-thumb:active{transform:scale(0.95)}.np-info{flex:1;min-width:0;cursor:pointer}.np-title{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff}.np-artist{font-size:10px;color:rgba(255,255,255,0.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.np-equalizer{display:flex;gap:2px;align-items:flex-end;height:18px}.np-equalizer .bar{width:3px;background:#fff;border-radius:2px;animation:equalizer 0.8s ease-in-out infinite}.np-equalizer .bar:nth-child(1){animation-delay:0s}.np-equalizer .bar:nth-child(2){animation-delay:0.15s}.np-equalizer .bar:nth-child(3){animation-delay:0.3s}.np-equalizer .bar:nth-child(4){animation-delay:0.45s}.np-controls{display:flex;gap:12px;align-items:center}.np-btn{background:none;border:none;color:#fff;font-size:18px;cursor:pointer;padding:4px;transition:transform 0.15s;opacity:0.9}.np-btn:active{transform:scale(0.85);opacity:1}.np-btn.play-btn{width:36px;height:36px;background:#fff;border-radius:50%;color:#f00;font-size:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.3)}.np-btn.play-btn:active{transform:scale(0.9)}.mode-toggle{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;padding:4px;animation:modeSwitch 2s ease-in-out infinite;transition:transform 0.2s}.mode-toggle:active{transform:scale(0.85)}.mode-toggle.video-mode{animation:none;color:#1db954}
         .tape-btn{position:fixed;bottom:140px;right:16px;width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#1db954,#00e676);border:none;color:#fff;font-size:20px;cursor:pointer;z-index:160;box-shadow:0 4px 15px rgba(29,185,84,0.4);animation:tapePulse 2s ease-in-out infinite;display:flex;align-items:center;justify-content:center;transition:transform 0.2s}.tape-btn:active{transform:scale(0.9)}.tape-btn .tape-reel{position:absolute;width:18px;height:18px;border:2px solid rgba(255,255,255,0.5);border-radius:50%;animation:tapeSpin 3s linear infinite}.tape-btn .tape-reel:nth-child(2){width:10px;height:10px;animation-duration:2s;animation-direction:reverse}
-        .side-buttons{position:fixed;right:16px;bottom:50%;transform:translateY(50%);display:flex;flex-direction:column;gap:12px;z-index:150;transition:opacity 0.3s,transform 0.3s}.side-buttons.hidden{opacity:0;transform:translateY(50%)translateX(100%);pointer-events:none}.side-btn{width:44px;height:44px;border-radius:50%;border:none;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.4);position:relative;transition:transform 0.2s}.side-btn:active{transform:scale(0.9)}.side-btn.youtube{background:#f00}.side-btn.pip{background:#2196F3}
-        .playlist-modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.95);z-index:500;display:none;flex-direction:column}.playlist-modal.active{display:flex}.playlist-modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid #333}.playlist-modal-title{font-size:18px;font-weight:700;color:#1db954}.playlist-modal-close{width:36px;height:36px;border-radius:50%;background:#333;border:none;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}.playlist-modal-list{flex:1;overflow-y:auto;padding:8px}.playlist-item{display:flex;gap:10px;padding:10px 8px;border-radius:8px;align-items:center;transition:background 0.15s}.playlist-item:active{background:#222}.playlist-item.playing{background:#1a2a1a;border-left:3px solid #1db954}.playlist-item-thumb{width:44px;height:44px;border-radius:6px;object-fit:cover;flex-shrink:0;background:#333}.playlist-item-info{flex:1;min-width:0}.playlist-item-title{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.playlist-item-artist{font-size:11px;color:#aaa}.playlist-item-remove{background:none;border:none;color:#f44;font-size:16px;cursor:pointer;padding:8px}
+        .side-buttons{position:fixed;right:16px;bottom:50%;transform:translateY(50%);display:flex;flex-direction:column;gap:12px;z-index:150;transition:opacity 0.3s,transform 0.3s}.side-buttons.hidden{opacity:0;transform:translateY(50%)translateX(100%);pointer-events:none}.side-btn{width:44px;height:44px;border-radius:50%;border:none;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.4);position:relative;transition:transform 0.2s}.side-btn:active{transform:scale(0.9)}.side-btn.youtube{background:#f00}.side-btn.pip{background:#2196F3}.side-btn.download{background:#1db954;}
+        .playlist-modal,.download-modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.95);z-index:500;display:none;flex-direction:column}.playlist-modal.active,.download-modal.active{display:flex}.playlist-modal-header,.download-modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid #333}.playlist-modal-title,.download-modal-title{font-size:18px;font-weight:700;color:#1db954}.playlist-modal-close,.download-modal-close{width:36px;height:36px;border-radius:50%;background:#333;border:none;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}.playlist-modal-list,.download-modal-list{flex:1;overflow-y:auto;padding:8px}.playlist-item{display:flex;gap:10px;padding:10px 8px;border-radius:8px;align-items:center;transition:background 0.15s}.playlist-item:active{background:#222}.playlist-item.playing{background:#1a2a1a;border-left:3px solid #1db954}.playlist-item-thumb{width:44px;height:44px;border-radius:6px;object-fit:cover;flex-shrink:0;background:#333}.playlist-item-info{flex:1;min-width:0}.playlist-item-title{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.playlist-item-artist{font-size:11px;color:#aaa}.playlist-item-remove{background:none;border:none;color:#f44;font-size:16px;cursor:pointer;padding:8px}
 
         .loading{text-align:center;padding:40px;color:var(--yt-gray)}.spinner{width:36px;height:36px;border:3px solid #333;border-top-color:#f00;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px}.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%)translateY(120px);background:#333;color:#fff;padding:10px 20px;border-radius:20px;font-size:12px;z-index:600;transition:transform 0.3s;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis}.toast.show{transform:translateX(-50%)translateY(0)}.pagination{display:flex;justify-content:center;gap:12px;padding:16px}.pagination button{padding:8px 16px;background:var(--yt-surface);border:1px solid var(--yt-border);color:#fff;border-radius:20px;cursor:pointer;font-size:13px;transition:background 0.2s}.pagination button:hover{background:var(--yt-surface2)}.pagination button:disabled{opacity:0.4;cursor:not-allowed}
+        
+        /* Download Progress */
+        .download-progress{position:fixed;bottom:80px;left:16px;right:16px;background:var(--yt-surface);border-radius:12px;padding:12px;z-index:300;display:none;box-shadow:0 4px 20px rgba(0,0,0,0.5);}
+        .download-progress.active{display:block;}
+        .download-progress-bar{height:4px;background:#333;border-radius:2px;overflow:hidden;margin-top:8px;}
+        .download-progress-fill{height:100%;background:linear-gradient(90deg,#1db954,#00e676);width:0%;transition:width 0.3s;}
+
         @media(max-width:400px){.video-thumb{width:44px;height:44px}.video-card-title{font-size:12px}.np-thumb{width:38px;height:38px}.np-title{font-size:11px}.np-artist{font-size:10px}.np-controls{gap:10px}.side-btn{width:38px;height:38px;font-size:16px}.tape-btn{width:44px;height:44px;bottom:130px;right:12px}}
     </style>
 </head>
 <body>
 
+    <!-- Splash Screen -->
+    <div id="splashScreen">
+        <div class="splash-content">
+            <div class="splash-logo">♪</div>
+            <div class="splash-title">Play Tube <sup>MUSIC</sup></div>
+            <div class="splash-subtitle">Background Play • PiP • Download</div>
+            <div class="splash-loading">
+                <div class="splash-dot"></div>
+                <div class="splash-dot"></div>
+                <div class="splash-dot"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Equalizador 3D -->
+    <div class="equalizer-container" id="equalizer3D">
+        <div class="bar-3d"></div>
+        <div class="bar-3d"></div>
+        <div class="bar-3d"></div>
+        <div class="bar-3d"></div>
+        <div class="bar-3d"></div>
+    </div>
+
     <div class="topbar">
         <div class="logo"><div class="logo-icon">♪</div><span class="logo-text">Play Tube<sup>MUSIC</sup></span></div>
         <div class="spacer"></div>
+        <button class="theme-btn" onclick="themeManager.cycleTheme()" title="Alternar tema">🎨</button>
         <div class="bg-indicator" id="bgIndicator" style="display:none;"><div class="bg-dot"></div><span>BG Play</span></div>
         <button class="mode-toggle video-mode" id="modeToggleBtn" onclick="togglePlayMode()">🎬</button>
     </div>
@@ -69,6 +148,14 @@
         <div class="search-box"><input type="text" id="searchInput" placeholder="🎵 O que você quer ouvir?" autocomplete="off"><button class="search-btn" id="searchBtn">🔍</button></div>
     </div>
 
+    <!-- Tabs de navegação -->
+    <div class="tabs-container">
+        <button class="tab-btn active" onclick="switchTab('search')">🔍 Buscar</button>
+        <button class="tab-btn" onclick="switchTab('favorites')">❤️ Favoritos <span class="badge" id="favCount">0</span></button>
+        <button class="tab-btn" onclick="switchTab('history')">🕐 Histórico</button>
+        <button class="tab-btn" onclick="switchTab('downloads')">⬇️ Downloads</button>
+    </div>
+
     <div class="playlist-bar" id="playlistBar" style="display:none;"><span style="font-size:11px;color:#aaa;flex-shrink:0;">Lista:</span><span class="playlist-tag active" id="playlistCount">0 músicas</span></div>
     <div class="playlist-actions" id="playlistActions" style="display:none;">
         <button class="playlist-action-btn play-all" onclick="playAllPlaylist()">▶ Tocar Tudo</button>
@@ -78,17 +165,29 @@
 
     <div class="hidden-player" id="hiddenPlayer"></div>
 
+    <!-- Download Progress -->
+    <div class="download-progress" id="downloadProgress">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:12px;">⬇️ Baixando...</span>
+            <span style="font-size:11px;color:#aaa;" id="downloadPercent">0%</span>
+        </div>
+        <div class="download-progress-bar">
+            <div class="download-progress-fill" id="downloadFill"></div>
+        </div>
+    </div>
+
     <button class="tape-btn" id="tapeBtn" onclick="togglePlaylistModal()"><div class="tape-reel"></div><div class="tape-reel"></div>📼</button>
 
     <div class="side-buttons hidden" id="sideButtons">
         <button class="side-btn youtube" onclick="openInYouTube()">▶</button>
         <button class="side-btn pip" onclick="togglePiP()">📺</button>
+        <button class="side-btn download" onclick="downloadCurrentTrack()">⬇️</button>
     </div>
 
     <div class="results-section">
         <div class="section-title" id="sectionTitle"><span>Resultados</span><span class="result-count" id="resultCount"></span></div>
         <div class="section-subtitle" id="sectionSubtitle" style="display:none;"></div>
-        <div id="resultsContainer"><div style="text-align:center;padding:60px 20px;color:#aaa;"><div style="font-size:64px;margin-bottom:16px;">🎧</div><div style="font-size:18px;margin-bottom:8px;">Busque suas músicas</div><div style="font-size:12px;color:#717171;">🔒 No-Cookies | PiP Nativo | BG Play</div></div></div>
+        <div id="resultsContainer"><div style="text-align:center;padding:60px 20px;color:#aaa;"><div style="font-size:64px;margin-bottom:16px;">🎧</div><div style="font-size:18px;margin-bottom:8px;">Busque suas músicas</div><div style="font-size:12px;color:#717171;">🔒 No-Cookies | PiP Nativo | BG Play | Download</div></div></div>
         <div id="paginationContainer" class="pagination" style="display:none;"></div>
     </div>
 
@@ -103,10 +202,17 @@
         </div>
     </div>
 
+    <!-- Modal de Playlist -->
     <div class="playlist-modal" id="playlistModal">
         <div class="playlist-modal-header"><span class="playlist-modal-title">📼 Lista de Reprodução</span><button class="playlist-modal-close" onclick="togglePlaylistModal()">✕</button></div>
         <div class="playlist-modal-list" id="playlistModalList"></div>
         <div style="padding:12px;display:flex;gap:8px;"><button class="playlist-action-btn play-all" onclick="playAllPlaylist()" style="flex:1;">▶ Tocar Tudo</button><button class="playlist-action-btn clear" onclick="clearPlaylist()">🗑</button></div>
+    </div>
+
+    <!-- Modal de Downloads -->
+    <div class="download-modal" id="downloadModal">
+        <div class="download-modal-header"><span class="download-modal-title">⬇️ Downloads</span><button class="download-modal-close" onclick="toggleDownloadModal()">✕</button></div>
+        <div class="download-modal-list" id="downloadModalList"></div>
     </div>
 
     <div class="toast" id="toast"></div>
@@ -118,12 +224,220 @@
             'use strict';
             const PROXY_URL = 'https://playtube-proxy.codw23.workers.dev';
 
+            // ===== SISTEMA DE TEMAS =====
+            class ThemeManager {
+                constructor() {
+                    this.themes = {
+                        dark: {'--yt-bg':'#0f0f0f','--yt-surface':'#1a1a1a','--yt-surface2':'#272727','--yt-border':'#303030'},
+                        light: {'--yt-bg':'#ffffff','--yt-surface':'#f5f5f5','--yt-surface2':'#e0e0e0','--yt-border':'#ddd','--yt-white':'#000','--yt-gray':'#666','--yt-gray2':'#999'},
+                        amoled: {'--yt-bg':'#000000','--yt-surface':'#0a0a0a','--yt-surface2':'#111','--yt-border':'#1a1a1a'}
+                    };
+                    this.currentTheme = localStorage.getItem('theme') || 'dark';
+                    this.applyTheme();
+                }
+                applyTheme() {
+                    const theme = this.themes[this.currentTheme];
+                    Object.entries(theme).forEach(([key, value]) => {
+                        document.documentElement.style.setProperty(key, value);
+                    });
+                    document.body.style.background = theme['--yt-bg'];
+                }
+                cycleTheme() {
+                    const themes = Object.keys(this.themes);
+                    const currentIndex = themes.indexOf(this.currentTheme);
+                    this.currentTheme = themes[(currentIndex + 1) % themes.length];
+                    localStorage.setItem('theme', this.currentTheme);
+                    this.applyTheme();
+                    showToast(`🎨 Tema: ${this.currentTheme}`);
+                }
+            }
+
+            // ===== GERENCIADOR DE FAVORITOS E HISTÓRICO =====
+            class FavoritesManager {
+                constructor() {
+                    this.favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+                    this.history = JSON.parse(localStorage.getItem('history') || '[]');
+                }
+                toggleFavorite(track) {
+                    const index = this.favorites.findIndex(f => f.id === track.id);
+                    if (index > -1) {
+                        this.favorites.splice(index, 1);
+                        showToast('💔 Removido dos favoritos');
+                    } else {
+                        this.favorites.unshift(track);
+                        showToast('❤️ Adicionado aos favoritos');
+                    }
+                    localStorage.setItem('favorites', JSON.stringify(this.favorites));
+                    this.updateFavoritesUI();
+                    return index === -1;
+                }
+                isFavorite(videoId) {
+                    return this.favorites.some(f => f.id === videoId);
+                }
+                addToHistory(track) {
+                    this.history = this.history.filter(h => h.id !== track.id);
+                    this.history.unshift({ ...track, playedAt: new Date().toISOString() });
+                    if (this.history.length > 50) this.history.pop();
+                    localStorage.setItem('history', JSON.stringify(this.history));
+                }
+                updateFavoritesUI() {
+                    const favCount = document.getElementById('favCount');
+                    if (favCount) favCount.textContent = this.favorites.length;
+                }
+            }
+
+            // ===== GERENCIADOR DE DOWNLOADS =====
+            class DownloadManager {
+                constructor() {
+                    this.downloads = JSON.parse(localStorage.getItem('downloads') || '[]');
+                    this.activeDownloads = new Map();
+                    this.initDB();
+                }
+                async initDB() {
+                    this.db = await this.openDB();
+                }
+                openDB() {
+                    return new Promise((resolve, reject) => {
+                        const request = indexedDB.open('PlayTubeDownloads', 1);
+                        request.onupgradeneeded = (event) => {
+                            const db = event.target.result;
+                            if (!db.objectStoreNames.contains('tracks')) {
+                                db.createObjectStore('tracks', { keyPath: 'id' });
+                            }
+                        };
+                        request.onsuccess = () => resolve(request.result);
+                        request.onerror = () => reject(request.error);
+                    });
+                }
+                async downloadTrack(videoId, title, channel, thumbnail) {
+                    showToast('⬇️ Iniciando download...');
+                    const progressEl = document.getElementById('downloadProgress');
+                    const fillEl = document.getElementById('downloadFill');
+                    const percentEl = document.getElementById('downloadPercent');
+                    
+                    progressEl.classList.add('active');
+                    fillEl.style.width = '0%';
+                    percentEl.textContent = '0%';
+                    
+                    try {
+                        // Simular progresso (em produção, usar fetch com stream)
+                        for (let i = 0; i <= 100; i += 20) {
+                            await new Promise(r => setTimeout(r, 300));
+                            fillEl.style.width = i + '%';
+                            percentEl.textContent = i + '%';
+                        }
+                        
+                        // Aqui você implementaria o download real via proxy
+                        // const response = await fetch(`${PROXY_URL}/download/${videoId}`);
+                        // const blob = await response.blob();
+                        
+                        const track = { id: videoId, title, channel, thumbnail, downloadedAt: new Date().toISOString() };
+                        
+                        // Salvar no IndexedDB
+                        const db = await this.openDB();
+                        const tx = db.transaction('tracks', 'readwrite');
+                        tx.objectStore('tracks').put(track);
+                        
+                        this.downloads.unshift(track);
+                        localStorage.setItem('downloads', JSON.stringify(this.downloads));
+                        
+                        showToast('✅ Download concluído!');
+                    } catch (e) {
+                        showToast('❌ Erro no download');
+                        console.error(e);
+                    }
+                    
+                    setTimeout(() => progressEl.classList.remove('active'), 1000);
+                }
+                getDownloads() {
+                    return this.downloads;
+                }
+                hasDownload(videoId) {
+                    return this.downloads.some(d => d.id === videoId);
+                }
+            }
+
+            // ===== GESTOS MOBILE =====
+            class MobileGestures {
+                constructor() {
+                    this.touchStartX = 0;
+                    this.touchStartY = 0;
+                    this.touchStartTime = 0;
+                    this.setupGestures();
+                }
+                setupGestures() {
+                    document.addEventListener('touchstart', (e) => {
+                        this.touchStartX = e.touches[0].clientX;
+                        this.touchStartY = e.touches[0].clientY;
+                        this.touchStartTime = Date.now();
+                    }, { passive: true });
+                    
+                    document.addEventListener('touchend', (e) => {
+                        const deltaX = e.changedTouches[0].clientX - this.touchStartX;
+                        const deltaY = e.changedTouches[0].clientY - this.touchStartY;
+                        const deltaTime = Date.now() - this.touchStartTime;
+                        
+                        // Swipe rápido
+                        if (deltaTime < 300 && Math.abs(deltaX) > 80 && Math.abs(deltaY) < 50) {
+                            if (deltaX > 0) {
+                                previousTrack();
+                                showToast('⏮ Anterior');
+                            } else {
+                                nextTrack();
+                                showToast('⏭ Próxima');
+                            }
+                        }
+                        
+                        // Swipe para cima = abrir player
+                        if (deltaY < -100 && Math.abs(deltaX) < 50 && currentVideoId) {
+                            showPlayer();
+                        }
+                        
+                        // Swipe para baixo = fechar player
+                        if (deltaY > 100 && Math.abs(deltaX) < 50 && playerTop.classList.contains('active')) {
+                            closePlayer();
+                        }
+                    }, { passive: true });
+                }
+            }
+
+            // ===== BRIDGE ANDROID =====
+            class AndroidBridge {
+                constructor() {
+                    this.isAndroid = /Android/i.test(navigator.userAgent);
+                    this.setupBridge();
+                }
+                setupBridge() {
+                    if (this.isAndroid && window.Android) {
+                        window.playTrack = (id) => window.Android.onTrackPlay(id);
+                        window.downloadTrack = (id) => window.Android.onDownloadRequest(id);
+                    }
+                }
+                showNativeNotification(title, artist) {
+                    if (window.Android) {
+                        window.Android.showNotification(title, artist);
+                    }
+                }
+                updateLockScreen(title, artist, albumArt) {
+                    if (window.Android) {
+                        window.Android.updateMediaSession(title, artist, albumArt);
+                    }
+                }
+            }
+
+            // Inicializar classes
+            const themeManager = new ThemeManager();
+            const favoritesManager = new FavoritesManager();
+            const downloadManager = new DownloadManager();
+            const mobileGestures = new MobileGestures();
+            const androidBridge = new AndroidBridge();
+
             // ESTADO
             let ytPlayer = null, ytTopPlayer = null, playlist = [], selectedVideos = new Set();
             let currentTrackIndex = -1, isPlaying = false, currentVideoId = null, currentArtist = '';
             let toastTimeout = null, nextPageToken = null, prevPageToken = null, currentQuery = '';
             let hideButtonsTimeout = null, hasShownRelatedVideos = false;
-            let isVideoMode = true, wakeLock = null;
+            let isVideoMode = true, wakeLock = null, currentTab = 'search';
 
             // DOM
             const $ = (id) => document.getElementById(id);
@@ -141,10 +455,12 @@
             const playlistModal = $('playlistModal'), playlistModalList = $('playlistModalList');
             const modeToggleBtn = $('modeToggleBtn'), playerModeBtn = $('playerModeBtn');
             const bgIndicator = $('bgIndicator');
+            const downloadModal = $('downloadModal'), downloadModalList = $('downloadModalList');
+            const equalizer3D = $('equalizer3D');
 
             // SERVICE WORKER
             if ('serviceWorker' in navigator) {
-                const swCode = `const CACHE_NAME='playtube-v1';self.addEventListener('install',(e)=>{self.skipWaiting()});self.addEventListener('activate',(e)=>{self.clients.claim()});self.addEventListener('message',(event)=>{const{action,title,artist,artwork}=event.data;self.clients.matchAll().then(clients=>{clients.forEach(client=>client.postMessage({action,title,artist,artwork}))});if(action==='UPDATE_MEDIA'&&'mediaSession' in self){self.registration.mediaSession.metadata=new MediaMetadata({title:title||'Play Tube',artist:artist||'YouTube',album:'Play Tube Music',artwork:artwork||[]})}});`;
+                const swCode = `const CACHE_NAME='playtube-v2';self.addEventListener('install',(e)=>{self.skipWaiting()});self.addEventListener('activate',(e)=>{self.clients.claim()});self.addEventListener('message',(event)=>{const{action,title,artist,artwork}=event.data;self.clients.matchAll().then(clients=>{clients.forEach(client=>client.postMessage({action,title,artist,artwork}))});if(action==='UPDATE_MEDIA'&&'mediaSession' in self){self.registration.mediaSession.metadata=new MediaMetadata({title:title||'Play Tube',artist:artist||'YouTube',album:'Play Tube Music',artwork:artwork||[]})}});`;
                 const blob = new Blob([swCode], {type:'application/javascript'});
                 navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
                 navigator.serviceWorker.addEventListener('message', (event) => {
@@ -155,72 +471,320 @@
             function notifySW(action, data = {}) { if (navigator.serviceWorker && navigator.serviceWorker.controller) { navigator.serviceWorker.controller.postMessage({action, ...data}); } }
 
             // MODO
-            window.togglePlayMode = function() { isVideoMode = !isVideoMode; if (isVideoMode) { modeToggleBtn.textContent = '🎬'; modeToggleBtn.classList.add('video-mode'); playerModeBtn.textContent = '🎬'; playerModeBtn.classList.remove('audio-mode'); if (currentVideoId) showPlayer(); } else { modeToggleBtn.textContent = '🎵'; modeToggleBtn.classList.remove('video-mode'); playerModeBtn.textContent = '🎵'; playerModeBtn.classList.add('audio-mode'); closePlayer(); if (currentVideoId) togglePiP(); } };
+            window.togglePlayMode = function() { 
+                isVideoMode = !isVideoMode; 
+                if (isVideoMode) { 
+                    modeToggleBtn.textContent = '🎬'; 
+                    modeToggleBtn.classList.add('video-mode'); 
+                    playerModeBtn.textContent = '🎬'; 
+                    playerModeBtn.classList.remove('audio-mode'); 
+                    equalizer3D.classList.remove('active');
+                    if (currentVideoId) showPlayer(); 
+                } else { 
+                    modeToggleBtn.textContent = '🎵'; 
+                    modeToggleBtn.classList.remove('video-mode'); 
+                    playerModeBtn.textContent = '🎵'; 
+                    playerModeBtn.classList.add('audio-mode'); 
+                    closePlayer(); 
+                    equalizer3D.classList.add('active');
+                    if (currentVideoId) togglePiP(); 
+                } 
+            };
 
             // PLAYLIST
             window.togglePlaylistModal = function() { playlistModal.classList.toggle('active'); if (playlistModal.classList.contains('active')) updatePlaylistModal(); };
-            function updatePlaylistModal() { if (playlist.length === 0) { playlistModalList.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">📼 Vazia</div>'; return; } playlistModalList.innerHTML = playlist.map((t, i) => `<div class="playlist-item ${i===currentTrackIndex&&isPlaying?'playing':''}" onclick="playPlaylistTrack(${i})"><img class="playlist-item-thumb" src="${t.thumbnail||''}" onerror="this.style.opacity='0.3'"><div class="playlist-item-info"><div class="playlist-item-title">${escapeHtml(t.title)}</div><div class="playlist-item-artist">${escapeHtml(t.channel)}</div></div><button class="playlist-item-remove" onclick="event.stopPropagation();removeFromPlaylist(${i})">✕</button></div>`).join(''); }
+            window.toggleDownloadModal = function() { downloadModal.classList.toggle('active'); if (downloadModal.classList.contains('active')) updateDownloadModal(); };
+            
+            function updatePlaylistModal() { 
+                if (playlist.length === 0) { 
+                    playlistModalList.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">📼 Vazia</div>'; 
+                    return; 
+                } 
+                playlistModalList.innerHTML = playlist.map((t, i) => `
+                    <div class="playlist-item ${i===currentTrackIndex&&isPlaying?'playing':''}" onclick="playPlaylistTrack(${i})">
+                        <img class="playlist-item-thumb" src="${t.thumbnail||''}" onerror="this.style.opacity='0.3'">
+                        <div class="playlist-item-info">
+                            <div class="playlist-item-title">${escapeHtml(t.title)}</div>
+                            <div class="playlist-item-artist">${escapeHtml(t.channel)}</div>
+                        </div>
+                        <button class="playlist-item-remove" onclick="event.stopPropagation();removeFromPlaylist(${i})">✕</button>
+                    </div>
+                `).join(''); 
+            }
+            
+            function updateDownloadModal() {
+                const downloads = downloadManager.getDownloads();
+                if (downloads.length === 0) {
+                    downloadModalList.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">📥 Nenhum download</div>';
+                    return;
+                }
+                downloadModalList.innerHTML = downloads.map(t => `
+                    <div class="playlist-item" onclick="playVideoFromResults('${t.id}','${escapeHtml(t.title)}','${escapeHtml(t.channel)}','${t.thumbnail}')">
+                        <img class="playlist-item-thumb" src="${t.thumbnail||''}" onerror="this.style.opacity='0.3'">
+                        <div class="playlist-item-info">
+                            <div class="playlist-item-title">${escapeHtml(t.title)}</div>
+                            <div class="playlist-item-artist">${escapeHtml(t.channel)}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
             window.playPlaylistTrack = function(i) { currentTrackIndex = i; playTrack(i); playlistModal.classList.remove('active'); };
             window.removeFromPlaylist = function(i) { if (i === currentTrackIndex) stopPlayback(); playlist.splice(i, 1); if (i < currentTrackIndex) currentTrackIndex--; updatePlaylistUI(); updatePlaylistModal(); };
             window.playAllPlaylist = function() { if (playlist.length === 0) return; currentTrackIndex = 0; playTrack(0); };
             window.playSelected = function() { if (selectedVideos.size === 0) { showToast('⚠️ Selecione vídeos'); return; } playlist = playlist.filter(t => selectedVideos.has(t.id)); selectedVideos.clear(); currentTrackIndex = 0; playTrack(0); updatePlaylistUI(); };
             window.clearPlaylist = function() { stopPlayback(); playlist = []; selectedVideos.clear(); currentTrackIndex = -1; updatePlaylistUI(); updatePlaylistModal(); };
-            function updatePlaylistUI() { if (playlist.length > 0) { playlistBar.style.display = 'flex'; playlistActions.style.display = 'flex'; playlistCount.textContent = playlist.length + ' músicas'; } else { playlistBar.style.display = 'none'; playlistActions.style.display = 'none'; } }
+            
+            function updatePlaylistUI() { 
+                if (playlist.length > 0) { 
+                    playlistBar.style.display = 'flex'; 
+                    playlistActions.style.display = 'flex'; 
+                    playlistCount.textContent = playlist.length + ' músicas'; 
+                } else { 
+                    playlistBar.style.display = 'none'; 
+                    playlistActions.style.display = 'none'; 
+                } 
+            }
 
             // BOTÕES
             document.addEventListener('click', (e) => { if (currentVideoId && !e.target.closest('.side-btn') && !e.target.closest('.tape-btn') && !e.target.closest('.player-close') && !e.target.closest('.mode-toggle') && !e.target.closest('.player-mode-btn')) showSideButtons(); });
             document.addEventListener('touchstart', (e) => { if (currentVideoId && !e.target.closest('.side-btn') && !e.target.closest('.tape-btn') && !e.target.closest('.player-close') && !e.target.closest('.mode-toggle') && !e.target.closest('.player-mode-btn')) showSideButtons(); }, {passive:true});
-            function showSideButtons() { sideButtons.classList.remove('hidden'); if (hideButtonsTimeout) clearTimeout(hideButtonsTimeout); hideButtonsTimeout = setTimeout(() => sideButtons.classList.add('hidden'), 4000); }
+            
+            function showSideButtons() { 
+                sideButtons.classList.remove('hidden'); 
+                if (hideButtonsTimeout) clearTimeout(hideButtonsTimeout); 
+                hideButtonsTimeout = setTimeout(() => sideButtons.classList.add('hidden'), 4000); 
+            }
 
             // PLAYER TOPO
-            window.showPlayer = function() { if (!currentVideoId || !isVideoMode) return; playerTop.classList.add('active'); playerTop.classList.add('rainbow-border'); if (!ytTopPlayer) initTopPlayer(); else ytTopPlayer.loadVideoById({videoId:currentVideoId, startSeconds:ytPlayer?.getCurrentTime?ytPlayer.getCurrentTime():0}); playerTop.scrollIntoView({behavior:'smooth'}); };
-            window.closePlayer = function() { playerTop.classList.remove('active'); playerTop.classList.remove('rainbow-border'); if (ytTopPlayer) ytTopPlayer.stopVideo(); };
-            function initTopPlayer() { playerWrapper.innerHTML = '<div id="topPlayerElement"></div>'; ytTopPlayer = new YT.Player('topPlayerElement', {videoId:currentVideoId, playerVars:{autoplay:1,playsinline:1,controls:1,rel:0,modestbranding:1,fs:1}, events:{onReady:()=>{if(ytPlayer?.getCurrentTime)ytTopPlayer.seekTo(ytPlayer.getCurrentTime());}, onStateChange:(e)=>{if(e.data===YT.PlayerState.PLAYING&&ytPlayer?.pauseVideo)ytPlayer.pauseVideo();}}}); }
+            window.showPlayer = function() { 
+                if (!currentVideoId || !isVideoMode) return; 
+                playerTop.classList.add('active'); 
+                playerTop.classList.add('rainbow-border'); 
+                if (!ytTopPlayer) initTopPlayer(); 
+                else ytTopPlayer.loadVideoById({videoId:currentVideoId, startSeconds:ytPlayer?.getCurrentTime?ytPlayer.getCurrentTime():0}); 
+                playerTop.scrollIntoView({behavior:'smooth'}); 
+            };
+            
+            window.closePlayer = function() { 
+                playerTop.classList.remove('active'); 
+                playerTop.classList.remove('rainbow-border'); 
+                if (ytTopPlayer) ytTopPlayer.stopVideo(); 
+            };
+            
+            function initTopPlayer() { 
+                playerWrapper.innerHTML = '<div id="topPlayerElement"></div>'; 
+                ytTopPlayer = new YT.Player('topPlayerElement', {
+                    videoId:currentVideoId, 
+                    playerVars:{autoplay:1,playsinline:1,controls:1,rel:0,modestbranding:1,fs:1}, 
+                    events:{
+                        onReady:()=>{if(ytPlayer?.getCurrentTime)ytTopPlayer.seekTo(ytPlayer.getCurrentTime());}, 
+                        onStateChange:(e)=>{if(e.data===YT.PlayerState.PLAYING&&ytPlayer?.pauseVideo)ytPlayer.pauseVideo();}
+                    }
+                }); 
+            }
 
-            // ABRIR NO YOUTUBE (SEMPRE yout-ube.com)
+            // ABRIR NO YOUTUBE
             window.openInYouTube = function() { if (!currentVideoId) return; window.open(`https://www.yout-ube.com/watch?v=${currentVideoId}`, '_blank'); };
             if (window.history?.replaceState) window.history.replaceState({}, document.title, window.location.pathname);
 
-            // YOUTUBE IFRAME API COM SUPORTE A PIP NATIVO
+            // DOWNLOAD DA FAIXA ATUAL
+            window.downloadCurrentTrack = function() {
+                if (!currentVideoId || currentTrackIndex < 0) {
+                    showToast('⚠️ Nenhuma música tocando');
+                    return;
+                }
+                const track = playlist[currentTrackIndex];
+                downloadManager.downloadTrack(track.id, track.title, track.channel, track.thumbnail);
+            };
+
+            // YOUTUBE IFRAME API
             window.onYouTubeIframeAPIReady = function() { initHiddenPlayer(); };
+            
             function initHiddenPlayer() {
                 if (ytPlayer) ytPlayer.destroy();
                 ytPlayer = new YT.Player('hiddenPlayer', {
                     height:'100%',width:'100%',host:'https://www.youtube-nocookie.com',
                     playerVars:{autoplay:0,playsinline:1,controls:0,disablekb:1,fs:0,rel:0,modestbranding:1,iv_load_policy:3,origin:window.location.origin,enablejsapi:1,widgetid:1,mute:0,volume:100,pictureInPicture:1,pip:1},
-                    events:{onReady:function(event){console.log('✅ Player BG (PiP nativo)');event.target.setVolume(100);event.target.unMute();},onStateChange:onPlayerStateChange,onError:function(e){console.error('❌ Erro:',e.data);}}
+                    events:{onReady:function(event){console.log('✅ Player BG');event.target.setVolume(100);event.target.unMute();},onStateChange:onPlayerStateChange,onError:function(e){console.error('❌ Erro:',e.data);}}
                 });
             }
-            function onPlayerStateChange(event) { if (event.data === YT.PlayerState.PLAYING) { isPlaying = true; playPauseBtn.textContent = '⏸'; npEqualizer.style.display = 'flex'; bgIndicator.style.display = 'flex'; hasShownRelatedVideos = false; updateMediaSession(true); } else if (event.data === YT.PlayerState.PAUSED) { isPlaying = false; playPauseBtn.textContent = '▶'; npEqualizer.style.display = 'none'; bgIndicator.style.display = 'none'; updateMediaSession(false); } else if (event.data === YT.PlayerState.ENDED) { if (!hasShownRelatedVideos && currentArtist) { hasShownRelatedVideos = true; showRelatedVideos(currentArtist); } else nextTrack(); } }
-            async function showRelatedVideos(artist) { showToast(`🎵 Mais de ${artist}...`); sectionTitle.innerHTML = `<span>🎤 Mais de ${escapeHtml(artist)}</span>`; sectionSubtitle.style.display = 'block'; nextPageToken = null; prevPageToken = null; currentQuery = artist; await searchYouTube(artist, null, true); document.querySelector('.results-section').scrollIntoView({behavior:'smooth'}); }
+            
+            function onPlayerStateChange(event) { 
+                if (event.data === YT.PlayerState.PLAYING) { 
+                    isPlaying = true; 
+                    playPauseBtn.textContent = '⏸'; 
+                    npEqualizer.style.display = 'flex'; 
+                    bgIndicator.style.display = 'flex'; 
+                    equalizer3D.classList.add('active');
+                    hasShownRelatedVideos = false; 
+                    updateMediaSession(true); 
+                } else if (event.data === YT.PlayerState.PAUSED) { 
+                    isPlaying = false; 
+                    playPauseBtn.textContent = '▶'; 
+                    npEqualizer.style.display = 'none'; 
+                    bgIndicator.style.display = 'none'; 
+                    equalizer3D.classList.remove('active');
+                    updateMediaSession(false); 
+                } else if (event.data === YT.PlayerState.ENDED) { 
+                    if (!hasShownRelatedVideos && currentArtist) { 
+                        hasShownRelatedVideos = true; 
+                        showRelatedVideos(currentArtist); 
+                    } else nextTrack(); 
+                } 
+            }
+            
+            async function showRelatedVideos(artist) { 
+                showToast(`🎵 Mais de ${artist}...`); 
+                sectionTitle.innerHTML = `<span>🎤 Mais de ${escapeHtml(artist)}</span>`; 
+                sectionSubtitle.style.display = 'block'; 
+                nextPageToken = null; prevPageToken = null; currentQuery = artist; 
+                await searchYouTube(artist, null, true); 
+                document.querySelector('.results-section').scrollIntoView({behavior:'smooth'}); 
+            }
 
             // MEDIA SESSION
-            function setupMediaSession() { if (!('mediaSession' in navigator)) return; navigator.mediaSession.setActionHandler('play', togglePlayPause); navigator.mediaSession.setActionHandler('pause', togglePlayPause); navigator.mediaSession.setActionHandler('previoustrack', previousTrack); navigator.mediaSession.setActionHandler('nexttrack', nextTrack); navigator.mediaSession.setActionHandler('stop', stopPlayback); }
-            function updateMediaSession(playing) { if (!('mediaSession' in navigator)) return; navigator.mediaSession.playbackState = playing ? 'playing' : 'paused'; if (currentTrackIndex >= 0 && playlist[currentTrackIndex]) { const t = playlist[currentTrackIndex]; const artwork = [{src:t.thumbnail||'',sizes:'512x512',type:'image/jpg'}]; navigator.mediaSession.metadata = new MediaMetadata({title:t.title||'Play Tube',artist:t.channel||'YouTube',album:'Play Tube Music',artwork:artwork}); notifySW('UPDATE_MEDIA', {title:t.title,artist:t.channel,artwork:artwork}); } }
+            function setupMediaSession() { 
+                if (!('mediaSession' in navigator)) return; 
+                navigator.mediaSession.setActionHandler('play', togglePlayPause); 
+                navigator.mediaSession.setActionHandler('pause', togglePlayPause); 
+                navigator.mediaSession.setActionHandler('previoustrack', previousTrack); 
+                navigator.mediaSession.setActionHandler('nexttrack', nextTrack); 
+                navigator.mediaSession.setActionHandler('stop', stopPlayback); 
+            }
+            
+            function updateMediaSession(playing) { 
+                if (!('mediaSession' in navigator)) return; 
+                navigator.mediaSession.playbackState = playing ? 'playing' : 'paused'; 
+                if (currentTrackIndex >= 0 && playlist[currentTrackIndex]) { 
+                    const t = playlist[currentTrackIndex]; 
+                    const artwork = [{src:t.thumbnail||'',sizes:'512x512',type:'image/jpg'}]; 
+                    navigator.mediaSession.metadata = new MediaMetadata({title:t.title||'Play Tube',artist:t.channel||'YouTube',album:'Play Tube Music',artwork:artwork}); 
+                    notifySW('UPDATE_MEDIA', {title:t.title,artist:t.channel,artwork:artwork}); 
+                    androidBridge.updateLockScreen(t.title, t.channel, t.thumbnail);
+                } 
+            }
 
             // CONTROLES
-            function playTrack(index = -1) { if (index >= 0 && index < playlist.length) currentTrackIndex = index; if (currentTrackIndex < 0 || currentTrackIndex >= playlist.length) return; const track = playlist[currentTrackIndex]; currentVideoId = track.id; currentArtist = track.channel; hasShownRelatedVideos = false; if (ytPlayer?.loadVideoById) { ytPlayer.loadVideoById({videoId:track.id,startSeconds:0}); setTimeout(() => { if (ytPlayer && ytPlayer.playVideo) { ytPlayer.playVideo(); ytPlayer.unMute(); ytPlayer.setVolume(100); } }, 300); } if (playerTop.classList.contains('active') && ytTopPlayer?.loadVideoById) ytTopPlayer.loadVideoById({videoId:track.id,startSeconds:0}); updateNowPlaying(track); updatePlayerTopInfo(track); showNowPlayingBar(); showSideButtons(); if (isVideoMode) showPlayer(); else togglePiP(); updatePlaylistModal(); }
-            window.togglePlayPause = function() { if (!ytPlayer) return; if (isPlaying) { ytPlayer.pauseVideo(); if (ytTopPlayer) ytTopPlayer.pauseVideo(); } else if (currentVideoId) { ytPlayer.playVideo(); ytPlayer.unMute(); ytPlayer.setVolume(100); if (ytTopPlayer) { ytTopPlayer.playVideo(); ytTopPlayer.unMute(); } } else if (playlist.length > 0) playTrack(0); };
+            function playTrack(index = -1) { 
+                if (index >= 0 && index < playlist.length) currentTrackIndex = index; 
+                if (currentTrackIndex < 0 || currentTrackIndex >= playlist.length) return; 
+                const track = playlist[currentTrackIndex]; 
+                currentVideoId = track.id; 
+                currentArtist = track.channel; 
+                hasShownRelatedVideos = false; 
+                favoritesManager.addToHistory(track);
+                
+                if (ytPlayer?.loadVideoById) { 
+                    ytPlayer.loadVideoById({videoId:track.id,startSeconds:0}); 
+                    setTimeout(() => { 
+                        if (ytPlayer && ytPlayer.playVideo) { 
+                            ytPlayer.playVideo(); 
+                            ytPlayer.unMute(); 
+                            ytPlayer.setVolume(100); 
+                        } 
+                    }, 300); 
+                } 
+                
+                if (playerTop.classList.contains('active') && ytTopPlayer?.loadVideoById) 
+                    ytTopPlayer.loadVideoById({videoId:track.id,startSeconds:0}); 
+                
+                updateNowPlaying(track); 
+                updatePlayerTopInfo(track); 
+                showNowPlayingBar(); 
+                showSideButtons(); 
+                
+                if (isVideoMode) showPlayer(); 
+                else togglePiP(); 
+                
+                updatePlaylistModal(); 
+                androidBridge.showNativeNotification(track.title, track.channel);
+            }
+            
+            window.togglePlayPause = function() { 
+                if (!ytPlayer) return; 
+                if (isPlaying) { 
+                    ytPlayer.pauseVideo(); 
+                    if (ytTopPlayer) ytTopPlayer.pauseVideo(); 
+                } else if (currentVideoId) { 
+                    ytPlayer.playVideo(); 
+                    ytPlayer.unMute(); 
+                    ytPlayer.setVolume(100); 
+                    if (ytTopPlayer) { ytTopPlayer.playVideo(); ytTopPlayer.unMute(); } 
+                } else if (playlist.length > 0) playTrack(0); 
+            };
+            
             window.nextTrack = function() { if (playlist.length === 0) return; playTrack((currentTrackIndex + 1) % playlist.length); };
             window.previousTrack = function() { if (playlist.length === 0) return; playTrack((currentTrackIndex - 1 + playlist.length) % playlist.length); };
-            function stopPlayback() { if (ytPlayer) ytPlayer.stopVideo(); if (ytTopPlayer) ytTopPlayer.stopVideo(); isPlaying = false; playPauseBtn.textContent = '▶'; npEqualizer.style.display = 'none'; bgIndicator.style.display = 'none'; nowPlayingBar.style.display = 'none'; playerTop.classList.remove('active'); if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'none'; }
-            function updateNowPlaying(track) { npTitle.textContent = track.title||''; npArtist.textContent = track.channel||''; npThumb.src = track.thumbnail||''; document.title = `▶ ${track.title||'Play Tube'}`; }
-            function updatePlayerTopInfo(track) { playerInfoTitle.textContent = track.title||''; playerInfoArtist.textContent = track.channel||''; }
+            
+            function stopPlayback() { 
+                if (ytPlayer) ytPlayer.stopVideo(); 
+                if (ytTopPlayer) ytTopPlayer.stopVideo(); 
+                isPlaying = false; 
+                playPauseBtn.textContent = '▶'; 
+                npEqualizer.style.display = 'none'; 
+                bgIndicator.style.display = 'none'; 
+                equalizer3D.classList.remove('active');
+                nowPlayingBar.style.display = 'none'; 
+                playerTop.classList.remove('active'); 
+                if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'none'; 
+            }
+            
+            function updateNowPlaying(track) { 
+                npTitle.textContent = track.title||''; 
+                npArtist.textContent = track.channel||''; 
+                npThumb.src = track.thumbnail||''; 
+                document.title = `▶ ${track.title||'Play Tube'}`; 
+            }
+            
+            function updatePlayerTopInfo(track) { 
+                playerInfoTitle.textContent = track.title||''; 
+                playerInfoArtist.textContent = track.channel||''; 
+            }
+            
             function showNowPlayingBar() { nowPlayingBar.style.display = 'flex'; }
 
-            // SELEÇÃO
-            window.toggleSelectVideo = function(videoId, event) { event.stopPropagation(); if (selectedVideos.has(videoId)) selectedVideos.delete(videoId); else selectedVideos.add(videoId); document.querySelectorAll('.video-card').forEach(c => { if (c.getAttribute('data-video-id') === videoId) c.classList.toggle('selected', selectedVideos.has(videoId)); }); updatePlaylistUI(); };
-            window.playVideoFromResults = function(videoId, title, channel, thumbnail) { const video = {id:videoId,title,channel,thumbnail}; playlist = playlist.filter(t => t.id !== video.id); playlist.unshift(video); currentTrackIndex = 0; selectedVideos.clear(); playTrack(0); updatePlaylistUI(); showToast('▶ Tocando agora'); };
+            // SELEÇÃO E FAVORITOS
+            window.toggleSelectVideo = function(videoId, event) { 
+                event.stopPropagation(); 
+                if (selectedVideos.has(videoId)) selectedVideos.delete(videoId); 
+                else selectedVideos.add(videoId); 
+                document.querySelectorAll('.video-card').forEach(c => { 
+                    if (c.getAttribute('data-video-id') === videoId) 
+                        c.classList.toggle('selected', selectedVideos.has(videoId)); 
+                }); 
+                updatePlaylistUI(); 
+            };
+            
+            window.toggleFavorite = function(videoId, title, channel, thumbnail, event) {
+                event.stopPropagation();
+                const track = {id: videoId, title, channel, thumbnail};
+                const isFav = favoritesManager.toggleFavorite(track);
+                const favBtn = document.querySelector(`.video-fav[data-video-id="${videoId}"]`);
+                if (favBtn) {
+                    favBtn.classList.toggle('active', isFav);
+                    favBtn.textContent = isFav ? '❤️' : '🤍';
+                }
+            };
+            
+            window.playVideoFromResults = function(videoId, title, channel, thumbnail) { 
+                const video = {id:videoId,title,channel,thumbnail}; 
+                playlist = playlist.filter(t => t.id !== video.id); 
+                playlist.unshift(video); 
+                currentTrackIndex = 0; 
+                selectedVideos.clear(); 
+                playTrack(0); 
+                updatePlaylistUI(); 
+                showToast('▶ Tocando agora'); 
+            };
 
-            // ===== PICTURE-IN-PICTURE VIA API NATIVA DO YOUTUBE =====
+            // ===== PICTURE-IN-PICTURE =====
             window.togglePiP = async function() {
                 if (!currentVideoId) { showToast('⚠️ Selecione uma música primeiro'); return; }
                 try {
                     if (document.pictureInPictureElement) { await document.exitPictureInPicture(); showToast('📺 PiP desativado'); return; }
-                    // Método 1: iframe do player (YouTube PiP nativo)
                     const iframe = document.querySelector('#hiddenPlayer iframe');
                     if (iframe) { try { await iframe.requestPictureInPicture(); showToast('📺 PiP ativado!'); return; } catch(e) {} }
-                    // Método 2: elemento video com embed do YouTube
                     const video = document.createElement('video');
                     video.setAttribute('playsinline', 'true'); video.setAttribute('autoplay', 'true');
                     video.style.cssText = 'position:fixed;bottom:10px;right:10px;width:1px;height:1px;opacity:0.01;z-index:9999;';
@@ -229,20 +793,162 @@
                     await video.play().catch(() => {});
                     await new Promise((resolve) => { video.addEventListener('loadedmetadata', resolve, { once: true }); setTimeout(resolve, 3000); });
                     try { await video.requestPictureInPicture(); showToast('📺 PiP ativado!'); setTimeout(() => { if (document.body.contains(video)) document.body.removeChild(video); }, 2000); return; } catch(e) { document.body.removeChild(video); }
-                    // Método 3: App nativo YouTube (Android)
                     if (/Android/i.test(navigator.userAgent)) { window.location.href = `intent://www.youtube.com/watch?v=${currentVideoId}#Intent;scheme=https;package=com.google.android.youtube;end`; showToast('📺 Abrindo no app YouTube'); }
-                    // Método 4: Janela popup
                     else { window.open(`https://www.youtube.com/embed/${currentVideoId}?autoplay=1&playsinline=1`, 'pipWindow', 'width=400,height=250,top=100,left=100'); showToast('📺 Player flutuante'); }
                 } catch (error) { console.error('Erro PiP:', error); window.open(`https://www.youtube.com/watch?v=${currentVideoId}`, '_blank'); }
             };
 
+            // TABS
+            window.switchTab = function(tab) {
+                currentTab = tab;
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelector(`.tab-btn:contains('${tab}')`)?.classList.add('active');
+                
+                switch(tab) {
+                    case 'search':
+                        sectionTitle.innerHTML = '<span>Resultados</span>';
+                        sectionSubtitle.style.display = 'none';
+                        break;
+                    case 'favorites':
+                        sectionTitle.innerHTML = '<span>❤️ Favoritos</span>';
+                        sectionSubtitle.style.display = 'none';
+                        displayFavorites();
+                        break;
+                    case 'history':
+                        sectionTitle.innerHTML = '<span>🕐 Histórico</span>';
+                        sectionSubtitle.style.display = 'none';
+                        displayHistory();
+                        break;
+                    case 'downloads':
+                        sectionTitle.innerHTML = '<span>⬇️ Downloads</span>';
+                        sectionSubtitle.style.display = 'none';
+                        displayDownloads();
+                        break;
+                }
+            };
+            
+            function displayFavorites() {
+                const favs = favoritesManager.favorites;
+                if (favs.length === 0) {
+                    resultsContainer.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">❤️ Nenhum favorito</div>';
+                    return;
+                }
+                resultsContainer.innerHTML = favs.map(v => createVideoCard(v, true)).join('');
+                paginationContainer.style.display = 'none';
+            }
+            
+            function displayHistory() {
+                const hist = favoritesManager.history;
+                if (hist.length === 0) {
+                    resultsContainer.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">🕐 Nenhum histórico</div>';
+                    return;
+                }
+                resultsContainer.innerHTML = hist.map(v => createVideoCard(v)).join('');
+                paginationContainer.style.display = 'none';
+            }
+            
+            function displayDownloads() {
+                const downloads = downloadManager.getDownloads();
+                if (downloads.length === 0) {
+                    resultsContainer.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">📥 Nenhum download</div>';
+                    return;
+                }
+                resultsContainer.innerHTML = downloads.map(v => createVideoCard(v)).join('');
+                paginationContainer.style.display = 'none';
+            }
+            
+            function createVideoCard(v, isFav = false) {
+                const favClass = favoritesManager.isFavorite(v.id) ? 'active' : '';
+                const favIcon = favoritesManager.isFavorite(v.id) ? '❤️' : '🤍';
+                const downloaded = downloadManager.hasDownload(v.id);
+                
+                return `
+                    <div class="video-card ${selectedVideos.has(v.id)?'selected':''} ${isFav?'favorite':''}" data-video-id="${v.id}" 
+                         onclick="playVideoFromResults('${v.id}','${escapeHtml(v.title)}','${escapeHtml(v.channel)}','${v.thumbnail}')">
+                        <img class="video-thumb" src="${v.thumbnail}" loading="lazy" onerror="this.style.opacity='0.3'">
+                        <div class="video-info">
+                            <div class="video-card-title">${escapeHtml(v.title)}</div>
+                            <div class="video-card-channel">${escapeHtml(v.channel)}</div>
+                            <div class="video-card-meta">⏱ ${formatDuration(v.duration)} • 👁 ${formatViews(v.viewCount)}</div>
+                        </div>
+                        <div class="video-check" onclick="toggleSelectVideo('${v.id}', event)">✓</div>
+                        <button class="video-fav ${favClass}" data-video-id="${v.id}" onclick="toggleFavorite('${v.id}','${escapeHtml(v.title)}','${escapeHtml(v.channel)}','${v.thumbnail}', event)">${favIcon}</button>
+                        ${!downloaded ? `<button class="video-download" onclick="event.stopPropagation();downloadManager.downloadTrack('${v.id}','${escapeHtml(v.title)}','${escapeHtml(v.channel)}','${v.thumbnail}')">⬇️</button>` : ''}
+                    </div>
+                `;
+            }
+
             // BUSCA
-            searchBtn.addEventListener('click', () => { currentQuery = searchInput.value; nextPageToken = null; prevPageToken = null; sectionTitle.innerHTML = '<span>Resultados</span>'; sectionSubtitle.style.display = 'none'; searchYouTube(currentQuery); });
-            searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { currentQuery = searchInput.value; nextPageToken = null; prevPageToken = null; sectionTitle.innerHTML = '<span>Resultados</span>'; sectionSubtitle.style.display = 'none'; searchYouTube(currentQuery); } });
-            async function searchYouTube(query, pageToken = null) { const q = query.trim(); if (!q) { showToast('⚠️ Digite uma música'); return; } showLoading(true); paginationContainer.style.display = 'none'; resultCount.textContent = ''; try { const proxyUrl = new URL(PROXY_URL); proxyUrl.searchParams.append('q', q + ' música'); proxyUrl.searchParams.append('maxResults', '15'); proxyUrl.searchParams.append('regionCode', 'BR'); proxyUrl.searchParams.append('relevanceLanguage', 'pt'); if (pageToken) proxyUrl.searchParams.append('pageToken', pageToken); const response = await fetch(proxyUrl); if (!response.ok) throw new Error('Erro'); const data = await response.json(); nextPageToken = data.nextPageToken||null; prevPageToken = data.prevPageToken||null; displayResults(data.videos||[], data.totalResults||0); updatePagination(); } catch (e) { showToast('⚠️ ' + e.message); } showLoading(false); }
-            function displayResults(videos, totalResults) { resultCount.textContent = totalResults ? `${totalResults} resultados` : ''; if (!videos?.length) { resultsContainer.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Nenhum resultado</div>'; return; } resultsContainer.innerHTML = videos.map(v => `<div class="video-card ${selectedVideos.has(v.id)?'selected':''}" data-video-id="${v.id}" onclick="playVideoFromResults('${v.id}','${escapeHtml(v.title)}','${escapeHtml(v.channel)}','${v.thumbnail}')"><img class="video-thumb" src="${v.thumbnail}" loading="lazy" onerror="this.style.opacity='0.3'"><div class="video-info"><div class="video-card-title">${escapeHtml(v.title)}</div><div class="video-card-channel">${escapeHtml(v.channel)}</div><div class="video-card-meta">⏱ ${formatDuration(v.duration)} • 👁 ${formatViews(v.viewCount)}</div></div><div class="video-check" onclick="toggleSelectVideo('${v.id}', event)">✓</div></div>`).join(''); }
-            function updatePagination() { if (!nextPageToken && !prevPageToken) { paginationContainer.style.display = 'none'; return; } paginationContainer.style.display = 'flex'; paginationContainer.innerHTML = `<button onclick="searchPage('prev')" ${!prevPageToken?'disabled':''}>⬅</button><button onclick="searchPage('next')" ${!nextPageToken?'disabled':''}>➡</button>`; }
-            window.searchPage = function(d) { const t = d === 'next' ? nextPageToken : prevPageToken; if (t && currentQuery) searchYouTube(currentQuery, t); };
+            searchBtn.addEventListener('click', () => { 
+                currentTab = 'search';
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelector('.tab-btn').classList.add('active');
+                currentQuery = searchInput.value; 
+                nextPageToken = null; prevPageToken = null; 
+                sectionTitle.innerHTML = '<span>Resultados</span>'; 
+                sectionSubtitle.style.display = 'none'; 
+                searchYouTube(currentQuery); 
+            });
+            
+            searchInput.addEventListener('keydown', (e) => { 
+                if (e.key === 'Enter') { 
+                    currentTab = 'search';
+                    currentQuery = searchInput.value; 
+                    nextPageToken = null; prevPageToken = null; 
+                    sectionTitle.innerHTML = '<span>Resultados</span>'; 
+                    sectionSubtitle.style.display = 'none'; 
+                    searchYouTube(currentQuery); 
+                } 
+            });
+            
+            async function searchYouTube(query, pageToken = null) { 
+                const q = query.trim(); 
+                if (!q) { showToast('⚠️ Digite uma música'); return; } 
+                showLoading(true); 
+                paginationContainer.style.display = 'none'; 
+                resultCount.textContent = ''; 
+                try { 
+                    const proxyUrl = new URL(PROXY_URL); 
+                    proxyUrl.searchParams.append('q', q + ' música'); 
+                    proxyUrl.searchParams.append('maxResults', '15'); 
+                    proxyUrl.searchParams.append('regionCode', 'BR'); 
+                    proxyUrl.searchParams.append('relevanceLanguage', 'pt'); 
+                    if (pageToken) proxyUrl.searchParams.append('pageToken', pageToken); 
+                    const response = await fetch(proxyUrl); 
+                    if (!response.ok) throw new Error('Erro'); 
+                    const data = await response.json(); 
+                    nextPageToken = data.nextPageToken||null; 
+                    prevPageToken = data.prevPageToken||null; 
+                    displayResults(data.videos||[], data.totalResults||0); 
+                    updatePagination(); 
+                } catch (e) { 
+                    showToast('⚠️ ' + e.message); 
+                } 
+                showLoading(false); 
+            }
+            
+            function displayResults(videos, totalResults) { 
+                resultCount.textContent = totalResults ? `${totalResults} resultados` : ''; 
+                if (!videos?.length) { 
+                    resultsContainer.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Nenhum resultado</div>'; 
+                    return; 
+                } 
+                resultsContainer.innerHTML = videos.map(v => createVideoCard(v)).join(''); 
+            }
+            
+            function updatePagination() { 
+                if (!nextPageToken && !prevPageToken) { 
+                    paginationContainer.style.display = 'none'; 
+                    return; 
+                } 
+                paginationContainer.style.display = 'flex'; 
+                paginationContainer.innerHTML = `<button onclick="searchPage('prev')" ${!prevPageToken?'disabled':''}>⬅</button><button onclick="searchPage('next')" ${!nextPageToken?'disabled':''}>➡</button>`; 
+            }
+            
+            window.searchPage = function(d) { 
+                const t = d === 'next' ? nextPageToken : prevPageToken; 
+                if (t && currentQuery) searchYouTube(currentQuery, t); 
+            };
 
             // UTILS
             function escapeHtml(t) { if (!t) return ''; const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
@@ -259,10 +965,24 @@
             if ('audioSession' in navigator) { navigator.audioSession.type = 'playback'; }
             lockScreen();
 
+            // Splash Screen
+            window.addEventListener('load', () => {
+                setTimeout(() => {
+                    const splash = document.getElementById('splashScreen');
+                    if (splash) {
+                        splash.style.opacity = '0';
+                        setTimeout(() => {
+                            if (splash.parentNode) splash.parentNode.removeChild(splash);
+                        }, 500);
+                    }
+                }, 2000);
+            });
+
             // INIT
             setupMediaSession();
-            console.log('🔊 Play Tube - COMPLETO');
-            console.log('✅ No-Cookies Nativo | PiP API YouTube | Background Play | Playlist');
+            favoritesManager.updateFavoritesUI();
+            console.log('🔊 Play Tube - COMPLETO com todas as melhorias');
+            console.log('✅ Temas | Favoritos | Histórico | Downloads | Gestos | Equalizador 3D | Bridge Android');
         })();
     </script>
 </body>
