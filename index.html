@@ -8,6 +8,7 @@
     <meta name="theme-color" content="#0f0f0f">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="HandheldFriendly" content="true">
+    <meta http-equiv="Content-Security-Policy" content="media-src *; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://s.ytimg.com;">
     
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><circle cx='96' cy='96' r='96' fill='%23ff0000'/><polygon points='80,60 80,132 140,96' fill='white'/></svg>">
@@ -28,9 +29,8 @@
             --input-text: #fff;
             --input-ph: #717171;
             --green: #1db954;
-            --player-h: clamp(60px, 10vh, 80px);
+            --player-h: 80px;
             --safe-b: 0px;
-            --container-padding: clamp(8px, 2vw, 16px);
         }
         
         [data-theme="light"] {
@@ -59,33 +59,19 @@
             --input-ph: #555;
         }
 
-        * { 
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        html { 
-            font-size: clamp(14px, 2.5vw, 16px);
-            height: 100%;
-            overflow: hidden;
-        }
-        
+        * { margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent; }
+        html { font-size:16px; }
         body { 
             font-family: -apple-system, 'Roboto', sans-serif;
             background: var(--bg);
             color: var(--text);
-            height: 100vh;
-            height: 100dvh;
-            overflow: hidden;
+            min-height: 100vh;
+            min-height: 100dvh;
+            overflow-x: hidden;
             transition: background 0.3s, color 0.3s;
-            display: flex;
-            flex-direction: column;
-            position: relative;
+            padding-bottom: calc(var(--player-h) + var(--safe-b) + 15px);
         }
 
-        /* Animações */
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes slideUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes fadeInUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -97,696 +83,219 @@
         @keyframes downloading { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
         @keyframes rainbow { 0% { border-color: #f00; } 25% { border-color: #f80; } 50% { border-color: #0c0; } 75% { border-color: #21f; } 100% { border-color: #f00; } }
 
-        /* ===== SCROLLBAR ===== */
-        ::-webkit-scrollbar {
-            width: 4px;
-            height: 4px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 4px;
-        }
-
-        /* ===== LAYOUT PRINCIPAL ===== */
-        .app-container {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            max-width: 600px;
-            margin: 0 auto;
-            width: 100%;
-        }
+        .hidden-player { position: fixed; top: 0; left: 0; width: 1px; height: 1px; opacity: 0.01; pointer-events: none; z-index: -1; }
 
         /* ===== TOPBAR ===== */
         .topbar {
-            flex-shrink: 0;
-            background: var(--bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            height: clamp(44px, 8vh, 56px);
-            display: flex;
-            align-items: center;
-            padding: 0 var(--container-padding);
-            gap: clamp(8px, 2vw, 12px);
-            border-bottom: 1px solid var(--border);
-            z-index: 100;
+            position: sticky; top: 0; background: var(--bg);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            height: 50px; display: flex; align-items: center; padding: 0 12px; gap: 10px;
+            border-bottom: 1px solid var(--border); z-index: 100;
         }
-        .logo { 
-            display: flex; 
-            align-items: center; 
-            gap: 6px; 
-            animation: float 3s ease-in-out infinite;
-            flex-shrink: 0;
-        }
+        .logo { display: flex; align-items: center; gap: 6px; animation: float 3s ease-in-out infinite; }
         .logo-icon {
-            width: clamp(24px, 5vw, 32px);
-            height: clamp(24px, 5vw, 32px);
-            background: var(--red);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: clamp(10px, 2vw, 14px);
-            color: #fff;
-            animation: pulseLogo 2s ease-in-out infinite;
+            width: 28px; height: 28px; background: var(--red); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; color: #fff; animation: pulseLogo 2s ease-in-out infinite;
         }
         .logo-text {
-            font-size: clamp(0.85rem, 3vw, 1.1rem);
-            font-weight: 700;
+            font-size: 1rem; font-weight: 700;
             background: linear-gradient(90deg, var(--text), #f44, var(--text), #f66);
-            background-size: 200% auto;
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: shimmer 3s linear infinite;
-            white-space: nowrap;
+            background-size: 200% auto; -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent; animation: shimmer 3s linear infinite;
         }
-        .logo-text sup { 
-            font-size: clamp(6px, 1.5vw, 8px);
-            background: var(--red);
-            color: #fff;
-            padding: 1px 3px;
-            border-radius: 3px;
-            -webkit-text-fill-color: #fff;
-        }
+        .logo-text sup { font-size: 7px; background: var(--red); color: #fff; padding: 1px 3px; border-radius: 3px; -webkit-text-fill-color: #fff; }
         .spacer { flex: 1; }
-        .theme-btn { 
-            background: none;
-            border: none;
-            color: var(--text);
-            font-size: clamp(1rem, 2.5vw, 1.2rem);
-            cursor: pointer;
-            padding: 4px;
-            flex-shrink: 0;
-        }
-
-        /* ===== CONTEÚDO SCROLLÁVEL ===== */
-        .scroll-content {
-            flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-            -webkit-overflow-scrolling: touch;
-            scroll-behavior: smooth;
-            padding-bottom: var(--player-h);
-        }
-
-        /* ===== PLAYER VIDEO ===== */
-        .player-container {
-            width: 100%;
-            background: #000;
-            display: none;
-            position: relative;
-            animation: slideUp 0.4s ease;
-            border-bottom: 2px solid var(--red);
-            flex-shrink: 0;
-        }
-        .player-container.active { display: block; }
-        .player-container.rainbow-border { 
-            animation: rainbow 3s linear infinite;
-            border-width: 2px;
-            border-style: solid;
-        }
-        .player-wrapper { 
-            width: 100%;
-            aspect-ratio: 16/9;
-            position: relative;
-            max-height: 50vh;
-        }
-        .player-wrapper iframe { 
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-        .player-close {
-            position: absolute;
-            top: clamp(6px, 1.5vh, 10px);
-            right: clamp(6px, 1.5vw, 10px);
-            width: clamp(28px, 6vw, 36px);
-            height: clamp(28px, 6vw, 36px);
-            border-radius: 50%;
-            background: rgba(0,0,0,0.7);
-            border: none;
-            color: #fff;
-            font-size: clamp(14px, 3vw, 18px);
-            cursor: pointer;
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* ===== PAGINAÇÃO ===== */
-        .pagination-section {
-            padding: var(--container-padding);
-            padding-bottom: 4px;
-        }
-        .pagination-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: clamp(4px, 1.5vw, 8px);
-            background: var(--surface);
-            border-radius: clamp(10px, 2vw, 14px);
-            padding: clamp(4px, 1vw, 8px) clamp(8px, 2vw, 12px);
-            border: 1px solid var(--border);
-            max-width: 100%;
-        }
-        .page-info {
-            font-size: clamp(0.7rem, 2vw, 0.8rem);
-            color: var(--text2);
-            font-weight: 500;
-            min-width: clamp(70px, 20vw, 90px);
-            text-align: center;
-            white-space: nowrap;
-        }
-        .page-btn {
-            width: clamp(28px, 6vw, 34px);
-            height: clamp(28px, 6vw, 34px);
-            border-radius: 50%;
-            background: var(--surface2);
-            border: 1px solid var(--border);
-            color: var(--text);
-            cursor: pointer;
-            font-size: clamp(0.7rem, 2vw, 0.85rem);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-            flex-shrink: 0;
-        }
-        .page-btn:active {
-            background: var(--red);
-            color: #fff;
-            border-color: var(--red);
-            transform: scale(0.9);
-        }
-        .page-btn:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-            pointer-events: none;
-        }
+        .theme-btn { background: none; border: none; color: var(--text); font-size: 1.1rem; cursor: pointer; padding: 4px; }
 
         /* ===== SEARCH ===== */
-        .search-section { 
-            padding: clamp(6px, 1.5vh, 10px) var(--container-padding);
-        }
+        .search-section { padding: 8px 12px; background: var(--bg); z-index: 50; }
         .search-box {
-            display: flex;
-            background: var(--input-bg);
-            border: 2px solid var(--border);
-            border-radius: clamp(16px, 3vw, 24px);
-            overflow: hidden;
-            transition: border-color 0.3s, box-shadow 0.3s;
-            max-width: 100%;
+            display: flex; background: var(--input-bg); border: 2px solid var(--border);
+            border-radius: 20px; overflow: hidden; transition: border-color 0.3s, box-shadow 0.3s;
         }
-        .search-box:focus-within { 
-            border-color: var(--red);
-            box-shadow: 0 0 0 2px rgba(255,0,0,0.2);
-        }
+        .search-box:focus-within { border-color: var(--red); box-shadow: 0 0 0 2px rgba(255,0,0,0.2); }
         .search-box input {
-            flex: 1;
-            padding: clamp(8px, 1.5vh, 12px) clamp(10px, 2vw, 16px);
-            background: transparent;
-            border: none;
-            color: var(--input-text);
-            font-size: clamp(0.85rem, 2.5vw, 0.95rem);
-            outline: none;
-            min-width: 0;
+            flex: 1; padding: 10px 14px; background: transparent; border: none;
+            color: var(--input-text); font-size: 0.9rem; outline: none; min-width: 0;
         }
-        .search-box input::placeholder { 
-            color: var(--input-ph);
-            opacity: 1;
-        }
+        .search-box input::placeholder { color: var(--input-ph); opacity: 1; }
         .search-btn {
-            width: clamp(38px, 10vw, 46px);
-            background: var(--surface2);
-            border: none;
-            color: var(--text);
-            cursor: pointer;
-            font-size: clamp(0.9rem, 2.5vw, 1.1rem);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
+            width: 42px; background: var(--surface2); border: none; color: var(--text);
+            cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center;
         }
-        .search-btn:active { 
-            background: var(--red);
-            color: #fff;
-        }
+        .search-btn:active { background: var(--red); color: #fff; }
 
         /* ===== TABS ===== */
-        .tabs-container { 
-            display: flex;
-            gap: clamp(3px, 1vw, 6px);
-            padding: 4px var(--container-padding) clamp(6px, 1.5vh, 10px);
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            flex-shrink: 0;
-        }
+        .tabs-container { display: flex; gap: 4px; padding: 4px 12px 8px; background: var(--bg); overflow-x: auto; }
         .tabs-container::-webkit-scrollbar { height: 0; }
         .tab-btn {
-            padding: clamp(5px, 1vh, 8px) clamp(10px, 3vw, 16px);
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: clamp(14px, 3vw, 18px);
-            color: var(--text2);
-            font-size: clamp(0.7rem, 2vw, 0.8rem);
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.2s;
-            flex-shrink: 0;
+            padding: 6px 14px; background: var(--surface); border: 1px solid var(--border);
+            border-radius: 16px; color: var(--text2); font-size: 0.75rem; cursor: pointer;
+            white-space: nowrap; transition: all 0.2s;
         }
-        .tab-btn.active { 
-            background: var(--red);
-            color: #fff;
-            border-color: var(--red);
-        }
+        .tab-btn.active { background: var(--red); color: #fff; border-color: var(--red); }
 
         /* ===== RESULTS ===== */
-        .results-section { 
-            padding: 4px var(--container-padding);
-            padding-bottom: clamp(10px, 2vh, 20px);
-        }
+        .results-section { padding: 4px 12px 20px; background: var(--bg); min-height: 200px; }
         .section-title {
-            font-size: clamp(0.75rem, 2vw, 0.85rem);
-            font-weight: 600;
-            margin-bottom: clamp(6px, 1.5vh, 10px);
-            padding-left: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            color: var(--text2);
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            font-size: 0.8rem; font-weight: 600; margin-bottom: 8px; padding-left: 4px;
+            display: flex; align-items: center; justify-content: space-between;
+            color: var(--text2); text-transform: uppercase; letter-spacing: 1px;
         }
-        .result-count { 
-            font-size: clamp(0.6rem, 1.5vw, 0.7rem);
-            color: var(--text3);
-        }
+        .result-count { font-size: 0.65rem; color: var(--text3); }
         .video-card {
-            display: flex;
-            gap: clamp(8px, 2vw, 12px);
-            background: var(--surface);
-            border-radius: clamp(6px, 1.5vw, 10px);
-            padding: clamp(6px, 1.5vh, 10px);
-            cursor: pointer;
-            transition: background 0.15s, transform 0.15s;
-            animation: fadeInUp 0.3s ease forwards;
-            opacity: 0;
-            border: 2px solid transparent;
-            margin-bottom: clamp(4px, 1vh, 8px);
-            position: relative;
-            align-items: center;
+            display: flex; gap: 10px; background: var(--surface); border-radius: 8px;
+            padding: 8px; cursor: pointer; transition: background 0.15s, transform 0.15s;
+            animation: fadeInUp 0.3s ease forwards; opacity: 0;
+            border: 2px solid transparent; margin-bottom: 6px; position: relative;
         }
-        .video-card:active { 
-            background: var(--surface2);
-            transform: scale(0.98);
-        }
-        .video-thumb { 
-            width: clamp(40px, 12vw, 56px);
-            height: clamp(40px, 12vw, 56px);
-            border-radius: clamp(4px, 1vw, 8px);
-            object-fit: cover;
-            flex-shrink: 0;
-            background: var(--surface2);
-        }
-        .video-info { 
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            min-width: 0;
-            padding-right: clamp(50px, 15vw, 70px);
-        }
-        .video-title { 
-            font-size: clamp(0.8rem, 2.5vw, 0.9rem);
-            font-weight: 500;
-            color: var(--text);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            line-height: 1.3;
-        }
-        .video-channel { 
-            font-size: clamp(0.65rem, 2vw, 0.75rem);
-            color: var(--text2);
-            margin-top: 2px;
-        }
-        .video-actions { 
-            position: absolute;
-            bottom: clamp(4px, 1vh, 8px);
-            right: clamp(4px, 1vw, 8px);
-            display: flex;
-            gap: clamp(2px, 0.5vw, 4px);
-            z-index: 5;
-        }
+        .video-card:active { background: var(--surface2); transform: scale(0.98); }
+        .video-thumb { width: 48px; height: 48px; border-radius: 6px; object-fit: cover; flex-shrink: 0; background: var(--surface2); }
+        .video-info { flex: 1; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+        .video-title { font-size: 0.85rem; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .video-channel { font-size: 0.7rem; color: var(--text2); margin-top: 2px; }
+        .video-actions { position: absolute; bottom: 6px; right: 6px; display: flex; gap: 4px; z-index: 5; }
         .v-btn {
-            width: clamp(24px, 6vw, 30px);
-            height: clamp(24px, 6vw, 30px);
-            border-radius: 50%;
-            background: rgba(0,0,0,0.5);
-            border: none;
-            color: #fff;
-            font-size: clamp(10px, 2.5vw, 12px);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
+            width: 26px; height: 26px; border-radius: 50%; background: rgba(0,0,0,0.5);
+            border: none; color: #fff; font-size: 11px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: all 0.2s;
         }
         .v-btn:active { transform: scale(1.1); }
-        .v-btn.fav-active { 
-            color: #f00;
-            background: rgba(255,0,0,0.3);
-        }
+        .v-btn.fav-active { color: #f00; background: rgba(255,0,0,0.3); }
         .v-btn.dl:active { background: var(--green); }
 
         /* ===== SPOTIFY BAR ===== */
         .spotify-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: var(--player-h);
+            position: fixed; bottom: 0; left: 0; right: 0; height: var(--player-h);
             background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            display: none;
-            align-items: center;
-            padding: 0 var(--container-padding);
-            gap: clamp(6px, 1.5vw, 10px);
-            z-index: 200;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
-            animation: slideUp 0.4s ease;
-            max-width: 600px;
-            margin: 0 auto;
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            display: none; align-items: center; padding: 0 12px; gap: 10px;
+            z-index: 200; border-top: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.5); animation: slideUp 0.4s ease;
         }
         .spotify-bar.active { display: flex; }
-        .spotify-bar.playing { 
-            background: linear-gradient(135deg, #0a1a0a, #1a2a1a);
-        }
+        .spotify-bar.playing { background: linear-gradient(135deg, #0a1a0a, #1a2a1a); }
         .sp-art {
-            width: clamp(40px, 10vw, 56px);
-            height: clamp(40px, 10vw, 56px);
-            border-radius: clamp(6px, 1.5vw, 10px);
-            object-fit: cover;
-            flex-shrink: 0;
-            cursor: pointer;
-            transition: transform 0.3s;
+            width: 52px; height: 52px; border-radius: 8px; object-fit: cover;
+            flex-shrink: 0; cursor: pointer; transition: transform 0.3s;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
-        .sp-art.playing { 
-            animation: spin 8s linear infinite;
-            border-radius: 50%;
-            box-shadow: 0 0 15px rgba(29,185,84,0.3);
-        }
-        .sp-info { 
-            flex: 1;
-            min-width: 0;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-        .sp-title { 
-            font-size: clamp(0.8rem, 2.5vw, 0.95rem);
-            font-weight: 600;
-            color: #fff;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .sp-artist { 
-            font-size: clamp(0.65rem, 2vw, 0.75rem);
-            color: rgba(255,255,255,0.7);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .sp-progress { 
-            position: absolute;
-            top: -2px;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: rgba(255,255,255,0.1);
-            cursor: pointer;
-        }
-        .sp-progress-bar { 
-            height: 100%;
-            background: linear-gradient(90deg, #1db954, #1ed760);
-            width: 0%;
-            transition: width 0.3s linear;
-            animation: progressGlow 2s ease-in-out infinite;
-        }
-        .sp-controls { 
-            display: flex;
-            gap: clamp(8px, 2vw, 14px);
-            align-items: center;
-            flex-shrink: 0;
-        }
-        .sp-btn { 
-            background: none;
-            border: none;
-            color: rgba(255,255,255,0.9);
-            font-size: clamp(0.9rem, 2.5vw, 1.1rem);
-            cursor: pointer;
-            padding: clamp(4px, 1vw, 6px);
-            transition: all 0.2s;
-        }
-        .sp-btn:active { 
-            transform: scale(0.85);
-            color: #fff;
-        }
+        .sp-art.playing { animation: spin 8s linear infinite; border-radius: 50%; box-shadow: 0 0 15px rgba(29,185,84,0.3); }
+        .sp-info { flex: 1; min-width: 0; cursor: pointer; display: flex; flex-direction: column; gap: 2px; }
+        .sp-title { font-size: 0.9rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sp-artist { font-size: 0.7rem; color: rgba(255,255,255,0.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sp-progress { position: absolute; top: -2px; left: 0; right: 0; height: 3px; background: rgba(255,255,255,0.1); cursor: pointer; }
+        .sp-progress-bar { height: 100%; background: linear-gradient(90deg, #1db954, #1ed760); width: 0%; transition: width 0.3s linear; animation: progressGlow 2s ease-in-out infinite; }
+        .sp-controls { display: flex; gap: 12px; align-items: center; }
+        .sp-btn { background: none; border: none; color: rgba(255,255,255,0.9); font-size: 1rem; cursor: pointer; padding: 6px; transition: all 0.2s; }
+        .sp-btn:active { transform: scale(0.85); color: #fff; }
         .sp-btn.play {
-            width: clamp(36px, 9vw, 48px);
-            height: clamp(36px, 9vw, 48px);
-            background: #fff;
-            border-radius: 50%;
-            color: #000;
-            font-size: clamp(0.9rem, 2.5vw, 1.1rem);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 44px; height: 44px; background: #fff; border-radius: 50%;
+            color: #000; font-size: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
-        .sp-btn.play.playing { 
-            background: var(--green);
-            color: #fff;
-        }
+        .sp-btn.play.playing { background: var(--green); color: #fff; }
         .sp-dl {
-            background: rgba(29,185,84,0.15);
-            border: none;
-            color: var(--green);
-            font-size: clamp(0.7rem, 2vw, 0.8rem);
-            cursor: pointer;
-            padding: clamp(4px, 1vh, 6px) clamp(8px, 2vw, 12px);
-            border-radius: clamp(12px, 3vw, 16px);
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 3px;
-            flex-shrink: 0;
+            background: rgba(29,185,84,0.15); border: none; color: var(--green);
+            font-size: 0.75rem; cursor: pointer; padding: 6px 10px; border-radius: 15px;
+            transition: all 0.2s; display: flex; align-items: center; gap: 3px;
         }
-        .sp-dl:active { 
-            background: rgba(29,185,84,0.3);
-            transform: scale(0.95);
-        }
-        .sp-dl.downloading { 
-            animation: downloading 0.8s infinite;
-            background: rgba(29,185,84,0.3);
-        }
+        .sp-dl:active { background: rgba(29,185,84,0.3); transform: scale(0.95); }
+        .sp-dl.downloading { animation: downloading 0.8s infinite; background: rgba(29,185,84,0.3); }
 
         /* ===== TOAST & LOADING ===== */
         .toast {
-            position: fixed;
-            bottom: calc(var(--player-h) + 20px);
-            left: 50%;
-            transform: translateX(-50%) translateY(120px);
-            background: #333;
-            color: #fff;
-            padding: clamp(6px, 1.5vh, 10px) clamp(12px, 3vw, 18px);
-            border-radius: clamp(16px, 4vw, 24px);
-            font-size: clamp(0.7rem, 2vw, 0.8rem);
-            z-index: 600;
-            transition: transform 0.3s;
-            white-space: nowrap;
-            max-width: 90vw;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            pointer-events: none;
+            position: fixed; bottom: calc(var(--player-h) + 20px); left: 50%;
+            transform: translateX(-50%) translateY(120px); background: #333;
+            color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 0.75rem;
+            z-index: 600; transition: transform 0.3s; white-space: nowrap;
+            max-width: 90vw; overflow: hidden; text-overflow: ellipsis; pointer-events: none;
         }
         .toast.show { transform: translateX(-50%) translateY(0); }
-        .loading { 
-            text-align: center;
-            padding: clamp(30px, 8vh, 50px);
-            color: var(--text2);
-        }
+        .loading { text-align: center; padding: 40px; color: var(--text2); }
         .spinner {
-            width: clamp(24px, 6vw, 34px);
-            height: clamp(24px, 6vw, 34px);
-            border: 3px solid var(--border);
-            border-top-color: var(--red);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 10px;
+            width: 30px; height: 30px; border: 3px solid var(--border);
+            border-top-color: var(--red); border-radius: 50%;
+            animation: spin 1s linear infinite; margin: 0 auto 10px;
         }
         .dl-progress {
-            position: fixed;
-            bottom: calc(var(--player-h) + 10px);
-            left: var(--container-padding);
-            right: var(--container-padding);
-            background: var(--surface);
-            border-radius: clamp(8px, 2vw, 12px);
-            padding: clamp(8px, 1.5vh, 12px);
-            z-index: 300;
-            display: none;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            max-width: calc(600px - var(--container-padding) * 2);
-            margin: 0 auto;
+            position: fixed; bottom: calc(var(--player-h) + 10px); left: 12px; right: 12px;
+            background: var(--surface); border-radius: 10px; padding: 10px;
+            z-index: 300; display: none; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }
         .dl-progress.active { display: block; }
-        .dl-bar { 
-            height: 3px;
-            background: var(--border);
-            border-radius: 2px;
-            overflow: hidden;
-            margin-top: 6px;
+        .dl-bar { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; margin-top: 6px; }
+        .dl-fill { height: 100%; background: linear-gradient(90deg, #1db954, #00e676); width: 0%; transition: width 0.3s; }
+
+        /* ===== PLAYER VIDEO ===== */
+        .player-container {
+            width: 100%; background: #000; display: none; position: relative;
+            animation: slideUp 0.4s ease; border-bottom: 2px solid var(--red);
         }
-        .dl-fill { 
-            height: 100%;
-            background: linear-gradient(90deg, #1db954, #00e676);
-            width: 0%;
-            transition: width 0.3s;
+        .player-container.active { display: block; }
+        .player-container.rainbow-border { animation: rainbow 3s linear infinite; border-width: 2px; border-style: solid; }
+        .player-wrapper { width: 100%; aspect-ratio: 16/9; position: relative; }
+        .player-wrapper iframe { width: 100%; height: 100%; border: none; }
+        .player-close {
+            position: absolute; top: 8px; right: 8px; width: 32px; height: 32px;
+            border-radius: 50%; background: rgba(0,0,0,0.7); border: none;
+            color: #fff; font-size: 16px; cursor: pointer; z-index: 10;
+            display: flex; align-items: center; justify-content: center;
         }
 
-        /* ===== EMPTY STATE ===== */
-        .empty-state {
-            text-align: center;
-            padding: clamp(30px, 10vh, 50px);
-            color: var(--text2);
-        }
-        .empty-state-icon {
-            font-size: clamp(2rem, 8vw, 4rem);
-            margin-bottom: clamp(10px, 2vh, 20px);
-        }
-        .empty-state-text {
-            font-size: clamp(0.9rem, 2.5vw, 1.1rem);
-            color: var(--text);
-            margin-bottom: 4px;
-        }
-        .empty-state-sub {
-            font-size: clamp(0.75rem, 2vw, 0.85rem);
-            color: var(--text3);
-        }
-
-        /* ===== MEDIA QUERIES ===== */
-        @media (min-width: 768px) {
-            .app-container {
-                box-shadow: 0 0 40px rgba(0,0,0,0.5);
-            }
-            
-            .video-card:hover {
-                background: var(--surface2);
-                transform: translateY(-1px);
-            }
-            
-            .video-card:hover .video-actions {
-                opacity: 1;
-            }
-            
-            .video-actions {
-                opacity: 0.7;
-                transition: opacity 0.2s;
-            }
-        }
-
-        @media (orientation: landscape) {
-            .results-section {
-                max-height: calc(100vh - 300px);
-                overflow-y: auto;
-            }
-            
-            .player-wrapper {
-                max-height: 40vh;
-            }
-        }
-
-        @media (max-width: 360px) {
-            .sp-controls {
-                gap: 6px;
-            }
-            
-            .video-actions {
-                gap: 2px;
-            }
+        /* ===== RESPONSIVO ===== */
+        @media (max-width: 360px) { .sp-art { width: 42px; height: 42px; } .sp-btn.play { width: 38px; height: 38px; } .video-thumb { width: 40px; height: 40px; } }
+        @media (min-width: 768px) { body { max-width: 550px; margin: 0 auto; box-shadow: 0 0 30px rgba(0,0,0,0.3); } }
+        @media (orientation: landscape) and (max-height: 500px) {
+            :root { --player-h: 60px; }
+            .sp-art { width: 38px; height: 38px; }
+            .results-section { max-height: 35vh; overflow-y: auto; }
         }
     </style>
 </head>
 <body data-theme="dark">
-    <div class="app-container">
-        <!-- TOPBAR -->
-        <div class="topbar">
-            <div class="logo">
-                <div class="logo-icon">♪</div>
-                <span class="logo-text">Play Tube<sup>MUSIC</sup></span>
-            </div>
-            <div class="spacer"></div>
-            <button class="theme-btn" onclick="calibrarTela();T.cycle()" title="Tema">🎨</button>
+
+    <div class="hidden-player" id="hiddenPlayer"></div>
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <div class="logo">
+            <div class="logo-icon">♪</div>
+            <span class="logo-text">Play Tube<sup>MUSIC</sup></span>
         </div>
+        <div class="spacer"></div>
+        <button class="theme-btn" onclick="calibrarTela();T.cycle()" title="Tema">🎨</button>
+    </div>
 
-        <!-- PLAYER VIDEO -->
-        <div class="player-container" id="playerContainer">
-            <div class="player-wrapper" id="playerWrapper"></div>
-            <button class="player-close" onclick="closeVideo()">✕</button>
+    <!-- PLAYER VIDEO -->
+    <div class="player-container" id="playerContainer">
+        <div class="player-wrapper" id="playerWrapper"></div>
+        <button class="player-close" onclick="closeVideo()">✕</button>
+    </div>
+
+    <!-- BUSCA -->
+    <div class="search-section">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🎵 Buscar música..." autocomplete="off" enterkeyhint="search">
+            <button class="search-btn" id="searchBtn">🔍</button>
         </div>
+    </div>
 
-        <!-- CONTEÚDO SCROLLÁVEL -->
-        <div class="scroll-content" id="scrollContent">
-            <!-- PAGINAÇÃO -->
-            <div class="pagination-section" id="paginationSection" style="display:none;">
-                <div class="pagination-container">
-                    <button class="page-btn" id="firstPage" onclick="goToPage(1)" disabled>⏮</button>
-                    <button class="page-btn" id="prevPage" onclick="prevPage()" disabled>◀</button>
-                    <div class="page-info" id="pageInfo">Página 1</div>
-                    <button class="page-btn" id="nextPage" onclick="nextPage()" disabled>▶</button>
-                    <button class="page-btn" id="lastPage" onclick="goToPage(totalPages)" disabled>⏭</button>
-                </div>
-            </div>
+    <!-- TABS -->
+    <div class="tabs-container">
+        <button class="tab-btn active" onclick="switchTab('search')">🔍 Buscar</button>
+        <button class="tab-btn" onclick="switchTab('favorites')">❤️ Favoritos</button>
+        <button class="tab-btn" onclick="switchTab('history')">🕐 Histórico</button>
+        <button class="tab-btn" onclick="switchTab('downloads')">⬇️ Downloads</button>
+    </div>
 
-            <!-- BUSCA -->
-            <div class="search-section">
-                <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="🎵 Buscar música..." autocomplete="off" enterkeyhint="search">
-                    <button class="search-btn" id="searchBtn">🔍</button>
-                </div>
-            </div>
-
-            <!-- TABS -->
-            <div class="tabs-container">
-                <button class="tab-btn active" onclick="switchTab('search')">🔍 Buscar</button>
-                <button class="tab-btn" onclick="switchTab('favorites')">❤️ Favoritos</button>
-                <button class="tab-btn" onclick="switchTab('history')">🕐 Histórico</button>
-                <button class="tab-btn" onclick="switchTab('downloads')">⬇️ Downloads</button>
-            </div>
-
-            <!-- RESULTADOS -->
-            <div class="results-section">
-                <div class="section-title" id="sectionTitle">
-                    <span>Resultados</span>
-                    <span class="result-count" id="resultCount"></span>
-                </div>
-                <div id="resultsContainer">
-                    <div class="empty-state">
-                        <div class="empty-state-icon">🎧</div>
-                        <div class="empty-state-text">Play Tube Music</div>
-                        <div class="empty-state-sub">Busque suas músicas favoritas</div>
-                    </div>
-                </div>
+    <!-- RESULTADOS -->
+    <div class="results-section">
+        <div class="section-title" id="sectionTitle"><span>Resultados</span><span class="result-count" id="resultCount"></span></div>
+        <div id="resultsContainer">
+            <div style="text-align:center;padding:50px;color:var(--text2);">
+                <div style="font-size:3rem;">🎧</div>
+                <div style="font-size:1.1rem;color:var(--text);">Play Tube Music</div>
             </div>
         </div>
     </div>
@@ -815,8 +324,8 @@
     <!-- DOWNLOAD PROGRESS -->
     <div class="dl-progress" id="dlProgress">
         <div style="display:flex;justify-content:space-between;align-items:center;">
-            <span style="color:var(--text);font-size:clamp(0.7rem, 2vw, 0.8rem);">⬇️ Baixando...</span>
-            <span style="color:var(--text2);font-size:clamp(0.65rem, 1.5vw, 0.75rem);" id="dlPercent">0%</span>
+            <span style="color:var(--text);font-size:0.75rem;">⬇️ Baixando...</span>
+            <span style="color:var(--text2);font-size:0.7rem;" id="dlPercent">0%</span>
         </div>
         <div class="dl-bar"><div class="dl-fill" id="dlFill"></div></div>
     </div>
@@ -828,167 +337,20 @@
         'use strict';
         const PROXY = 'https://playtube-proxy.codw23.workers.dev';
 
-        // ===== ELEMENTO DE ÁUDIO NATIVO =====
-        let audioElement = null;
-        
-        function createAudioElement() {
-            if (audioElement) {
-                audioElement.pause();
-                audioElement.src = '';
-                audioElement.remove();
-            }
-            
-            audioElement = new Audio();
-            audioElement.setAttribute('playsinline', '');
-            audioElement.setAttribute('webkit-playsinline', '');
-            audioElement.preload = 'auto';
-            
-            audioElement.addEventListener('play', () => {
-                playing = true;
-                updateUI(true);
-                startProg();
-                document.body.classList.add('audio-playing');
-            });
-            
-            audioElement.addEventListener('pause', () => {
-                playing = false;
-                updateUI(false);
-                stopProg();
-                document.body.classList.remove('audio-playing');
-            });
-            
-            audioElement.addEventListener('ended', () => {
-                stopProg();
-                progBar.style.width = '0%';
-                nextTrack();
-            });
-            
-            audioElement.addEventListener('timeupdate', () => {
-                if (audioElement.duration > 0) {
-                    const progress = (audioElement.currentTime / audioElement.duration) * 100;
-                    progBar.style.width = progress + '%';
-                }
-            });
-            
-            audioElement.addEventListener('loadedmetadata', () => {
-                if ('mediaSession' in navigator && idx >= 0 && idx < playlist.length) {
-                    const t = playlist[idx];
-                    navigator.mediaSession.metadata = new MediaMetadata({
-                        title: t.title || 'Sem título',
-                        artist: t.channel || 'Desconhecido',
-                        artwork: [{ src: t.thumbnail || '', sizes: '96x96', type: 'image/jpg' }]
-                    });
-                }
-            });
-            
-            audioElement.addEventListener('error', (e) => {
-                console.error('Erro no áudio:', e);
-                toast('⚠️ Erro ao carregar áudio');
-                if (vid && currentServiceIndex < audioServices.length - 1) {
-                    currentServiceIndex++;
-                    playTrack(idx);
-                } else {
-                    toast('❌ Falha ao reproduzir');
-                }
-            });
-            
-            document.body.appendChild(audioElement);
-        }
-
-        // ===== SERVIÇOS DE ÁUDIO =====
-        const audioServices = [
-            async (videoId) => {
-                const url = `https://api.vevioz.com/@api/button/mp3/${videoId}`;
-                const response = await fetch(url, { 
-                    method: 'GET',
-                    headers: { 'Accept': 'application/json' }
-                });
-                if (!response.ok) throw new Error('Serviço indisponível');
-                const data = await response.json();
-                if (data.url) return data.url;
-                if (data.link) return data.link;
-                throw new Error('URL não encontrada');
-            },
-            
-            async (videoId) => {
-                const url = `https://loader.to/api/card/?url=https://www.youtube.com/watch?v=${videoId}&format=mp3`;
-                const response = await fetch(url);
-                if (!response.ok) throw new Error('Serviço indisponível');
-                const data = await response.json();
-                if (data.url) return data.url;
-                if (data.link) return data.link;
-                throw new Error('URL não encontrada');
-            },
-            
-            async (videoId) => {
-                const url = `${PROXY}/audio?id=${videoId}`;
-                const response = await fetch(url);
-                if (!response.ok) throw new Error('Proxy indisponível');
-                const data = await response.json();
-                return data.url || data.audio || data.stream;
-            }
-        ];
-        
-        let currentServiceIndex = 0;
-
-        // ===== PAGINAÇÃO =====
-        let currentPage = 1;
-        let totalPages = 1;
-        let currentSearchResults = [];
-        const ITEMS_PER_PAGE = 10;
-
-        function updatePagination() {
-            const pagSection = document.getElementById('paginationSection');
-            const firstBtn = document.getElementById('firstPage');
-            const prevBtn = document.getElementById('prevPage');
-            const nextBtn = document.getElementById('nextPage');
-            const lastBtn = document.getElementById('lastPage');
-            const pageInfo = document.getElementById('pageInfo');
-            
-            if (totalPages <= 1 || currentTab !== 'search') {
-                pagSection.style.display = 'none';
-                return;
-            }
-            
-            pagSection.style.display = 'block';
-            pageInfo.textContent = `Página ${currentPage} de ${totalPages}`;
-            
-            firstBtn.disabled = currentPage === 1;
-            prevBtn.disabled = currentPage === 1;
-            nextBtn.disabled = currentPage === totalPages;
-            lastBtn.disabled = currentPage === totalPages;
-        }
-
-        function goToPage(page) {
-            if (page < 1 || page > totalPages) return;
-            currentPage = page;
-            displayResults(currentSearchResults);
-            updatePagination();
-            
-            const scrollContent = document.getElementById('scrollContent');
-            if (scrollContent) {
-                scrollContent.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-        }
-
-        function nextPage() { goToPage(currentPage + 1); }
-        function prevPage() { goToPage(currentPage - 1); }
-
-        function displayResults(results) {
-            const start = (currentPage - 1) * ITEMS_PER_PAGE;
-            const end = start + ITEMS_PER_PAGE;
-            const pageResults = results.slice(start, end);
-            
-            resCont.innerHTML = pageResults.length ? pageResults.map(v => card(v)).join('') : 
-                '<div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-text">Nenhum resultado</div></div>';
-            updateFavBtns();
-        }
-
-        // ===== CALIBRAR TELA (SIMPLIFICADO) =====
+        // ===== CALIBRAR TELA =====
         function calibrarTela() {
-            // O layout agora usa clamp() e flexbox, então precisa de menos ajustes manuais
+            const w = window.innerWidth, h = window.innerHeight;
+            const portrait = h > w, mobile = w < 768;
+            let ph = mobile ? (portrait ? 70 : 55) : 80;
+            document.documentElement.style.setProperty('--player-h', ph + 'px');
             const sb = parseInt(getComputedStyle(document.documentElement).getPropertyValue('env(safe-area-inset-bottom)')) || 0;
             document.documentElement.style.setProperty('--safe-b', sb + 'px');
+            document.body.style.paddingBottom = `calc(${ph}px + ${sb}px + 15px)`;
+            let fs = w < 360 ? 13 : w < 768 ? 14 : 16;
+            document.documentElement.style.fontSize = fs + 'px';
+            const art = document.getElementById('spArt'), play = document.getElementById('spPlay');
+            if (art && mobile) { const s = portrait ? '44px' : '38px'; art.style.width = s; art.style.height = s; }
+            if (play && mobile) { const s = portrait ? '40px' : '36px'; play.style.width = s; play.style.height = s; }
         }
 
         // ===== TEMA =====
@@ -1049,7 +411,6 @@
         // ===== ESTADO =====
         let yt = null, ytTop = null, playlist = [], idx = -1, playing = false, vid = null;
         let toastTO = null, query = '', progInt = null, isVideo = false;
-        let currentTab = 'search';
 
         // ===== DOM =====
         const $ = id => document.getElementById(id);
@@ -1059,54 +420,23 @@
         const spPlay = $('spPlay'), spDL = $('spDL'), progBar = $('progressBar'), progCont = $('progressContainer');
         const vidCont = $('playerContainer'), vidWrap = $('playerWrapper');
 
-        // ===== YOUTUBE (FALLBACK) =====
-        window.onYouTubeIframeAPIReady = () => {};
-        
+        // ===== YOUTUBE =====
+        window.onYouTubeIframeAPIReady = () => initYT();
         function initYT() {
             if (yt) yt.destroy();
-            const hiddenDiv = document.createElement('div');
-            hiddenDiv.id = 'hiddenPlayer';
-            hiddenDiv.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0.01;pointer-events:none;z-index:-1';
-            document.body.appendChild(hiddenDiv);
-            
             yt = new YT.Player('hiddenPlayer', {
-                height: '360', width: '640', videoId: '', 
-                host: 'https://www.youtube-nocookie.com',
-                playerVars: { 
-                    autoplay: 0, playsinline: 1, controls: 0, disablekb: 1, 
-                    fs: 0, rel: 0, modestbranding: 1, iv_load_policy: 3, 
-                    origin: window.location.origin, enablejsapi: 1, mute: 0, volume: 100 
-                },
-                events: { 
-                    onReady: e => { e.target.setVolume(100); e.target.unMute(); }, 
-                    onStateChange: onState, 
-                    onError: e => console.error('Erro YT:', e.data) 
-                }
+                height: '360', width: '640', videoId: '', host: 'https://www.youtube-nocookie.com',
+                playerVars: { autoplay: 0, playsinline: 1, controls: 0, disablekb: 1, fs: 0, rel: 0, modestbranding: 1, iv_load_policy: 3, origin: window.location.origin, enablejsapi: 1, mute: 0, volume: 100 },
+                events: { onReady: e => { e.target.setVolume(100); e.target.unMute(); }, onStateChange: onState, onError: e => console.error('Erro:', e.data) }
             });
         }
-        
         function onState(e) {
             if (e.data === 1) { playing = true; updateUI(true); startProg(); }
             else if (e.data === 2) { playing = false; updateUI(false); stopProg(); }
             else if (e.data === 0) { stopProg(); progBar.style.width = '0%'; nextTrack(); }
         }
-        
-        function startProg() { 
-            stopProg(); 
-            progInt = setInterval(() => { 
-                if (audioElement && audioElement.duration > 0) {
-                    progBar.style.width = (audioElement.currentTime / audioElement.duration) * 100 + '%';
-                } else if (yt && playing) { 
-                    try { 
-                        const d = yt.getDuration(), c = yt.getCurrentTime(); 
-                        if (d > 0) progBar.style.width = (c / d) * 100 + '%'; 
-                    } catch(e) {} 
-                }
-            }, 1000); 
-        }
-        
+        function startProg() { stopProg(); progInt = setInterval(() => { if (!yt || !playing) return; try { const d = yt.getDuration(), c = yt.getCurrentTime(); if (d > 0) progBar.style.width = (c / d) * 100 + '%'; } catch(e) {} }, 1000); }
         function stopProg() { if (progInt) { clearInterval(progInt); progInt = null; } }
-        
         function updateUI(p) {
             spPlay.textContent = p ? '⏸' : '▶';
             spPlay.classList.toggle('playing', p);
@@ -1114,203 +444,67 @@
             spArt.classList.toggle('playing', p);
         }
 
-        // ===== CONTROLES PRINCIPAIS =====
-        async function playTrack(i = -1) {
+        // ===== CONTROLES =====
+        function playTrack(i = -1) {
             if (i >= 0 && i < playlist.length) idx = i;
             if (idx < 0 || idx >= playlist.length) return;
-            
-            const t = playlist[idx];
-            vid = t.id;
-            Fav.addHist(t);
-            progBar.style.width = '0%';
-            
-            spTitle.textContent = t.title || '';
-            spArtist.textContent = t.channel || '';
-            spArt.src = t.thumbnail || '';
-            document.title = '▶ ' + (t.title || 'Play Tube Music');
-            spBar.classList.add('active');
-            isVideo = false;
-            closeVideo();
-            
-            if (!audioElement) createAudioElement();
-            
-            spPlay.textContent = '⏳';
-            let success = false;
-            
-            for (let i = 0; i < audioServices.length; i++) {
-                try {
-                    const audioUrl = await audioServices[i](t.id);
-                    audioElement.src = audioUrl;
-                    audioElement.volume = 1.0;
-                    await audioElement.play();
-                    currentServiceIndex = i;
-                    success = true;
-                    toast('▶ Tocando: ' + t.title.substring(0, 30));
-                    break;
-                } catch (error) {
-                    console.warn(`Serviço ${i + 1} falhou:`, error);
-                    if (i < audioServices.length - 1) continue;
-                }
+            const t = playlist[idx]; vid = t.id;
+            Fav.addHist(t); progBar.style.width = '0%';
+            if (yt?.loadVideoById) {
+                yt.loadVideoById({ videoId: t.id, startSeconds: 0 });
+                setTimeout(() => { if (yt?.playVideo) { yt.playVideo(); yt.unMute(); yt.setVolume(100); } }, 300);
             }
-            
-            if (!success) {
-                toast('⚠️ Usando player de vídeo');
-                spPlay.textContent = '▶';
-                if (!yt) initYT();
-                if (yt?.loadVideoById) {
-                    yt.loadVideoById({ videoId: t.id, startSeconds: 0 });
-                    setTimeout(() => {
-                        if (yt?.playVideo) {
-                            yt.playVideo();
-                            yt.unMute();
-                            yt.setVolume(100);
-                        }
-                    }, 300);
-                }
-            }
+            spTitle.textContent = t.title || ''; spArtist.textContent = t.channel || '';
+            spArt.src = t.thumbnail || ''; document.title = '▶ ' + (t.title || 'Play Tube Music');
+            spBar.classList.add('active'); isVideo = false; closeVideo(); togglePiP();
         }
-        
         window.togglePlay = () => {
-            if (audioElement && audioElement.src) {
-                if (playing) {
-                    audioElement.pause();
-                } else {
-                    audioElement.play().catch(() => toast('⚠️ Erro ao reproduzir'));
-                }
-            } else if (yt && vid) {
-                if (playing) {
-                    yt.pauseVideo();
-                    if (ytTop) ytTop.pauseVideo();
-                } else {
-                    yt.playVideo();
-                    yt.unMute();
-                    yt.setVolume(100);
-                }
-            } else if (playlist.length > 0) {
-                playTrack(0);
-            }
+            if (!yt) return;
+            if (playing) { yt.pauseVideo(); if (ytTop) ytTop.pauseVideo(); }
+            else if (vid) { yt.playVideo(); yt.unMute(); yt.setVolume(100); }
+            else if (playlist.length > 0) playTrack(0);
         };
-        
-        window.nextTrack = () => { 
-            if (!playlist.length) return; 
-            progBar.style.width = '0%'; 
-            playTrack((idx + 1) % playlist.length); 
-        };
-        
-        window.prevTrack = () => { 
-            if (!playlist.length) return; 
-            progBar.style.width = '0%'; 
-            playTrack((idx - 1 + playlist.length) % playlist.length); 
-        };
-        
-        window.seekTrack = e => { 
-            const rect = progCont.getBoundingClientRect();
-            const percent = (e.clientX - rect.left) / rect.width;
-            
-            if (audioElement && audioElement.duration > 0) {
-                audioElement.currentTime = percent * audioElement.duration;
-            } else if (yt && vid) {
-                const duration = yt.getDuration();
-                if (duration > 0) yt.seekTo(percent * duration, true);
-            }
-        };
-        
-        function stopPlayback() { 
-            if (audioElement) {
-                audioElement.pause();
-                audioElement.src = '';
-            }
-            if (yt) yt.stopVideo(); 
-            if (ytTop) ytTop.stopVideo(); 
-            playing = false; 
-            updateUI(false); 
-            stopProg(); 
-            progBar.style.width = '0%'; 
-            spBar.classList.remove('active'); 
-            vidCont.classList.remove('active'); 
-        }
+        window.nextTrack = () => { if (!playlist.length) return; progBar.style.width = '0%'; playTrack((idx + 1) % playlist.length); };
+        window.prevTrack = () => { if (!playlist.length) return; progBar.style.width = '0%'; playTrack((idx - 1 + playlist.length) % playlist.length); };
+        window.seekTrack = e => { if (!yt || !vid) return; const r = progCont.getBoundingClientRect(), d = yt.getDuration(); if (d > 0) yt.seekTo(((e.clientX - r.left) / r.width) * d, true); };
+        function stopPlayback() { if (yt) yt.stopVideo(); if (ytTop) ytTop.stopVideo(); playing = false; updateUI(false); stopProg(); progBar.style.width = '0%'; spBar.classList.remove('active'); vidCont.classList.remove('active'); }
 
         // ===== VIDEO =====
         window.showVideo = () => {
             if (!vid) return;
-            isVideo = true; 
-            vidCont.classList.add('active', 'rainbow-border');
-            
-            if (!yt) initYT();
-            
-            if (!ytTop) { 
-                vidWrap.innerHTML = '<div id="topPlayerElement"></div>'; 
-                ytTop = new YT.Player('topPlayerElement', { 
-                    videoId: vid, 
-                    playerVars: { 
-                        autoplay: 1, playsinline: 1, controls: 1, rel: 0, 
-                        modestbranding: 1, fs: 1 
-                    }, 
-                    events: { 
-                        onReady: () => { 
-                            if (audioElement && audioElement.currentTime > 0) {
-                                ytTop.seekTo(audioElement.currentTime);
-                            }
-                            if (playing && audioElement) audioElement.pause();
-                        }, 
-                        onStateChange: e => { 
-                            if (e.data === 1 && audioElement && playing) audioElement.pause();
-                            if (e.data === 0) closeVideo(); 
-                        } 
-                    } 
-                }); 
-            } else {
-                ytTop.loadVideoById({ 
-                    videoId: vid, 
-                    startSeconds: audioElement ? audioElement.currentTime || 0 : 0 
-                });
-                if (playing && audioElement) audioElement.pause();
-            }
+            isVideo = true; vidCont.classList.add('active', 'rainbow-border');
+            if (!ytTop) { vidWrap.innerHTML = '<div id="topPlayerElement"></div>'; ytTop = new YT.Player('topPlayerElement', { videoId: vid, playerVars: { autoplay: 1, playsinline: 1, controls: 1, rel: 0, modestbranding: 1, fs: 1 }, events: { onReady: () => { if (yt?.getCurrentTime) ytTop.seekTo(yt.getCurrentTime()); }, onStateChange: e => { if (e.data === 1 && yt?.pauseVideo) yt.pauseVideo(); if (e.data === 0) closeVideo(); } } }); }
+            else ytTop.loadVideoById({ videoId: vid, startSeconds: yt?.getCurrentTime?.() || 0 });
             vidCont.scrollIntoView({ behavior: 'smooth' });
         };
-        
-        window.closeVideo = () => { 
-            vidCont.classList.remove('active', 'rainbow-border'); 
-            if (ytTop) ytTop.stopVideo(); 
-            isVideo = false;
+        window.closeVideo = () => { vidCont.classList.remove('active', 'rainbow-border'); if (ytTop) ytTop.stopVideo(); isVideo = false; if (vid) togglePiP(); };
+
+        // ===== PIP =====
+        window.togglePiP = async () => {
+            if (!vid) return;
+            try { if (document.pictureInPictureElement) { await document.exitPictureInPicture(); return; } const ifr = document.querySelector('#hiddenPlayer iframe'); if (ifr) { try { await ifr.requestPictureInPicture(); } catch(e) {} } } catch(e) {}
         };
 
         // ===== DOWNLOAD =====
         window.downloadCurrent = () => {
             if (!vid || idx < 0) { toast('⚠️ Nenhuma música'); return; }
-            const t = playlist[idx]; 
-            spDL.classList.add('downloading');
-            DL.download(t.id, t.title, t.channel, t.thumbnail).finally(() => 
-                spDL.classList.remove('downloading')
-            );
+            const t = playlist[idx]; spDL.classList.add('downloading');
+            DL.download(t.id, t.title, t.channel, t.thumbnail).finally(() => spDL.classList.remove('downloading'));
         };
 
         // ===== RESULTADOS =====
         window.playFromResults = (id, title, channel, thumb) => {
             const v = { id, title, channel, thumbnail: thumb };
-            playlist = playlist.filter(t => t.id !== v.id); 
-            playlist.unshift(v);
-            idx = 0; 
-            playTrack(0); 
-            toast('▶ ' + title.substring(0, 30));
+            playlist = playlist.filter(t => t.id !== v.id); playlist.unshift(v);
+            idx = 0; playTrack(0); toast('▶ ' + title.substring(0, 30));
         };
-        
-        window.toggleFav = (id, title, channel, thumb, e) => { 
-            e.stopPropagation(); 
-            Fav.toggle({ id, title, channel, thumbnail: thumb }); 
-            updateFavBtns(); 
-        };
-        
-        window.dlFromCard = (id, title, channel, thumb, e) => { 
-            e.stopPropagation(); 
-            DL.download(id, title, channel, thumb); 
-        };
+        window.toggleFav = (id, title, channel, thumb, e) => { e.stopPropagation(); Fav.toggle({ id, title, channel, thumbnail: thumb }); updateFavBtns(); };
+        window.dlFromCard = (id, title, channel, thumb, e) => { e.stopPropagation(); DL.download(id, title, channel, thumb); };
 
         function updateFavBtns() {
             document.querySelectorAll('.v-btn.fav').forEach(b => {
                 const fid = b.getAttribute('data-id'), f = Fav.is(fid);
-                b.classList.toggle('fav-active', f); 
-                b.textContent = f ? '❤️' : '🤍';
+                b.classList.toggle('fav-active', f); b.textContent = f ? '❤️' : '🤍';
             });
         }
 
@@ -1318,7 +512,7 @@
             const f = Fav.is(v.id), d = DL.has(v.id);
             return `<div class="video-card" onclick="playFromResults('${v.id}','${esc(v.title)}','${esc(v.channel)}','${v.thumbnail}')">
                 <img class="video-thumb" src="${v.thumbnail}" loading="lazy" onerror="this.style.opacity='0.3'">
-                <div class="video-info"><div class="video-title">${esc(v.title)}</div><div class="video-channel">${esc(v.channel)}</div>${v.at?`<div style="font-size:clamp(0.6rem, 1.5vw, 0.7rem);color:var(--text3);margin-top:1px;">🕐 ${new Date(v.at).toLocaleDateString()}</div>`:''}</div>
+                <div class="video-info"><div class="video-title">${esc(v.title)}</div><div class="video-channel">${esc(v.channel)}</div>${v.at?`<div style="font-size:0.65rem;color:var(--text3);margin-top:1px;">🕐 ${new Date(v.at).toLocaleDateString()}</div>`:''}</div>
                 <div class="video-actions">
                     <button class="v-btn fav${f?' fav-active':''}" data-id="${v.id}" onclick="toggleFav('${v.id}','${esc(v.title)}','${esc(v.channel)}','${v.thumbnail}',event)">${f?'❤️':'🤍'}</button>
                     ${!d?`<button class="v-btn dl" onclick="dlFromCard('${v.id}','${esc(v.title)}','${esc(v.channel)}','${v.thumbnail}',event)">⬇</button>`:''}
@@ -1327,87 +521,29 @@
 
         // ===== TABS =====
         window.switchTab = t => {
-            currentTab = t;
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            [...document.querySelectorAll('.tab-btn')].forEach(b => { 
-                if (b.textContent.toLowerCase().includes(t === 'search' ? 'buscar' : t === 'favorites' ? 'favoritos' : t === 'history' ? 'histórico' : 'downloads')) 
-                    b.classList.add('active'); 
-            });
+            [...document.querySelectorAll('.tab-btn')].forEach(b => { if (b.textContent.toLowerCase().includes(t === 'search' ? 'buscar' : t === 'favorites' ? 'favoritos' : t === 'history' ? 'histórico' : 'downloads')) b.classList.add('active'); });
             sTitle.innerHTML = '<span>' + (t === 'search' ? 'Resultados' : t === 'favorites' ? '❤️ Favoritos' : t === 'history' ? '🕐 Histórico' : '⬇️ Downloads') + '</span>';
-            
-            if (t === 'search') { 
-                if (query) searchYT(query); 
-                else {
-                    resCont.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🎧</div><div class="empty-state-text">Busque suas músicas</div></div>';
-                    document.getElementById('paginationSection').style.display = 'none';
-                }
-            }
-            else {
-                document.getElementById('paginationSection').style.display = 'none';
-                if (t === 'favorites') { 
-                    const f = Fav.favs; 
-                    resCount.textContent = f.length + ' items'; 
-                    resCont.innerHTML = f.length ? f.map(v => card(v)).join('') : '<div class="empty-state"><div class="empty-state-icon">❤️</div><div class="empty-state-text">Vazio</div></div>'; 
-                    updateFavBtns(); 
-                }
-                else if (t === 'history') { 
-                    const h = Fav.hist; 
-                    resCount.textContent = h.length + ' itens'; 
-                    resCont.innerHTML = h.length ? h.map(v => card(v)).join('') : '<div class="empty-state"><div class="empty-state-icon">🕐</div><div class="empty-state-text">Vazio</div></div>'; 
-                    updateFavBtns(); 
-                }
-                else if (t === 'downloads') { 
-                    const d = DL.all(); 
-                    resCount.textContent = d.length + ' itens'; 
-                    resCont.innerHTML = d.length ? d.map(v => card(v)).join('') : '<div class="empty-state"><div class="empty-state-icon">📥</div><div class="empty-state-text">Vazio</div></div>'; 
-                    updateFavBtns(); 
-                }
-            }
+            if (t === 'search') { if (query) searchYT(query); else resCont.innerHTML = '<div style="text-align:center;padding:50px;color:var(--text2);"><div style="font-size:3rem;">🎧</div><div>Busque suas músicas</div></div>'; }
+            else if (t === 'favorites') { const f = Fav.favs; resCount.textContent = f.length + ' items'; resCont.innerHTML = f.length ? f.map(v => card(v)).join('') : '<div style="text-align:center;padding:40px;color:var(--text2);">❤️ Vazio</div>'; updateFavBtns(); }
+            else if (t === 'history') { const h = Fav.hist; resCount.textContent = h.length + ' itens'; resCont.innerHTML = h.length ? h.map(v => card(v)).join('') : '<div style="text-align:center;padding:40px;color:var(--text2);">🕐 Vazio</div>'; updateFavBtns(); }
+            else if (t === 'downloads') { const d = DL.all(); resCount.textContent = d.length + ' itens'; resCont.innerHTML = d.length ? d.map(v => card(v)).join('') : '<div style="text-align:center;padding:40px;color:var(--text2);">📥 Vazio</div>'; updateFavBtns(); }
         };
 
         // ===== BUSCA =====
-        sBtn.addEventListener('click', () => { 
-            query = sInput.value; 
-            currentPage = 1;
-            searchYT(query); 
-        });
-        
-        sInput.addEventListener('keydown', e => { 
-            if (e.key === 'Enter') { 
-                query = sInput.value; 
-                currentPage = 1;
-                searchYT(query); 
-            } 
-        });
-        
+        sBtn.addEventListener('click', () => { query = sInput.value; searchYT(query); });
+        sInput.addEventListener('keydown', e => { if (e.key === 'Enter') { query = sInput.value; searchYT(query); } });
         async function searchYT(q) {
             if (!q.trim()) { toast('⚠️ Digite algo'); return; }
-            showLoad(true); 
-            resCount.textContent = '';
-            
+            showLoad(true); resCount.textContent = '';
             try {
-                const u = new URL(PROXY); 
-                u.searchParams.append('q', q + ' música'); 
-                u.searchParams.append('maxResults', '50'); 
-                u.searchParams.append('regionCode', 'BR'); 
-                u.searchParams.append('relevanceLanguage', 'pt');
-                
-                const r = await fetch(u); 
-                if (!r.ok) throw new Error('Erro');
+                const u = new URL(PROXY); u.searchParams.append('q', q + ' música'); u.searchParams.append('maxResults', '15'); u.searchParams.append('regionCode', 'BR'); u.searchParams.append('relevanceLanguage', 'pt');
+                const r = await fetch(u); if (!r.ok) throw new Error('Erro');
                 const d = await r.json();
-                
-                currentSearchResults = d.videos || [];
-                totalPages = Math.ceil(currentSearchResults.length / ITEMS_PER_PAGE);
-                currentPage = 1;
-                
                 resCount.textContent = d.totalResults ? `${d.totalResults} resultados` : '';
-                displayResults(currentSearchResults);
-                updatePagination();
-                
-            } catch(e) { 
-                toast('⚠️ Erro na busca'); 
-                document.getElementById('paginationSection').style.display = 'none';
-            }
+                resCont.innerHTML = d.videos?.length ? d.videos.map(v => card(v)).join('') : '<div style="text-align:center;padding:40px;color:var(--text2);">Nenhum resultado</div>';
+                updateFavBtns();
+            } catch(e) { toast('⚠️ Erro na busca'); }
             showLoad(false);
         }
 
@@ -1427,56 +563,28 @@
         }
 
         // ===== BACKGROUND PLAY =====
-        async function lock() { 
-            try { 
-                if ('wakeLock' in navigator) { 
-                    const w = await navigator.wakeLock.request('screen'); 
-                    w.addEventListener('release', () => { if (playing) lock(); }); 
-                } 
-            } catch(e) {} 
-        }
-        
+        async function lock() { try { if ('wakeLock' in navigator) { const w = await navigator.wakeLock.request('screen'); w.addEventListener('release', () => { if (playing) lock(); }); } } catch(e) {} }
+        document.addEventListener('visibilitychange', () => { if (document.hidden && playing && yt) { try { if (yt.getPlayerState() !== 1) { yt.playVideo(); yt.unMute(); } } catch(e) {} lock(); } });
+        setInterval(() => { if (playing && yt) { try { const s = yt.getPlayerState(); if (s !== 1 && s !== 3) { yt.playVideo(); yt.unMute(); } } catch(e) { initYT(); if (vid) { setTimeout(() => { if (yt?.loadVideoById) { yt.loadVideoById({ videoId: vid, startSeconds: 0 }); setTimeout(() => { yt.playVideo(); yt.unMute(); }, 500); } }, 500); } } } }, 1000);
         if ('audioSession' in navigator) navigator.audioSession.type = 'playback';
-        
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden && playing && audioElement) lock();
-        });
-        
         lock();
 
         // ===== INIT =====
         function init() {
-            setupMS(); 
-            calibrarTela();
-            createAudioElement();
-            console.log('✅ Play Tube Music v7 - Auto Size');
+            setupMS(); calibrarTela();
+            setTimeout(() => { const s = document.getElementById('splashScreen'); if (s) { s.style.opacity = '0'; setTimeout(() => s.remove(), 500); } }, 1500);
+            console.log('✅ Play Tube Music v5 - Final');
         }
-        
-        window.addEventListener('resize', () => { 
-            clearTimeout(window._rt); 
-            window._rt = setTimeout(calibrarTela, 250); 
-        });
-        
+        window.addEventListener('resize', () => { clearTimeout(window._rt); window._rt = setTimeout(calibrarTela, 250); });
         window.addEventListener('orientationchange', () => setTimeout(calibrarTela, 300));
         window.addEventListener('load', init);
 
-        // EXPORTAR GLOBAIS
-        window.calibrarTela = calibrarTela; 
-        window.T = T;
-        window.togglePlay = togglePlay; 
-        window.nextTrack = nextTrack; 
-        window.prevTrack = prevTrack;
-        window.playFromResults = playFromResults; 
-        window.toggleFav = toggleFav; 
-        window.dlFromCard = dlFromCard;
-        window.downloadCurrent = downloadCurrent; 
-        window.switchTab = switchTab; 
-        window.seekTrack = seekTrack;
-        window.showVideo = showVideo; 
-        window.closeVideo = closeVideo;
-        window.goToPage = goToPage;
-        window.nextPage = nextPage;
-        window.prevPage = prevPage;
+        // EXPOR GLOBAIS
+        window.calibrarTela = calibrarTela; window.T = T;
+        window.togglePlay = togglePlay; window.nextTrack = nextTrack; window.prevTrack = prevTrack;
+        window.playFromResults = playFromResults; window.toggleFav = toggleFav; window.dlFromCard = dlFromCard;
+        window.downloadCurrent = downloadCurrent; window.switchTab = switchTab; window.seekTrack = seekTrack;
+        window.showVideo = showVideo; window.closeVideo = closeVideo; window.togglePiP = togglePiP;
     })();
     </script>
 </body>
