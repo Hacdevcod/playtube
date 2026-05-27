@@ -105,6 +105,61 @@
         .spacer { flex: 1; }
         .theme-btn { background: none; border: none; color: var(--text); font-size: 1.1rem; cursor: pointer; padding: 4px; }
 
+        /* ===== PAGINAÇÃO ===== */
+        .pagination-section {
+            padding: 8px 12px 0;
+            background: var(--bg);
+            z-index: 50;
+        }
+        .pagination-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 6px 10px;
+            border: 1px solid var(--border);
+        }
+        .page-info {
+            font-size: 0.75rem;
+            color: var(--text2);
+            font-weight: 500;
+            min-width: 80px;
+            text-align: center;
+        }
+        .page-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .page-btn:active {
+            background: var(--red);
+            color: #fff;
+            border-color: var(--red);
+            transform: scale(0.9);
+        }
+        .page-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        .page-btn.active {
+            background: var(--red);
+            color: #fff;
+            border-color: var(--red);
+            font-weight: bold;
+        }
+
         /* ===== SEARCH ===== */
         .search-section { padding: 8px 12px; background: var(--bg); z-index: 50; }
         .search-box {
@@ -268,6 +323,17 @@
         <button class="player-close" onclick="closeVideo()">✕</button>
     </div>
 
+    <!-- PAGINAÇÃO -->
+    <div class="pagination-section" id="paginationSection" style="display:none;">
+        <div class="pagination-container">
+            <button class="page-btn" id="firstPage" onclick="goToPage(1)" disabled>⏮</button>
+            <button class="page-btn" id="prevPage" onclick="prevPage()" disabled>◀</button>
+            <div class="page-info" id="pageInfo">Página 1</div>
+            <button class="page-btn" id="nextPage" onclick="nextPage()" disabled>▶</button>
+            <button class="page-btn" id="lastPage" onclick="goToPage(totalPages)" disabled>⏭</button>
+        </div>
+    </div>
+
     <!-- BUSCA -->
     <div class="search-section">
         <div class="search-box">
@@ -388,7 +454,6 @@
             audioElement.addEventListener('error', (e) => {
                 console.error('Erro no áudio:', e);
                 toast('⚠️ Erro ao carregar áudio');
-                // Tentar próximo serviço
                 if (vid && currentServiceIndex < audioServices.length - 1) {
                     currentServiceIndex++;
                     playTrack(idx);
@@ -402,7 +467,6 @@
 
         // ===== SERVIÇOS DE ÁUDIO =====
         const audioServices = [
-            // Serviço 1: Vevioz (gratuito, sem API key)
             async (videoId) => {
                 const url = `https://api.vevioz.com/@api/button/mp3/${videoId}`;
                 const response = await fetch(url, { 
@@ -416,7 +480,6 @@
                 throw new Error('URL não encontrada');
             },
             
-            // Serviço 2: Loader.to (backup)
             async (videoId) => {
                 const url = `https://loader.to/api/card/?url=https://www.youtube.com/watch?v=${videoId}&format=mp3`;
                 const response = await fetch(url);
@@ -427,7 +490,6 @@
                 throw new Error('URL não encontrada');
             },
             
-            // Serviço 3: Seu proxy personalizado
             async (videoId) => {
                 const url = `${PROXY}/audio?id=${videoId}`;
                 const response = await fetch(url);
@@ -438,6 +500,63 @@
         ];
         
         let currentServiceIndex = 0;
+
+        // ===== PAGINAÇÃO =====
+        let currentPage = 1;
+        let totalPages = 1;
+        let currentSearchResults = [];
+        const ITEMS_PER_PAGE = 10;
+
+        function updatePagination() {
+            const pagSection = document.getElementById('paginationSection');
+            const firstBtn = document.getElementById('firstPage');
+            const prevBtn = document.getElementById('prevPage');
+            const nextBtn = document.getElementById('nextPage');
+            const lastBtn = document.getElementById('lastPage');
+            const pageInfo = document.getElementById('pageInfo');
+            
+            if (totalPages <= 1 || currentTab !== 'search') {
+                pagSection.style.display = 'none';
+                return;
+            }
+            
+            pagSection.style.display = 'block';
+            pageInfo.textContent = `Página ${currentPage} de ${totalPages}`;
+            
+            // Atualizar estado dos botões
+            firstBtn.disabled = currentPage === 1;
+            prevBtn.disabled = currentPage === 1;
+            nextBtn.disabled = currentPage === totalPages;
+            lastBtn.disabled = currentPage === totalPages;
+        }
+
+        function goToPage(page) {
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            displayResults(currentSearchResults);
+            updatePagination();
+            
+            // Scroll suave para o topo dos resultados
+            document.getElementById('resultsContainer').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function nextPage() {
+            goToPage(currentPage + 1);
+        }
+
+        function prevPage() {
+            goToPage(currentPage - 1);
+        }
+
+        function displayResults(results) {
+            const start = (currentPage - 1) * ITEMS_PER_PAGE;
+            const end = start + ITEMS_PER_PAGE;
+            const pageResults = results.slice(start, end);
+            
+            resCont.innerHTML = pageResults.length ? pageResults.map(v => card(v)).join('') : 
+                '<div style="text-align:center;padding:40px;color:var(--text2);">Nenhum resultado</div>';
+            updateFavBtns();
+        }
 
         // ===== CALIBRAR TELA =====
         function calibrarTela() {
@@ -513,6 +632,7 @@
         // ===== ESTADO =====
         let yt = null, ytTop = null, playlist = [], idx = -1, playing = false, vid = null;
         let toastTO = null, query = '', progInt = null, isVideo = false;
+        let currentTab = 'search';
 
         // ===== DOM =====
         const $ = id => document.getElementById(id);
@@ -524,7 +644,7 @@
 
         // ===== YOUTUBE (FALLBACK) =====
         window.onYouTubeIframeAPIReady = () => {
-            // Não inicializar automaticamente, apenas quando necessário
+            // Não inicializar automaticamente
         };
         
         function initYT() {
@@ -597,10 +717,8 @@
             isVideo = false;
             closeVideo();
             
-            // Criar elemento de áudio se necessário
             if (!audioElement) createAudioElement();
             
-            // Tentar serviços de áudio em ordem
             spPlay.textContent = '⏳';
             let success = false;
             
@@ -616,14 +734,11 @@
                     break;
                 } catch (error) {
                     console.warn(`Serviço ${i + 1} falhou:`, error);
-                    if (i < audioServices.length - 1) {
-                        continue;
-                    }
+                    if (i < audioServices.length - 1) continue;
                 }
             }
             
             if (!success) {
-                // Fallback para YouTube
                 toast('⚠️ Usando player de vídeo');
                 spPlay.textContent = '▶';
                 if (!yt) initYT();
@@ -805,6 +920,7 @@
 
         // ===== TABS =====
         window.switchTab = t => {
+            currentTab = t;
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             [...document.querySelectorAll('.tab-btn')].forEach(b => { 
                 if (b.textContent.toLowerCase().includes(t === 'search' ? 'buscar' : t === 'favorites' ? 'favoritos' : t === 'history' ? 'histórico' : 'downloads')) 
@@ -814,50 +930,76 @@
             
             if (t === 'search') { 
                 if (query) searchYT(query); 
-                else resCont.innerHTML = '<div style="text-align:center;padding:50px;color:var(--text2);"><div style="font-size:3rem;">🎧</div><div>Busque suas músicas</div></div>'; 
+                else {
+                    resCont.innerHTML = '<div style="text-align:center;padding:50px;color:var(--text2);"><div style="font-size:3rem;">🎧</div><div>Busque suas músicas</div></div>';
+                    document.getElementById('paginationSection').style.display = 'none';
+                }
             }
-            else if (t === 'favorites') { 
-                const f = Fav.favs; 
-                resCount.textContent = f.length + ' items'; 
-                resCont.innerHTML = f.length ? f.map(v => card(v)).join('') : '<div style="text-align:center;padding:40px;color:var(--text2);">❤️ Vazio</div>'; 
-                updateFavBtns(); 
-            }
-            else if (t === 'history') { 
-                const h = Fav.hist; 
-                resCount.textContent = h.length + ' itens'; 
-                resCont.innerHTML = h.length ? h.map(v => card(v)).join('') : '<div style="text-align:center;padding:40px;color:var(--text2);">🕐 Vazio</div>'; 
-                updateFavBtns(); 
-            }
-            else if (t === 'downloads') { 
-                const d = DL.all(); 
-                resCount.textContent = d.length + ' itens'; 
-                resCont.innerHTML = d.length ? d.map(v => card(v)).join('') : '<div style="text-align:center;padding:40px;color:var(--text2);">📥 Vazio</div>'; 
-                updateFavBtns(); 
+            else {
+                document.getElementById('paginationSection').style.display = 'none';
+                if (t === 'favorites') { 
+                    const f = Fav.favs; 
+                    resCount.textContent = f.length + ' items'; 
+                    resCont.innerHTML = f.length ? f.map(v => card(v)).join('') : '<div style="text-align:center;padding:40px;color:var(--text2);">❤️ Vazio</div>'; 
+                    updateFavBtns(); 
+                }
+                else if (t === 'history') { 
+                    const h = Fav.hist; 
+                    resCount.textContent = h.length + ' itens'; 
+                    resCont.innerHTML = h.length ? h.map(v => card(v)).join('') : '<div style="text-align:center;padding:40px;color:var(--text2);">🕐 Vazio</div>'; 
+                    updateFavBtns(); 
+                }
+                else if (t === 'downloads') { 
+                    const d = DL.all(); 
+                    resCount.textContent = d.length + ' itens'; 
+                    resCont.innerHTML = d.length ? d.map(v => card(v)).join('') : '<div style="text-align:center;padding:40px;color:var(--text2);">📥 Vazio</div>'; 
+                    updateFavBtns(); 
+                }
             }
         };
 
         // ===== BUSCA =====
-        sBtn.addEventListener('click', () => { query = sInput.value; searchYT(query); });
-        sInput.addEventListener('keydown', e => { if (e.key === 'Enter') { query = sInput.value; searchYT(query); } });
+        sBtn.addEventListener('click', () => { 
+            query = sInput.value; 
+            currentPage = 1;
+            searchYT(query); 
+        });
+        
+        sInput.addEventListener('keydown', e => { 
+            if (e.key === 'Enter') { 
+                query = sInput.value; 
+                currentPage = 1;
+                searchYT(query); 
+            } 
+        });
         
         async function searchYT(q) {
             if (!q.trim()) { toast('⚠️ Digite algo'); return; }
             showLoad(true); 
             resCount.textContent = '';
+            
             try {
                 const u = new URL(PROXY); 
                 u.searchParams.append('q', q + ' música'); 
-                u.searchParams.append('maxResults', '15'); 
+                u.searchParams.append('maxResults', '50'); 
                 u.searchParams.append('regionCode', 'BR'); 
                 u.searchParams.append('relevanceLanguage', 'pt');
+                
                 const r = await fetch(u); 
                 if (!r.ok) throw new Error('Erro');
                 const d = await r.json();
+                
+                currentSearchResults = d.videos || [];
+                totalPages = Math.ceil(currentSearchResults.length / ITEMS_PER_PAGE);
+                currentPage = 1;
+                
                 resCount.textContent = d.totalResults ? `${d.totalResults} resultados` : '';
-                resCont.innerHTML = d.videos?.length ? d.videos.map(v => card(v)).join('') : '<div style="text-align:center;padding:40px;color:var(--text2);">Nenhum resultado</div>';
-                updateFavBtns();
+                displayResults(currentSearchResults);
+                updatePagination();
+                
             } catch(e) { 
                 toast('⚠️ Erro na busca'); 
+                document.getElementById('paginationSection').style.display = 'none';
             }
             showLoad(false);
         }
@@ -889,15 +1031,12 @@
             } catch(e) {} 
         }
         
-        // Configurar Audio Session para iOS
         if ('audioSession' in navigator) {
             navigator.audioSession.type = 'playback';
         }
         
-        // Manter reprodução em segundo plano
         document.addEventListener('visibilitychange', () => {
             if (document.hidden && playing && audioElement) {
-                // O áudio continua tocando naturalmente
                 lock();
             }
         });
@@ -908,8 +1047,8 @@
         function init() {
             setupMS(); 
             calibrarTela();
-            createAudioElement(); // Criar elemento de áudio ao iniciar
-            console.log('✅ Play Tube Music v6 - Audio Nativo');
+            createAudioElement();
+            console.log('✅ Play Tube Music v6 - Audio Nativo + Paginação');
         }
         
         window.addEventListener('resize', () => { 
@@ -934,6 +1073,9 @@
         window.seekTrack = seekTrack;
         window.showVideo = showVideo; 
         window.closeVideo = closeVideo;
+        window.goToPage = goToPage;
+        window.nextPage = nextPage;
+        window.prevPage = prevPage;
     })();
     </script>
 </body>
