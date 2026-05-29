@@ -8,10 +8,16 @@
     <meta name="theme-color" content="#0f0f0f">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="HandheldFriendly" content="true">
-    <meta http-equiv="Content-Security-Policy" content="media-src *; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://s.ytimg.com https://cdn.jsdelivr.net;">
-    
-    <link rel="manifest" href="/manifest.json">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><circle cx='96' cy='96' r='96' fill='%23ff0000'/><polygon points='80,60 80,132 140,96' fill='white'/></svg>">
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://s.ytimg.com https://cdn.jsdelivr.net;
+        style-src 'self' 'unsafe-inline';
+        img-src 'self' data: https: http:;
+        media-src 'self' https: http:;
+        frame-src https://www.youtube.com https://www.youtube-nocookie.com;
+        connect-src 'self' https: http:;
+        font-src 'self' data:;
+    ">
     
     <title>Play Tube Music Pro - MIR Detection</title>
     
@@ -198,7 +204,10 @@
             border: 2px solid transparent; margin-bottom: 6px; position: relative;
         }
         .video-card:active { background: var(--surface2); transform: scale(0.98); }
-        .video-thumb { width: 48px; height: 48px; border-radius: 6px; object-fit: cover; flex-shrink: 0; background: var(--surface2); }
+        .video-thumb { 
+            width: 48px; height: 48px; border-radius: 6px; object-fit: cover; 
+            flex-shrink: 0; background: var(--surface2);
+        }
         .video-info { flex: 1; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
         .video-title { font-size: 0.85rem; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .video-channel { font-size: 0.7rem; color: var(--text2); margin-top: 2px; }
@@ -227,6 +236,7 @@
             width: 52px; height: 52px; border-radius: 8px; object-fit: cover;
             flex-shrink: 0; cursor: pointer; transition: transform 0.3s;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            background: var(--surface2);
         }
         .sp-art.playing { animation: spin 8s linear infinite; border-radius: 50%; box-shadow: 0 0 15px rgba(29,185,84,0.3); }
         .sp-info { flex: 1; min-width: 0; cursor: pointer; display: flex; flex-direction: column; gap: 2px; }
@@ -372,7 +382,7 @@
         <div class="sp-progress" id="progressContainer" onclick="seekTrack(event)">
             <div class="sp-progress-bar" id="progressBar"></div>
         </div>
-        <img class="sp-art" id="spArt" src="" alt="" onclick="showVideo()">
+        <img class="sp-art" id="spArt" src="" alt="" onclick="showVideo()" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect fill=%22%23333%22 width=%22100%22 height=%22100%22/%3E%3Ctext x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%23777%22 font-size=%2214%22%3E♪%3C/text%3E%3C/svg%3E'">
         <div class="sp-info" onclick="showVideo()">
             <div class="sp-title" id="spTitle">Nenhuma música</div>
             <div class="sp-artist" id="spArtist">Toque para tocar</div>
@@ -486,117 +496,97 @@
             segments: JSON.parse(localStorage.getItem('mir_segments') || '[]'),
             currentSegment: -1,
             silenceThreshold: 0.02,
-            minSegmentDuration: 3, // segundos mínimos para considerar uma música
+            minSegmentDuration: 3,
             silenceDuration: 0,
             lastEnergy: 0,
             energyHistory: [],
             peakDetected: false,
             musicCount: 0,
+            animationFrame: null,
 
             async init() {
                 if (this.active) return;
                 try {
-                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    
-                    // Capturar áudio do player oculto via Web Audio API
-                    const audioEl = document.querySelector('#hiddenPlayer iframe');
-                    if (!audioEl) {
-                        // Fallback: usar MediaElementSource de um elemento de áudio auxiliar
-                        const auxAudio = document.createElement('audio');
-                        auxAudio.id = 'auxAudio';
-                        auxAudio.crossOrigin = 'anonymous';
-                        document.body.appendChild(auxAudio);
+                    // Verificar se Meyda está disponível
+                    if (typeof Meyda === 'undefined') {
+                        throw new Error('Meyda não carregado');
                     }
 
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    
+                    // Criar analisador
                     this.analyser = this.audioContext.createAnalyser();
                     this.analyser.fftSize = 2048;
                     this.analyser.smoothingTimeConstant = 0.8;
 
-                    // Inicializar Meyda
-                    if (typeof Meyda !== 'undefined') {
-                        this.meyda = Meyda.createMeydaAnalyzer({
-                            audioContext: this.audioContext,
-                            source: this.analyser,
-                            bufferSize: 512,
-                            featureExtractors: ['rms', 'energy', 'spectralCentroid', 'spectralRolloff', 'zcr'],
-                            callback: (features) => this.analyzeFeatures(features)
-                        });
-                        this.meyda.start();
-                    }
+                    // Inicializar Meyda com configuração correta
+                    this.meyda = Meyda.createMeydaAnalyzer({
+                        audioContext: this.audioContext,
+                        source: this.analyser,
+                        bufferSize: 512,
+                        featureExtractors: ['rms', 'energy', 'spectralCentroid', 'zcr'],
+                        callback: (features) => {
+                            if (features && this.active) {
+                                this.analyzeFeatures(features);
+                            }
+                        }
+                    });
 
-                    // Conectar ao áudio do YouTube (via elemento de áudio auxiliar)
-                    this.connectToAudio();
-                    
-                    this.active = true;
-                    this.updateUI();
-                    toast('🎼 MIR Ativado - Detectando músicas...');
+                    if (this.meyda) {
+                        this.meyda.start();
+                        this.active = true;
+                        this.updateUI();
+                        this.startVisualization();
+                        toast('🎼 MIR Ativado - Detectando músicas...');
+                    }
                 } catch(e) {
                     console.error('Erro MIR:', e);
-                    toast('⚠️ Erro ao ativar MIR');
+                    toast('⚠️ Erro ao ativar MIR: ' + e.message);
                     this.active = false;
-                }
-            },
-
-            connectToAudio() {
-                // Tentar capturar áudio do player
-                try {
-                    const iframe = document.querySelector('#hiddenPlayer iframe');
-                    if (iframe && iframe.contentWindow) {
-                        // Criar um elemento de áudio que espelha o YouTube
-                        const audioCtx = this.audioContext;
-                        const source = audioCtx.createMediaElementSource(document.getElementById('auxAudio') || document.createElement('audio'));
-                        source.connect(this.analyser);
-                        this.analyser.connect(audioCtx.destination);
-                        this.source = source;
-                    }
-                } catch(e) {
-                    console.warn('Conexão de áudio alternativa necessária');
+                    this.updateUI();
                 }
             },
 
             analyzeFeatures(features) {
-                if (!features || !this.active) return;
+                if (!features || !this.active || !yt || !playing) return;
 
                 const energy = features.rms || 0;
                 const spectralCentroid = features.spectralCentroid || 0;
-                const zcr = features.zcr || 0;
 
-                // Atualizar visualizador
-                this.updateVisualizer(energy, spectralCentroid);
+                // Atualizar histórico de energia
+                this.lastEnergy = energy;
+                this.energyHistory.push(energy);
+                if (this.energyHistory.length > 10) this.energyHistory.shift();
 
-                // Detecção de início/fim de música
-                const time = yt?.getCurrentTime?.() || 0;
-                
+                const time = yt.getCurrentTime() || 0;
+
+                // Detecção de silêncio
                 if (energy < this.silenceThreshold) {
-                    this.silenceDuration += 0.1; // ~100ms por callback
+                    this.silenceDuration += 0.1;
                     if (this.silenceDuration > 1.5 && this.peakDetected) {
-                        // Fim de música detectado
                         this.markSegmentEnd(time);
                         this.peakDetected = false;
                         this.silenceDuration = 0;
                     }
                 } else {
                     if (this.silenceDuration > 0.5 && !this.peakDetected) {
-                        // Início de nova música
                         this.markSegmentStart(time);
                         this.peakDetected = true;
                     }
                     this.silenceDuration = 0;
                 }
 
-                // Detecção de picos de energia (batidas/refrões)
-                this.energyHistory.push(energy);
-                if (this.energyHistory.length > 10) this.energyHistory.shift();
-                
+                // Detecção de picos de energia
                 const avgEnergy = this.energyHistory.reduce((a,b) => a + b, 0) / this.energyHistory.length;
-                if (energy > avgEnergy * 2.5 && !this.peakDetected) {
+                if (energy > avgEnergy * 2.5 && !this.peakDetected && this.energyHistory.length >= 5) {
                     this.peakDetected = true;
                     this.markSegmentStart(time);
                 }
             },
 
             markSegmentStart(time) {
-                // Evita segmentos muito próximos
+                if (isNaN(time)) return;
+                
                 const lastSeg = this.segments[this.segments.length - 1];
                 if (lastSeg && (time - lastSeg.start) < this.minSegmentDuration) return;
 
@@ -614,11 +604,13 @@
                 this.saveSegments();
                 
                 if (this.segments.length > 1) {
-                    toast(`🎵 Música ${this.musicCount} detectada!`);
+                    toast(`🎵 ${this.segments[this.currentSegment].name} detectada!`);
                 }
             },
 
             markSegmentEnd(time) {
+                if (isNaN(time)) return;
+                
                 const lastSeg = this.segments[this.segments.length - 1];
                 if (lastSeg && !lastSeg.end) {
                     lastSeg.end = time;
@@ -628,24 +620,38 @@
                 }
             },
 
-            updateVisualizer(energy, centroid) {
-                const container = document.getElementById('mirWaveform');
-                if (!container) return;
+            startVisualization() {
+                const updateVis = () => {
+                    if (!this.active) return;
+                    
+                    const container = document.getElementById('mirWaveform');
+                    if (container && this.energyHistory.length > 0) {
+                        const numBars = 40;
+                        const avgEnergy = this.energyHistory.reduce((a,b) => a + b, 0) / this.energyHistory.length;
+                        let bars = '';
+                        
+                        for (let i = 0; i < numBars; i++) {
+                            const variation = Math.sin(Date.now() * 0.005 + i * 0.5) * 0.3;
+                            const height = Math.min(100, Math.max(2, 
+                                (avgEnergy * 400) + 
+                                variation * 30 + 
+                                Math.random() * 5
+                            ));
+                            bars += `<div class="mir-bar" style="height:${height}px"></div>`;
+                        }
+                        container.innerHTML = bars;
+                    }
+                    
+                    this.animationFrame = requestAnimationFrame(updateVis);
+                };
                 
-                // Gerar barras do visualizador
-                const numBars = 40;
-                let bars = '';
-                for (let i = 0; i < numBars; i++) {
-                    const height = Math.min(100, Math.max(3, energy * 300 + Math.sin(i * 0.5) * 20 + Math.random() * 10));
-                    bars += `<div class="mir-bar" style="height:${height}px"></div>`;
-                }
-                container.innerHTML = bars;
+                this.animationFrame = requestAnimationFrame(updateVis);
             },
 
             jumpToSegment(index) {
                 if (!yt || index < 0 || index >= this.segments.length) return;
                 const seg = this.segments[index];
-                if (seg.start !== null) {
+                if (seg.start !== null && !isNaN(seg.start)) {
                     yt.seekTo(seg.start, true);
                     this.currentSegment = index;
                     toast(`⏩ ${seg.name} - ${formatTime(seg.start)}`);
@@ -657,7 +663,7 @@
                 if (this.currentSegment < this.segments.length - 1) {
                     this.jumpToSegment(this.currentSegment + 1);
                 } else {
-                    toast('📌 Última música');
+                    toast('📌 Última música detectada');
                 }
             },
 
@@ -665,14 +671,16 @@
                 if (this.currentSegment > 0) {
                     this.jumpToSegment(this.currentSegment - 1);
                 } else {
-                    toast('📌 Primeira música');
+                    toast('📌 Primeira música detectada');
                 }
             },
 
             updateSegmentsList() {
                 const container = document.getElementById('mirSegments');
-                if (!container || !this.segments.length) {
-                    if (container) container.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:0.7rem;">Nenhum segmento detectado</div>';
+                if (!container) return;
+                
+                if (!this.segments.length) {
+                    container.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:0.7rem;">Nenhum segmento detectado ainda</div>';
                     return;
                 }
                 
@@ -680,8 +688,8 @@
                     <div class="mir-segment ${i === this.currentSegment ? 'active' : ''}" 
                          onclick="MIR.jumpToSegment(${i})"
                          style="${i === this.currentSegment ? 'background:rgba(29,185,84,0.2);border:1px solid var(--green);' : ''}">
-                        <span class="mir-seg-time">${formatTime(seg.start)}${seg.end ? ' - ' + formatTime(seg.end) : ''}</span>
-                        <span class="mir-seg-name">${seg.name} ${seg.duration ? '(' + Math.round(seg.duration) + 's)' : ''}</span>
+                        <span class="mir-seg-time">${formatTime(seg.start)}${seg.end && !isNaN(seg.end) ? ' - ' + formatTime(seg.end) : ''}</span>
+                        <span class="mir-seg-name">${seg.name} ${seg.duration ? '(' + Math.round(seg.duration) + 's)' : '(em andamento)'}</span>
                         <span class="mir-seg-arrow">▶</span>
                     </div>
                 `).join('');
@@ -692,48 +700,74 @@
                 const panel = document.getElementById('mirPanel');
                 const status = document.getElementById('mirStatus');
                 
-                if (this.active) {
-                    btn.classList.add('active');
-                    btn.textContent = '🎼 MIR ON';
-                    panel.classList.add('active');
-                    status.textContent = '🟢 Analisando';
-                    status.style.color = '#1db954';
-                } else {
-                    btn.classList.remove('active');
-                    btn.textContent = '🎼 MIR';
-                    panel.classList.remove('active');
-                    status.textContent = '🔴 Inativo';
-                    status.style.color = 'var(--text2)';
+                if (btn && panel && status) {
+                    if (this.active) {
+                        btn.classList.add('active');
+                        btn.textContent = '🎼 MIR ON';
+                        panel.classList.add('active');
+                        status.textContent = '🟢 Analisando';
+                        status.style.color = '#1db954';
+                    } else {
+                        btn.classList.remove('active');
+                        btn.textContent = '🎼 MIR';
+                        panel.classList.remove('active');
+                        status.textContent = '🔴 Inativo';
+                        status.style.color = 'var(--text2)';
+                    }
                 }
             },
 
             saveSegments() {
-                localStorage.setItem('mir_segments', JSON.stringify(this.segments));
+                try {
+                    localStorage.setItem('mir_segments', JSON.stringify(this.segments));
+                } catch(e) {
+                    console.warn('Erro ao salvar segmentos:', e);
+                }
             },
 
             stop() {
+                this.active = false;
+                
+                if (this.animationFrame) {
+                    cancelAnimationFrame(this.animationFrame);
+                    this.animationFrame = null;
+                }
+                
                 if (this.meyda) {
-                    this.meyda.stop();
+                    try {
+                        this.meyda.stop();
+                    } catch(e) {}
                     this.meyda = null;
                 }
+                
                 if (this.audioContext) {
-                    this.audioContext.close();
+                    try {
+                        this.audioContext.close();
+                    } catch(e) {}
                     this.audioContext = null;
                 }
-                this.active = false;
+                
                 this.updateUI();
-                document.getElementById('mirWaveform').innerHTML = '';
+                
+                const waveform = document.getElementById('mirWaveform');
+                if (waveform) {
+                    let bars = '';
+                    for (let i = 0; i < 40; i++) bars += '<div class="mir-bar" style="height:2px"></div>';
+                    waveform.innerHTML = bars;
+                }
+                
                 toast('🎼 MIR Desativado');
             }
         };
 
         function formatTime(seconds) {
-            if (isNaN(seconds) || seconds === null) return '00:00';
+            if (isNaN(seconds) || seconds === null || seconds === undefined) return '00:00';
             const m = Math.floor(seconds / 60);
             const s = Math.floor(seconds % 60);
             return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
         }
 
+        // Expor funções MIR globalmente
         window.toggleMIR = () => {
             if (MIR.active) {
                 MIR.stop();
@@ -758,22 +792,116 @@
         const vidCont = $('playerContainer'), vidWrap = $('playerWrapper');
 
         // ===== YOUTUBE =====
-        window.onYouTubeIframeAPIReady = () => initYT();
         function initYT() {
-            if (yt) yt.destroy();
-            yt = new YT.Player('hiddenPlayer', {
-                height: '360', width: '640', videoId: '', host: 'https://www.youtube-nocookie.com',
-                playerVars: { autoplay: 0, playsinline: 1, controls: 0, disablekb: 1, fs: 0, rel: 0, modestbranding: 1, iv_load_policy: 3, origin: window.location.origin, enablejsapi: 1, mute: 0, volume: 100 },
-                events: { onReady: e => { e.target.setVolume(100); e.target.unMute(); }, onStateChange: onState, onError: e => console.error('Erro:', e.data) }
-            });
+            if (yt) {
+                try { yt.destroy(); } catch(e) {}
+            }
+            
+            try {
+                yt = new YT.Player('hiddenPlayer', {
+                    height: '360',
+                    width: '640',
+                    videoId: '',
+                    host: 'https://www.youtube.com', // Usar youtube.com em vez de youtube-nocookie.com
+                    playerVars: { 
+                        autoplay: 0, 
+                        playsinline: 1, 
+                        controls: 0, 
+                        disablekb: 1, 
+                        fs: 0, 
+                        rel: 0, 
+                        modestbranding: 1, 
+                        iv_load_policy: 3,
+                        origin: window.location.origin,
+                        enablejsapi: 1, 
+                        mute: 0, 
+                        volume: 100 
+                    },
+                    events: { 
+                        onReady: (e) => { 
+                            e.target.setVolume(100); 
+                            e.target.unMute();
+                            console.log('✅ YouTube Player pronto');
+                        }, 
+                        onStateChange: onState, 
+                        onError: (e) => {
+                            console.error('Erro no player:', e.data);
+                            // Tentar reinicializar após erro
+                            if (e.data === 2 || e.data === 5) {
+                                setTimeout(() => {
+                                    if (vid) {
+                                        yt.loadVideoById({ videoId: vid, startSeconds: 0 });
+                                    }
+                                }, 2000);
+                            }
+                        }
+                    }
+                });
+            } catch(e) {
+                console.error('Erro ao inicializar YouTube:', e);
+                // Retry após 1 segundo
+                setTimeout(initYT, 1000);
+            }
         }
+
+        window.onYouTubeIframeAPIReady = () => {
+            console.log('✅ YouTube API carregada');
+            initYT();
+        };
+
+        // Fallback caso a API demore
+        setTimeout(() => {
+            if (!yt && typeof YT !== 'undefined') {
+                initYT();
+            }
+        }, 3000);
+
         function onState(e) {
-            if (e.data === 1) { playing = true; updateUI(true); startProg(); if (MIR.active && !MIR.audioContext) MIR.init(); }
-            else if (e.data === 2) { playing = false; updateUI(false); stopProg(); }
-            else if (e.data === 0) { stopProg(); progBar.style.width = '0%'; if (MIR.active) MIR.markSegmentEnd(yt.getDuration()); nextTrack(); }
+            if (e.data === 1) { // Playing
+                playing = true; 
+                updateUI(true); 
+                startProg(); 
+                if (MIR.active && !MIR.audioContext) {
+                    MIR.init();
+                }
+            } else if (e.data === 2) { // Paused
+                playing = false; 
+                updateUI(false); 
+                stopProg(); 
+            } else if (e.data === 0) { // Ended
+                stopProg(); 
+                progBar.style.width = '0%'; 
+                if (MIR.active && yt) {
+                    MIR.markSegmentEnd(yt.getDuration());
+                }
+                nextTrack();
+            }
         }
-        function startProg() { stopProg(); progInt = setInterval(() => { if (!yt || !playing) return; try { const d = yt.getDuration(), c = yt.getCurrentTime(); if (d > 0) progBar.style.width = (c / d) * 100 + '%'; } catch(e) {} }, 1000); }
-        function stopProg() { if (progInt) { clearInterval(progInt); progInt = null; } }
+
+        function startProg() { 
+            stopProg(); 
+            progInt = setInterval(() => { 
+                if (!yt || !playing) return; 
+                try { 
+                    const d = yt.getDuration(); 
+                    const c = yt.getCurrentTime(); 
+                    if (d > 0) {
+                        const percent = (c / d) * 100;
+                        if (!isNaN(percent)) {
+                            progBar.style.width = percent + '%';
+                        }
+                    }
+                } catch(e) {} 
+            }, 1000); 
+        }
+
+        function stopProg() { 
+            if (progInt) { 
+                clearInterval(progInt); 
+                progInt = null; 
+            } 
+        }
+
         function updateUI(p) {
             spPlay.textContent = p ? '⏸' : '▶';
             spPlay.classList.toggle('playing', p);
@@ -785,79 +913,210 @@
         function playTrack(i = -1) {
             if (i >= 0 && i < playlist.length) idx = i;
             if (idx < 0 || idx >= playlist.length) return;
-            const t = playlist[idx]; vid = t.id;
-            Fav.addHist(t); progBar.style.width = '0%';
+            
+            const t = playlist[idx]; 
+            vid = t.id;
+            Fav.addHist(t); 
+            progBar.style.width = '0%';
+            
             if (MIR.active) {
-                MIR.markSegmentEnd(yt?.getCurrentTime?.() || 0);
-                MIR.segments = []; // Reset para novo vídeo
+                const currentTime = yt?.getCurrentTime?.() || 0;
+                if (!isNaN(currentTime)) {
+                    MIR.markSegmentEnd(currentTime);
+                }
+                MIR.segments = [];
+                MIR.musicCount = 0;
                 MIR.updateSegmentsList();
             }
+            
             if (yt?.loadVideoById) {
-                yt.loadVideoById({ videoId: t.id, startSeconds: 0 });
-                setTimeout(() => { if (yt?.playVideo) { yt.playVideo(); yt.unMute(); yt.setVolume(100); } }, 300);
+                try {
+                    yt.loadVideoById({ videoId: t.id, startSeconds: 0 });
+                    setTimeout(() => { 
+                        if (yt?.playVideo) { 
+                            yt.playVideo(); 
+                            yt.unMute(); 
+                            yt.setVolume(100); 
+                        } 
+                    }, 300);
+                } catch(e) {
+                    console.error('Erro ao carregar vídeo:', e);
+                    toast('⚠️ Erro ao carregar');
+                }
             }
-            spTitle.textContent = t.title || ''; spArtist.textContent = t.channel || '';
-            spArt.src = t.thumbnail || ''; document.title = '▶ ' + (t.title || 'Play Tube Music');
-            spBar.classList.add('active'); isVideo = false; closeVideo();
-            if (MIR.active) MIR.init();
+            
+            spTitle.textContent = t.title || ''; 
+            spArtist.textContent = t.channel || '';
+            spArt.src = t.thumbnail || ''; 
+            document.title = '▶ ' + (t.title || 'Play Tube Music');
+            spBar.classList.add('active'); 
+            isVideo = false; 
+            closeVideo();
+            
+            if (MIR.active) {
+                setTimeout(() => MIR.init(), 500);
+            }
         }
+
         window.togglePlay = () => {
             if (!yt) return;
-            if (playing) { yt.pauseVideo(); if (ytTop) ytTop.pauseVideo(); }
-            else if (vid) { yt.playVideo(); yt.unMute(); yt.setVolume(100); }
-            else if (playlist.length > 0) playTrack(0);
+            if (playing) { 
+                yt.pauseVideo(); 
+                if (ytTop) ytTop.pauseVideo(); 
+            } else if (vid) { 
+                yt.playVideo(); 
+                yt.unMute(); 
+                yt.setVolume(100); 
+            } else if (playlist.length > 0) {
+                playTrack(0); 
+            }
         };
-        window.nextTrack = () => { if (!playlist.length) return; progBar.style.width = '0%'; playTrack((idx + 1) % playlist.length); };
-        window.prevTrack = () => { if (!playlist.length) return; progBar.style.width = '0%'; playTrack((idx - 1 + playlist.length) % playlist.length); };
-        window.seekTrack = e => { if (!yt || !vid) return; const r = progCont.getBoundingClientRect(), d = yt.getDuration(); if (d > 0) yt.seekTo(((e.clientX - r.left) / r.width) * d, true); };
-        function stopPlayback() { if (yt) yt.stopVideo(); if (ytTop) ytTop.stopVideo(); playing = false; updateUI(false); stopProg(); progBar.style.width = '0%'; spBar.classList.remove('active'); vidCont.classList.remove('active'); if (MIR.active) MIR.stop(); }
+
+        window.nextTrack = () => { 
+            if (!playlist.length) return; 
+            progBar.style.width = '0%'; 
+            playTrack((idx + 1) % playlist.length); 
+        };
+
+        window.prevTrack = () => { 
+            if (!playlist.length) return; 
+            progBar.style.width = '0%'; 
+            playTrack((idx - 1 + playlist.length) % playlist.length); 
+        };
+
+        window.seekTrack = (e) => { 
+            if (!yt || !vid) return; 
+            const r = progCont.getBoundingClientRect(); 
+            const d = yt.getDuration(); 
+            if (d > 0) {
+                const seekTo = ((e.clientX - r.left) / r.width) * d;
+                if (!isNaN(seekTo)) {
+                    yt.seekTo(seekTo, true); 
+                }
+            }
+        };
+
+        function stopPlayback() { 
+            if (yt) yt.stopVideo(); 
+            if (ytTop) ytTop.stopVideo(); 
+            playing = false; 
+            updateUI(false); 
+            stopProg(); 
+            progBar.style.width = '0%'; 
+            spBar.classList.remove('active'); 
+            vidCont.classList.remove('active'); 
+            if (MIR.active) MIR.stop(); 
+        }
 
         // ===== VIDEO =====
         window.showVideo = () => {
             if (!vid) return;
-            isVideo = true; vidCont.classList.add('active', 'rainbow-border');
-            if (!ytTop) { vidWrap.innerHTML = '<div id="topPlayerElement"></div>'; ytTop = new YT.Player('topPlayerElement', { videoId: vid, playerVars: { autoplay: 1, playsinline: 1, controls: 1, rel: 0, modestbranding: 1, fs: 1 }, events: { onReady: () => { if (yt?.getCurrentTime) ytTop.seekTo(yt.getCurrentTime()); }, onStateChange: e => { if (e.data === 1 && yt?.pauseVideo) yt.pauseVideo(); if (e.data === 0) closeVideo(); } } }); }
-            else ytTop.loadVideoById({ videoId: vid, startSeconds: yt?.getCurrentTime?.() || 0 });
+            isVideo = true; 
+            vidCont.classList.add('active', 'rainbow-border');
+            
+            const startTime = yt?.getCurrentTime?.() || 0;
+            
+            if (!ytTop) { 
+                vidWrap.innerHTML = '<div id="topPlayerElement"></div>'; 
+                ytTop = new YT.Player('topPlayerElement', { 
+                    videoId: vid, 
+                    playerVars: { 
+                        autoplay: 1, 
+                        playsinline: 1, 
+                        controls: 1, 
+                        rel: 0, 
+                        modestbranding: 1, 
+                        fs: 1,
+                        origin: window.location.origin
+                    }, 
+                    events: { 
+                        onReady: () => { 
+                            if (ytTop?.seekTo && !isNaN(startTime)) {
+                                ytTop.seekTo(startTime);
+                            }
+                        }, 
+                        onStateChange: (e) => { 
+                            if (e.data === 1 && yt?.pauseVideo) yt.pauseVideo(); 
+                            if (e.data === 0) closeVideo(); 
+                        } 
+                    } 
+                }); 
+            } else {
+                ytTop.loadVideoById({ 
+                    videoId: vid, 
+                    startSeconds: isNaN(startTime) ? 0 : startTime 
+                }); 
+            }
+            
             vidCont.scrollIntoView({ behavior: 'smooth' });
         };
-        window.closeVideo = () => { vidCont.classList.remove('active', 'rainbow-border'); if (ytTop) ytTop.stopVideo(); isVideo = false; };
+
+        window.closeVideo = () => { 
+            vidCont.classList.remove('active', 'rainbow-border'); 
+            if (ytTop) ytTop.stopVideo(); 
+            isVideo = false; 
+        };
 
         // ===== DOWNLOAD =====
         window.downloadCurrent = () => {
-            if (!vid || idx < 0) { toast('⚠️ Nenhuma música'); return; }
-            const t = playlist[idx]; spDL.classList.add('downloading');
-            DL.download(t.id, t.title, t.channel, t.thumbnail).finally(() => spDL.classList.remove('downloading'));
+            if (!vid || idx < 0) { 
+                toast('⚠️ Nenhuma música selecionada'); 
+                return; 
+            }
+            const t = playlist[idx]; 
+            spDL.classList.add('downloading');
+            DL.download(t.id, t.title, t.channel, t.thumbnail)
+              .finally(() => spDL.classList.remove('downloading'));
         };
 
         // ===== RESULTADOS =====
         window.playFromResults = (id, title, channel, thumb) => {
             const v = { id, title, channel, thumbnail: thumb };
-            playlist = playlist.filter(t => t.id !== v.id); playlist.unshift(v);
-            idx = 0; playTrack(0); toast('▶ ' + title.substring(0, 30));
+            playlist = playlist.filter(t => t.id !== v.id); 
+            playlist.unshift(v);
+            idx = 0; 
+            playTrack(0); 
+            toast('▶ ' + title.substring(0, 30));
         };
-        window.toggleFav = (id, title, channel, thumb, e) => { e.stopPropagation(); Fav.toggle({ id, title, channel, thumbnail: thumb }); updateFavBtns(); };
-        window.dlFromCard = (id, title, channel, thumb, e) => { e.stopPropagation(); DL.download(id, title, channel, thumb); };
+
+        window.toggleFav = (id, title, channel, thumb, e) => { 
+            if (e) e.stopPropagation(); 
+            Fav.toggle({ id, title, channel, thumbnail: thumb }); 
+            updateFavBtns(); 
+        };
+
+        window.dlFromCard = (id, title, channel, thumb, e) => { 
+            if (e) e.stopPropagation(); 
+            DL.download(id, title, channel, thumb); 
+        };
 
         function updateFavBtns() {
             document.querySelectorAll('.v-btn.fav').forEach(b => {
-                const fid = b.getAttribute('data-id'), f = Fav.is(fid);
-                b.classList.toggle('fav-active', f); b.textContent = f ? '❤️' : '🤍';
+                const fid = b.getAttribute('data-id');
+                const f = Fav.is(fid);
+                b.classList.toggle('fav-active', f); 
+                b.textContent = f ? '❤️' : '🤍';
             });
         }
 
         function card(v) {
-            const f = Fav.is(v.id), d = DL.has(v.id);
-            return `<div class="video-card" onclick="playFromResults('${v.id}','${esc(v.title)}','${esc(v.channel)}','${v.thumbnail}')">
-                <img class="video-thumb" src="${v.thumbnail}" loading="lazy" onerror="this.style.opacity='0.3'">
-                <div class="video-info"><div class="video-title">${esc(v.title)}</div><div class="video-channel">${esc(v.channel)}</div>${v.at?`<div style="font-size:0.65rem;color:var(--text3);margin-top:1px;">🕐 ${new Date(v.at).toLocaleDateString()}</div>`:''}</div>
+            const f = Fav.is(v.id);
+            const d = DL.has(v.id);
+            return `<div class="video-card" onclick="playFromResults('${v.id}','${esc(v.title)}','${esc(v.channel)}','${esc(v.thumbnail || '')}')" style="animation-delay:${Math.random()*0.2}s">
+                <img class="video-thumb" src="${v.thumbnail || ''}" loading="lazy" onerror="this.style.display='none'">
+                <div class="video-info">
+                    <div class="video-title">${esc(v.title)}</div>
+                    <div class="video-channel">${esc(v.channel)}</div>
+                    ${v.at ? `<div style="font-size:0.65rem;color:var(--text3);margin-top:1px;">🕐 ${new Date(v.at).toLocaleDateString()}</div>` : ''}
+                </div>
                 <div class="video-actions">
-                    <button class="v-btn fav${f?' fav-active':''}" data-id="${v.id}" onclick="toggleFav('${v.id}','${esc(v.title)}','${esc(v.channel)}','${v.thumbnail}',event)">${f?'❤️':'🤍'}</button>
-                    ${!d?`<button class="v-btn dl" onclick="dlFromCard('${v.id}','${esc(v.title)}','${esc(v.channel)}','${v.thumbnail}',event)">⬇</button>`:''}
+                    <button class="v-btn fav${f?' fav-active':''}" data-id="${v.id}" onclick="toggleFav('${v.id}','${esc(v.title)}','${esc(v.channel)}','${esc(v.thumbnail || '')}',event)">${f?'❤️':'🤍'}</button>
+                    ${!d ? `<button class="v-btn dl" onclick="dlFromCard('${v.id}','${esc(v.title)}','${esc(v.channel)}','${esc(v.thumbnail || '')}',event)">⬇</button>` : ''}
                 </div></div>`;
         }
 
         // ===== TABS =====
-        window.switchTab = t => {
+        window.switchTab = (t) => {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             [...document.querySelectorAll('.tab-btn')].forEach(b => { 
                 const txt = b.textContent.toLowerCase();
@@ -865,9 +1124,20 @@
                     (t === 'favorites' && txt.includes('favorito')) ||
                     (t === 'history' && txt.includes('histórico')) ||
                     (t === 'downloads' && txt.includes('download')) ||
-                    (t === 'segments' && txt.includes('segmento'))) b.classList.add('active'); 
+                    (t === 'segments' && txt.includes('segmento'))) {
+                    b.classList.add('active'); 
+                }
             });
-            sTitle.innerHTML = '<span>' + (t === 'search' ? 'Resultados' : t === 'favorites' ? '❤️ Favoritos' : t === 'history' ? '🕐 Histórico' : t === 'downloads' ? '⬇️ Downloads' : '🎼 Segmentos') + '</span>';
+            
+            const titles = {
+                'search': 'Resultados',
+                'favorites': '❤️ Favoritos',
+                'history': '🕐 Histórico',
+                'downloads': '⬇️ Downloads',
+                'segments': '🎼 Segmentos'
+            };
+            
+            sTitle.innerHTML = `<span>${titles[t] || 'Resultados'}</span>`;
             
             if (t === 'segments') {
                 resCount.textContent = MIR.segments.length + ' músicas';
@@ -875,49 +1145,101 @@
                     <div class="video-card" onclick="MIR.jumpToSegment(${i})" style="border-left:3px solid var(--green);">
                         <div class="video-info">
                             <div class="video-title">🎵 ${seg.name}</div>
-                            <div class="video-channel">${formatTime(seg.start)} - ${formatTime(seg.end)} (${Math.round(seg.duration || 0)}s)</div>
+                            <div class="video-channel">${formatTime(seg.start)} - ${seg.end ? formatTime(seg.end) : '...'} (${seg.duration ? Math.round(seg.duration) + 's' : 'em andamento'})</div>
                         </div>
                     </div>
                 `).join('') : '<div style="text-align:center;padding:40px;color:var(--text2);">Ative o MIR e reproduza uma música</div>';
             } else if (t === 'search') {
                 if (query) searchYT(query);
-                else resCont.innerHTML = '<div style="text-align:center;padding:50px;color:var(--text2);"><div style="font-size:3rem;">🎧</div><div>Busque suas músicas</div></div>';
+                else {
+                    resCont.innerHTML = '<div style="text-align:center;padding:50px;color:var(--text2);"><div style="font-size:3rem;">🎧</div><div>Busque suas músicas</div></div>';
+                    resCount.textContent = '';
+                }
             } else if (t === 'favorites') {
-                const f = Fav.favs; resCount.textContent = f.length + ' items';
-                resCont.innerHTML = f.length ? f.map(v => card(v)).join('') : '<div style="text-align:center;padding:40px;color:var(--text2);">❤️ Vazio</div>';
+                const f = Fav.favs; 
+                resCount.textContent = f.length + ' items';
+                resCont.innerHTML = f.length ? f.map(v => card(v)).join('') : '<div style="text-align:center;padding:40px;color:var(--text2);">❤️ Nenhum favorito</div>';
                 updateFavBtns();
             } else if (t === 'history') {
-                const h = Fav.hist; resCount.textContent = h.length + ' itens';
-                resCont.innerHTML = h.length ? h.map(v => card(v)).join('') : '<div style="text-align:center;padding:40px;color:var(--text2);">🕐 Vazio</div>';
+                const h = Fav.hist; 
+                resCount.textContent = h.length + ' itens';
+                resCont.innerHTML = h.length ? h.map(v => card(v)).join('') : '<div style="text-align:center;padding:40px;color:var(--text2);">🕐 Histórico vazio</div>';
                 updateFavBtns();
             } else if (t === 'downloads') {
-                const d = DL.all(); resCount.textContent = d.length + ' itens';
-                resCont.innerHTML = d.length ? d.map(v => card(v)).join('') : '<div style="text-align:center;padding:40px;color:var(--text2);">📥 Vazio</div>';
+                const d = DL.all(); 
+                resCount.textContent = d.length + ' itens';
+                resCont.innerHTML = d.length ? d.map(v => card(v)).join('') : '<div style="text-align:center;padding:40px;color:var(--text2);">📥 Nenhum download</div>';
                 updateFavBtns();
             }
         };
 
         // ===== BUSCA =====
-        sBtn.addEventListener('click', () => { query = sInput.value; searchYT(query); });
-        sInput.addEventListener('keydown', e => { if (e.key === 'Enter') { query = sInput.value; searchYT(query); } });
+        sBtn.addEventListener('click', () => { 
+            query = sInput.value.trim(); 
+            searchYT(query); 
+        });
+        
+        sInput.addEventListener('keydown', (e) => { 
+            if (e.key === 'Enter') { 
+                query = sInput.value.trim(); 
+                searchYT(query); 
+            } 
+        });
+        
         async function searchYT(q) {
-            if (!q.trim()) { toast('⚠️ Digite algo'); return; }
-            showLoad(true); resCount.textContent = '';
+            if (!q) { 
+                toast('⚠️ Digite algo para buscar'); 
+                return; 
+            }
+            
+            showLoad(true); 
+            resCount.textContent = '';
+            
             try {
-                const u = new URL(PROXY); u.searchParams.append('q', q + ' música'); u.searchParams.append('maxResults', '15'); u.searchParams.append('regionCode', 'BR'); u.searchParams.append('relevanceLanguage', 'pt');
-                const r = await fetch(u); if (!r.ok) throw new Error('Erro');
+                const u = new URL(PROXY); 
+                u.searchParams.append('q', q + ' música'); 
+                u.searchParams.append('maxResults', '15'); 
+                u.searchParams.append('regionCode', 'BR'); 
+                u.searchParams.append('relevanceLanguage', 'pt');
+                
+                const r = await fetch(u); 
+                if (!r.ok) throw new Error('Erro na busca');
+                
                 const d = await r.json();
                 resCount.textContent = d.totalResults ? `${d.totalResults} resultados` : '';
-                resCont.innerHTML = d.videos?.length ? d.videos.map(v => card(v)).join('') : '<div style="text-align:center;padding:40px;color:var(--text2);">Nenhum resultado</div>';
+                resCont.innerHTML = d.videos?.length ? 
+                    d.videos.map(v => card(v)).join('') : 
+                    '<div style="text-align:center;padding:40px;color:var(--text2);">Nenhum resultado encontrado</div>';
                 updateFavBtns();
-            } catch(e) { toast('⚠️ Erro na busca'); }
+            } catch(e) { 
+                console.error('Erro na busca:', e);
+                toast('⚠️ Erro na busca. Tente novamente.'); 
+                resCont.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text2);">Erro ao buscar. Verifique sua conexão.</div>';
+            }
+            
             showLoad(false);
         }
 
         // ===== UTILS =====
-        function esc(t) { if (!t) return ''; const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
-        function showLoad(s) { if (s) resCont.innerHTML = '<div class="loading"><div class="spinner"></div><div>Buscando...</div></div>'; }
-        function toast(m) { if (toastTO) clearTimeout(toastTO); toastEl.textContent = m; toastEl.classList.add('show'); toastTO = setTimeout(() => toastEl.classList.remove('show'), 2500); }
+        function esc(t) { 
+            if (!t) return ''; 
+            const d = document.createElement('div'); 
+            d.textContent = t; 
+            return d.innerHTML; 
+        }
+        
+        function showLoad(s) { 
+            if (s) {
+                resCont.innerHTML = '<div class="loading"><div class="spinner"></div><div>Buscando...</div></div>'; 
+            }
+        }
+        
+        function toast(m) { 
+            if (toastTO) clearTimeout(toastTO); 
+            toastEl.textContent = m; 
+            toastEl.classList.add('show'); 
+            toastTO = setTimeout(() => toastEl.classList.remove('show'), 2500); 
+        }
 
         // ===== MEDIA SESSION =====
         function setupMS() {
@@ -931,7 +1253,9 @@
 
         // ===== INIT =====
         function init() {
-            setupMS(); calibrarTela();
+            setupMS(); 
+            calibrarTela();
+            
             // Inicializar visualizador MIR vazio
             const waveform = document.getElementById('mirWaveform');
             if (waveform) {
@@ -939,20 +1263,43 @@
                 for (let i = 0; i < 40; i++) bars += '<div class="mir-bar" style="height:2px"></div>';
                 waveform.innerHTML = bars;
             }
-            setTimeout(() => { const s = document.getElementById('splashScreen'); if (s) { s.style.opacity = '0'; setTimeout(() => s.remove(), 500); } }, 1500);
-            console.log('✅ Play Tube Music Pro v6 - MIR Integrated');
+            
+            console.log('✅ Play Tube Music Pro v6 - MIR Integrated (Fixed)');
         }
-        window.addEventListener('resize', () => { clearTimeout(window._rt); window._rt = setTimeout(calibrarTela, 250); });
+        
+        window.addEventListener('resize', () => { 
+            clearTimeout(window._rt); 
+            window._rt = setTimeout(calibrarTela, 250); 
+        });
+        
         window.addEventListener('orientationchange', () => setTimeout(calibrarTela, 300));
         window.addEventListener('load', init);
 
+        // ===== ERROR HANDLING =====
+        window.addEventListener('error', (e) => {
+            if (e.target.tagName === 'IMG') {
+                e.target.style.display = 'none';
+            }
+        }, true);
+
         // EXPORT GLOBAIS
-        window.calibrarTela = calibrarTela; window.T = T; window.MIR = MIR;
-        window.togglePlay = togglePlay; window.nextTrack = nextTrack; window.prevTrack = prevTrack;
-        window.playFromResults = playFromResults; window.toggleFav = toggleFav; window.dlFromCard = dlFromCard;
-        window.downloadCurrent = downloadCurrent; window.switchTab = switchTab; window.seekTrack = seekTrack;
-        window.showVideo = showVideo; window.closeVideo = closeVideo; window.toggleMIR = toggleMIR;
-        window.jumpToNextSegment = jumpToNextSegment; window.jumpToPrevSegment = jumpToPrevSegment;
+        window.calibrarTela = calibrarTela; 
+        window.T = T; 
+        window.MIR = MIR;
+        window.togglePlay = togglePlay; 
+        window.nextTrack = nextTrack; 
+        window.prevTrack = prevTrack;
+        window.playFromResults = playFromResults; 
+        window.toggleFav = toggleFav; 
+        window.dlFromCard = dlFromCard;
+        window.downloadCurrent = downloadCurrent; 
+        window.switchTab = switchTab; 
+        window.seekTrack = seekTrack;
+        window.showVideo = showVideo; 
+        window.closeVideo = closeVideo; 
+        window.toggleMIR = toggleMIR;
+        window.jumpToNextSegment = jumpToNextSegment; 
+        window.jumpToPrevSegment = jumpToPrevSegment;
     })();
     </script>
 </body>
