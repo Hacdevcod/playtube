@@ -28,7 +28,6 @@
             --player-h: 80px;
             --safe-b: 0px;
             --scale: 1;
-            --content-width: 100%;
         }
         
         [data-theme="light"] {
@@ -58,11 +57,7 @@
         }
 
         * { margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent; }
-        html { 
-            font-size:16px;
-            /* Auto-ajuste de escala baseado na largura */
-            --base-width: 390;
-        }
+        html { font-size:16px; }
         body { 
             font-family: -apple-system, 'Roboto', sans-serif;
             background: var(--bg);
@@ -72,38 +67,17 @@
             overflow-x: hidden;
             transition: background 0.3s, color 0.3s;
             padding-bottom: calc(var(--player-h) + var(--safe-b) + 15px);
-            /* Centralizar conteúdo com largura máxima */
             max-width: 100vw;
             margin: 0 auto;
             position: relative;
         }
         
-        /* Container principal com auto-ajuste */
+        /* Container principal com largura calibrada */
         .app-container {
             width: 100%;
-            max-width: 550px;
             margin: 0 auto;
             position: relative;
             transform-origin: top center;
-        }
-        
-        /* Indicador de escala/zoom */
-        .scale-indicator {
-            position: fixed;
-            top: 5px;
-            right: 5px;
-            background: rgba(0,0,0,0.7);
-            color: #0f0;
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 10px;
-            z-index: 999;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        .scale-indicator.show {
-            opacity: 1;
         }
 
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -116,10 +90,87 @@
         @keyframes downloading { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
         @keyframes rainbow { 0% { border-color: #f00; } 25% { border-color: #f80; } 50% { border-color: #0c0; } 75% { border-color: #21f; } 100% { border-color: #f00; } }
         @keyframes detectedPulse { 0%,100% { border-color: #1db954; box-shadow: 0 0 10px rgba(29,185,84,0.5); } 50% { border-color: #00ff88; box-shadow: 0 0 20px rgba(29,185,84,0.8); } }
+        @keyframes calibratePulse { 0%,100% { border-color: #ff0; box-shadow: 0 0 10px rgba(255,255,0,0.5); } 50% { border-color: #ff0; box-shadow: 0 0 25px rgba(255,255,0,0.9); } }
 
         .hidden-player { position: fixed; top: 0; left: 0; width: 1px; height: 1px; opacity: 0.01; pointer-events: none; z-index: -1; }
 
-        /* TOPBAR */
+        /* ===== CALIBRADOR DE TELA ===== */
+        .screen-calibrator {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.95); z-index: 9999;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px; color: #fff;
+        }
+        .screen-calibrator.active { display: flex; }
+        
+        .calibration-box {
+            width: 90%; max-width: 400px; background: #1a1a1a;
+            border: 2px solid #ff0; border-radius: 20px; padding: 25px;
+            animation: calibratePulse 2s ease-in-out infinite;
+            text-align: center;
+        }
+        
+        .calibration-title {
+            font-size: 1.2rem; font-weight: 700; color: #ff0; margin-bottom: 15px;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        
+        .calibration-info {
+            background: #000; border-radius: 10px; padding: 15px; margin: 15px 0;
+            font-family: 'Courier New', monospace; font-size: 0.85rem; line-height: 1.8;
+            text-align: left; color: #0f0;
+        }
+        
+        .calibration-info span { color: #fff; }
+        .calibration-info .highlight { color: #ff0; font-weight: bold; }
+        
+        .calibration-btn {
+            width: 100%; padding: 14px; border: none; border-radius: 25px;
+            font-size: 1rem; font-weight: 700; cursor: pointer; margin: 8px 0;
+            transition: all 0.3s; text-transform: uppercase; letter-spacing: 1px;
+        }
+        
+        .calibration-btn.detect {
+            background: linear-gradient(135deg, #ff0, #ffa500);
+            color: #000;
+        }
+        
+        .calibration-btn.apply {
+            background: linear-gradient(135deg, #0f0, #00b300);
+            color: #000;
+        }
+        
+        .calibration-btn.reset {
+            background: linear-gradient(135deg, #f00, #ff4444);
+            color: #fff;
+        }
+        
+        .calibration-btn:active { transform: scale(0.95); opacity: 0.8; }
+        
+        .calibration-status {
+            font-size: 0.75rem; color: #aaa; margin-top: 10px;
+        }
+        
+        .calibration-close {
+            position: absolute; top: 20px; right: 20px;
+            width: 40px; height: 40px; border-radius: 50%;
+            background: rgba(255,255,255,0.1); border: 2px solid #fff;
+            color: #fff; font-size: 18px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.3s;
+        }
+        .calibration-close:active { background: #f00; border-color: #f00; }
+        
+        /* Indicador de calibração na tela */
+        .calibration-indicator {
+            position: fixed; bottom: 10px; right: 10px;
+            background: rgba(0,0,0,0.8); color: #0f0;
+            font-size: 9px; padding: 3px 8px; border-radius: 10px;
+            z-index: 500; pointer-events: none; opacity: 0.7;
+            font-family: monospace; display: none;
+        }
+
+        /* ===== TOPBAR ===== */
         .topbar {
             position: sticky; top: 0; background: var(--bg);
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
@@ -133,25 +184,29 @@
             font-size: 12px; color: #fff; animation: pulseLogo 2s ease-in-out infinite;
         }
         .logo-text {
-            font-size: clamp(0.8rem, 2.5vw, 1rem); font-weight: 700;
+            font-size: 1rem; font-weight: 700;
             background: linear-gradient(90deg, var(--text), #f44, var(--text), #f66);
             background-size: 200% auto; -webkit-background-clip: text; background-clip: text;
             -webkit-text-fill-color: transparent; animation: shimmer 3s linear infinite;
         }
         .logo-text sup { font-size: 7px; background: var(--red); color: #fff; padding: 1px 3px; border-radius: 3px; -webkit-text-fill-color: #fff; }
         .spacer { flex: 1; }
-        .theme-btn, .zoom-btn { 
-            background: none; border: none; color: var(--text); 
-            font-size: clamp(0.9rem, 2.5vw, 1.1rem); cursor: pointer; padding: 4px; 
+        .calibrate-btn { 
+            background: linear-gradient(135deg, #ff0, #ffa500); border: none; 
+            color: #000; font-size: 0.9rem; font-weight: 700; cursor: pointer; 
+            padding: 5px 12px; border-radius: 15px; transition: all 0.2s;
+            animation: calibratePulse 3s ease-in-out infinite;
         }
+        .calibrate-btn:active { transform: scale(0.95); }
+        .theme-btn { background: none; border: none; color: var(--text); font-size: 1.1rem; cursor: pointer; padding: 4px; }
         .mir-btn {
             background: var(--surface2); border: 2px solid var(--green); border-radius: 15px;
-            color: var(--green); padding: 4px 10px; font-size: clamp(0.6rem, 1.5vw, 0.7rem); 
-            cursor: pointer; transition: all 0.2s; margin-left: 8px; white-space: nowrap;
+            color: var(--green); padding: 4px 10px; font-size: 0.7rem; cursor: pointer;
+            transition: all 0.2s; margin-left: 8px;
         }
         .mir-btn.active { background: var(--green); color: #000; animation: detectedPulse 1.5s ease-in-out infinite; }
 
-        /* SEARCH */
+        /* ===== SEARCH ===== */
         .search-section { padding: 8px 12px; background: var(--bg); z-index: 50; }
         .search-box {
             display: flex; background: var(--input-bg); border: 2px solid var(--border);
@@ -159,60 +214,26 @@
         }
         .search-box:focus-within { border-color: var(--red); box-shadow: 0 0 0 2px rgba(255,0,0,0.2); }
         .search-box input {
-            flex: 1; padding: clamp(8px, 2vw, 10px) clamp(10px, 2.5vw, 14px); 
-            background: transparent; border: none;
-            color: var(--input-text); font-size: clamp(0.8rem, 2vw, 0.9rem); outline: none; min-width: 0;
+            flex: 1; padding: 10px 14px; background: transparent; border: none;
+            color: var(--input-text); font-size: 0.9rem; outline: none; min-width: 0;
         }
         .search-box input::placeholder { color: var(--input-ph); }
         .search-btn {
-            width: clamp(36px, 10vw, 42px); background: var(--surface2); border: none; 
-            color: var(--text); cursor: pointer; font-size: clamp(0.9rem, 2.5vw, 1rem); 
-            display: flex; align-items: center; justify-content: center;
+            width: 42px; background: var(--surface2); border: none; color: var(--text);
+            cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center;
         }
 
-        /* TABS */
-        .tabs-container { 
-            display: flex; gap: 4px; padding: 4px 12px 8px; background: var(--bg); 
-            overflow-x: auto; -webkit-overflow-scrolling: touch;
-        }
+        /* ===== TABS ===== */
+        .tabs-container { display: flex; gap: 4px; padding: 4px 12px 8px; background: var(--bg); overflow-x: auto; }
         .tabs-container::-webkit-scrollbar { height: 0; }
         .tab-btn {
-            padding: clamp(5px, 1.5vw, 6px) clamp(10px, 3vw, 14px); 
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: 16px; color: var(--text2); 
-            font-size: clamp(0.65rem, 1.8vw, 0.75rem); cursor: pointer;
+            padding: 6px 14px; background: var(--surface); border: 1px solid var(--border);
+            border-radius: 16px; color: var(--text2); font-size: 0.75rem; cursor: pointer;
             white-space: nowrap; transition: all 0.2s;
-            flex-shrink: 0;
         }
         .tab-btn.active { background: var(--red); color: #fff; border-color: var(--red); }
 
-        /* PAGE COUNTER */
-        .page-counter {
-            display: flex; align-items: center; justify-content: center;
-            gap: 10px; padding: 8px 0; margin-top: 8px;
-        }
-        .page-info {
-            font-size: clamp(0.7rem, 1.5vw, 0.8rem); color: var(--text2);
-            min-width: 80px; text-align: center;
-        }
-        .page-btn {
-            padding: clamp(6px, 1.5vw, 8px) clamp(12px, 3vw, 16px);
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: 20px; color: var(--text); 
-            font-size: clamp(0.7rem, 1.5vw, 0.8rem); cursor: pointer;
-            transition: all 0.2s; white-space: nowrap;
-        }
-        .page-btn:active { background: var(--red); color: #fff; }
-        .page-btn:disabled { opacity: 0.3; pointer-events: none; }
-        .page-jump {
-            width: clamp(30px, 8vw, 40px); text-align: center;
-            background: var(--input-bg); border: 1px solid var(--border);
-            border-radius: 12px; color: var(--text); 
-            font-size: clamp(0.7rem, 1.5vw, 0.8rem); padding: 6px;
-        }
-        .page-jump:focus { outline: none; border-color: var(--red); }
-
-        /* MIR PANEL */
+        /* ===== MIR PANEL ===== */
         .mir-panel {
             display: none; background: linear-gradient(135deg, #0a1a0a, #1a2a1a);
             border: 2px solid var(--green); border-radius: 12px; margin: 0 12px 8px;
@@ -220,120 +241,113 @@
         }
         .mir-panel.active { display: block; }
         .mir-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .mir-title { font-size: clamp(0.75rem, 2vw, 0.85rem); font-weight: 600; color: var(--green); }
-        .mir-status { font-size: clamp(0.6rem, 1.5vw, 0.7rem); color: var(--text2); }
-        .mir-visualizer { width: 100%; height: clamp(40px, 15vw, 60px); background: rgba(0,0,0,0.3); border-radius: 8px; overflow: hidden; margin-bottom: 10px; }
+        .mir-title { font-size: 0.85rem; font-weight: 600; color: var(--green); }
+        .mir-status { font-size: 0.7rem; color: var(--text2); }
+        .mir-visualizer { width: 100%; height: 60px; background: rgba(0,0,0,0.3); border-radius: 8px; overflow: hidden; margin-bottom: 10px; }
         .mir-waveform { display: flex; align-items: flex-end; height: 100%; padding: 4px; gap: 2px; }
         .mir-bar { flex: 1; background: linear-gradient(to top, var(--green), #00ff88); border-radius: 1px; transition: height 0.05s; min-height: 2px; }
-        .mir-segments { max-height: clamp(100px, 30vh, 150px); overflow-y: auto; }
+        .mir-segments { max-height: 150px; overflow-y: auto; }
         .mir-segment {
             display: flex; align-items: center; gap: 8px; padding: 6px 8px;
             background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 4px;
-            cursor: pointer; transition: all 0.2s; font-size: clamp(0.65rem, 1.5vw, 0.75rem);
+            cursor: pointer; transition: all 0.2s; font-size: 0.75rem;
         }
-        .mir-seg-time { color: var(--green); font-weight: 600; min-width: clamp(35px, 10vw, 45px); }
+        .mir-seg-time { color: var(--green); font-weight: 600; min-width: 45px; }
         .mir-seg-name { flex: 1; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .mir-seg-arrow { color: var(--text3); }
 
-        /* RESULTS */
+        /* ===== RESULTS ===== */
         .results-section { padding: 4px 12px 20px; background: var(--bg); min-height: 200px; }
         .section-title {
-            font-size: clamp(0.7rem, 1.8vw, 0.8rem); font-weight: 600; margin-bottom: 8px; padding-left: 4px;
+            font-size: 0.8rem; font-weight: 600; margin-bottom: 8px; padding-left: 4px;
             display: flex; align-items: center; justify-content: space-between;
             color: var(--text2); text-transform: uppercase; letter-spacing: 1px;
         }
-        .result-count { font-size: clamp(0.6rem, 1.5vw, 0.65rem); color: var(--text3); }
+        .result-count { font-size: 0.65rem; color: var(--text3); }
         .video-card {
-            display: flex; gap: clamp(6px, 2vw, 10px); background: var(--surface); border-radius: 8px;
-            padding: clamp(6px, 1.5vw, 8px); cursor: pointer; transition: background 0.15s, transform 0.15s;
+            display: flex; gap: 10px; background: var(--surface); border-radius: 8px;
+            padding: 8px; cursor: pointer; transition: background 0.15s, transform 0.15s;
             animation: fadeInUp 0.3s ease forwards; opacity: 0;
             border: 2px solid transparent; margin-bottom: 6px; position: relative;
         }
         .video-card:active { background: var(--surface2); transform: scale(0.98); }
-        .video-thumb { 
-            width: clamp(36px, 12vw, 48px); height: clamp(36px, 12vw, 48px); 
-            border-radius: 6px; object-fit: cover; flex-shrink: 0; background: var(--surface2); 
-        }
+        .video-thumb { width: 48px; height: 48px; border-radius: 6px; object-fit: cover; flex-shrink: 0; background: var(--surface2); }
         .video-info { flex: 1; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
-        .video-title { 
-            font-size: clamp(0.75rem, 2vw, 0.85rem); font-weight: 500; color: var(--text); 
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
-        }
-        .video-channel { font-size: clamp(0.65rem, 1.5vw, 0.7rem); color: var(--text2); margin-top: 2px; }
+        .video-title { font-size: 0.85rem; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .video-channel { font-size: 0.7rem; color: var(--text2); margin-top: 2px; }
         .video-actions { position: absolute; bottom: 6px; right: 6px; display: flex; gap: 4px; z-index: 5; }
         .v-btn {
-            width: clamp(22px, 7vw, 26px); height: clamp(22px, 7vw, 26px); 
-            border-radius: 50%; background: rgba(0,0,0,0.5);
-            border: none; color: #fff; font-size: clamp(9px, 2.5vw, 11px); cursor: pointer;
+            width: 26px; height: 26px; border-radius: 50%; background: rgba(0,0,0,0.5);
+            border: none; color: #fff; font-size: 11px; cursor: pointer;
             display: flex; align-items: center; justify-content: center; transition: all 0.2s;
         }
         .v-btn:active { transform: scale(1.1); }
         .v-btn.fav-active { color: #f00; background: rgba(255,0,0,0.3); }
 
-        /* SPOTIFY BAR */
+        /* ===== PAGE COUNTER ===== */
+        .page-counter {
+            display: none; align-items: center; justify-content: center;
+            gap: 10px; padding: 8px 0; margin-top: 8px;
+        }
+        .page-counter.active { display: flex; }
+        .page-info {
+            font-size: 0.8rem; color: var(--text2); min-width: 80px; text-align: center;
+        }
+        .page-btn {
+            padding: 8px 16px; background: var(--surface); border: 1px solid var(--border);
+            border-radius: 20px; color: var(--text); font-size: 0.8rem; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .page-btn:active { background: var(--red); color: #fff; }
+        .page-btn:disabled { opacity: 0.3; pointer-events: none; }
+        .page-jump {
+            width: 50px; text-align: center; background: var(--input-bg); border: 1px solid var(--border);
+            border-radius: 12px; color: var(--text); font-size: 0.8rem; padding: 6px;
+        }
+        .page-jump:focus { outline: none; border-color: var(--red); }
+
+        /* ===== SPOTIFY BAR ===== */
         .spotify-bar {
             position: fixed; bottom: 0; left: 0; right: 0; height: var(--player-h);
             background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            display: none; align-items: center; padding: 0 12px; gap: clamp(6px, 2vw, 10px);
+            display: none; align-items: center; padding: 0 12px; gap: 10px;
             z-index: 200; border-top: 1px solid rgba(255,255,255,0.1);
             box-shadow: 0 -4px 20px rgba(0,0,0,0.5); animation: slideUp 0.4s ease;
         }
         .spotify-bar.active { display: flex; }
         .spotify-bar.playing { background: linear-gradient(135deg, #0a1a0a, #1a2a1a); }
-        .sp-art { 
-            width: clamp(38px, 13vw, 52px); height: clamp(38px, 13vw, 52px); 
-            border-radius: 8px; object-fit: cover; flex-shrink: 0; cursor: pointer; background: var(--surface2); 
-        }
+        .sp-art { width: 52px; height: 52px; border-radius: 8px; object-fit: cover; flex-shrink: 0; cursor: pointer; background: var(--surface2); }
         .sp-art.playing { animation: spin 8s linear infinite; border-radius: 50%; }
         .sp-info { flex: 1; min-width: 0; cursor: pointer; display: flex; flex-direction: column; gap: 2px; }
-        .sp-title { 
-            font-size: clamp(0.75rem, 2vw, 0.9rem); font-weight: 600; color: #fff; 
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
-        }
-        .sp-artist { 
-            font-size: clamp(0.6rem, 1.5vw, 0.7rem); color: rgba(255,255,255,0.7); 
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
-        }
+        .sp-title { font-size: 0.9rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sp-artist { font-size: 0.7rem; color: rgba(255,255,255,0.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .sp-progress { position: absolute; top: -2px; left: 0; right: 0; height: 3px; background: rgba(255,255,255,0.1); cursor: pointer; }
         .sp-progress-bar { height: 100%; background: linear-gradient(90deg, #1db954, #1ed760); width: 0%; transition: width 0.3s linear; }
-        .sp-controls { display: flex; gap: clamp(8px, 3vw, 12px); align-items: center; }
-        .sp-btn { 
-            background: none; border: none; color: rgba(255,255,255,0.9); 
-            font-size: clamp(0.8rem, 2.5vw, 1rem); cursor: pointer; padding: clamp(4px, 1.5vw, 6px); 
-            transition: all 0.2s; 
-        }
-        .sp-btn.play { 
-            width: clamp(36px, 11vw, 44px); height: clamp(36px, 11vw, 44px); 
-            background: #fff; border-radius: 50%; color: #000; font-size: clamp(0.8rem, 2.5vw, 1rem); 
-        }
+        .sp-controls { display: flex; gap: 12px; align-items: center; }
+        .sp-btn { background: none; border: none; color: rgba(255,255,255,0.9); font-size: 1rem; cursor: pointer; padding: 6px; transition: all 0.2s; }
+        .sp-btn.play { width: 44px; height: 44px; background: #fff; border-radius: 50%; color: #000; font-size: 1rem; }
         .sp-btn.play.playing { background: var(--green); color: #fff; }
-        .sp-btn.segment { font-size: clamp(0.7rem, 2vw, 0.8rem); color: var(--green); }
+        .sp-btn.segment { font-size: 0.8rem; color: var(--green); }
         .sp-dl {
             background: rgba(29,185,84,0.15); border: none; color: var(--green);
-            font-size: clamp(0.65rem, 1.5vw, 0.75rem); cursor: pointer; 
-            padding: clamp(4px, 1.5vw, 6px) clamp(8px, 2.5vw, 10px); border-radius: 15px;
+            font-size: 0.75rem; cursor: pointer; padding: 6px 10px; border-radius: 15px;
         }
         .sp-dl.downloading { animation: downloading 0.8s infinite; }
 
-        /* TOAST */
+        /* ===== TOAST ===== */
         .toast {
             position: fixed; bottom: calc(var(--player-h) + 20px); left: 50%;
             transform: translateX(-50%) translateY(120px); background: #333;
-            color: #fff; padding: 8px 16px; border-radius: 20px; 
-            font-size: clamp(0.65rem, 1.5vw, 0.75rem);
+            color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 0.75rem;
             z-index: 600; transition: transform 0.3s; white-space: nowrap;
             max-width: 90vw; overflow: hidden; text-overflow: ellipsis; pointer-events: none;
         }
         .toast.show { transform: translateX(-50%) translateY(0); }
         .loading { text-align: center; padding: 40px; color: var(--text2); }
-        .spinner { 
-            width: clamp(24px, 7vw, 30px); height: clamp(24px, 7vw, 30px); 
-            border: 3px solid var(--border); border-top-color: var(--red); 
-            border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px; 
-        }
+        .spinner { width: 30px; height: 30px; border: 3px solid var(--border); border-top-color: var(--red); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px; }
 
-        /* PLAYER VIDEO */
+        /* ===== PLAYER VIDEO ===== */
         .player-container {
             width: 100%; background: #000; display: none; position: relative;
             animation: slideUp 0.4s ease; border-bottom: 2px solid var(--red);
@@ -342,9 +356,9 @@
         .player-wrapper { width: 100%; aspect-ratio: 16/9; position: relative; }
         .player-wrapper iframe { width: 100%; height: 100%; border: none; }
         .player-close {
-            position: absolute; top: 8px; right: 8px; width: clamp(28px, 8vw, 32px); 
-            height: clamp(28px, 8vw, 32px); border-radius: 50%; background: rgba(0,0,0,0.7); 
-            border: none; color: #fff; font-size: clamp(14px, 4vw, 16px); cursor: pointer; z-index: 10;
+            position: absolute; top: 8px; right: 8px; width: 32px; height: 32px;
+            border-radius: 50%; background: rgba(0,0,0,0.7); border: none;
+            color: #fff; font-size: 16px; cursor: pointer; z-index: 10;
             display: flex; align-items: center; justify-content: center;
         }
     </style>
@@ -354,8 +368,47 @@
     <div class="app-container">
         <div class="hidden-player" id="hiddenPlayer"></div>
         
-        <!-- Indicador de escala -->
-        <div class="scale-indicator" id="scaleIndicator">100%</div>
+        <!-- CALIBRADOR DE TELA -->
+        <div class="screen-calibrator" id="screenCalibrator">
+            <button class="calibration-close" onclick="closeCalibrator()">✕</button>
+            <div class="calibration-box">
+                <div class="calibration-title">
+                    📐 Calibrador de Tela
+                </div>
+                
+                <div class="calibration-info" id="calibrationInfo">
+                    <div>📱 <span>Dispositivo:</span> <span class="highlight" id="calDevice">--</span></div>
+                    <div>📏 <span>Resolução:</span> <span class="highlight" id="calResolution">--</span></div>
+                    <div>🖥️ <span>Viewport:</span> <span class="highlight" id="calViewport">--</span></div>
+                    <div>📐 <span>Orientação:</span> <span class="highlight" id="calOrientation">--</span></div>
+                    <div>🔲 <span>Safe Area:</span> <span class="highlight" id="calSafeArea">--</span></div>
+                    <div>📊 <span>Pixel Ratio:</span> <span class="highlight" id="calPixelRatio">--</span></div>
+                    <div style="margin-top:8px;padding-top:8px;border-top:1px solid #333;">
+                        <span>⚙️ Calibração Salva:</span><br>
+                        <span class="highlight" id="calSaved">Nenhuma</span>
+                    </div>
+                </div>
+                
+                <button class="calibration-btn detect" onclick="detectScreen()">
+                    🔍 Detectar Tela Automaticamente
+                </button>
+                
+                <button class="calibration-btn apply" onclick="applyCalibration()">
+                    ✅ Aplicar e Salvar Calibração
+                </button>
+                
+                <button class="calibration-btn reset" onclick="resetCalibration()">
+                    🔄 Resetar para Padrão
+                </button>
+                
+                <div class="calibration-status" id="calibrationStatus">
+                    Pressione "Detectar" para analisar sua tela
+                </div>
+            </div>
+        </div>
+        
+        <!-- Indicador de calibração -->
+        <div class="calibration-indicator" id="calibrationIndicator"></div>
 
         <!-- TOPBAR -->
         <div class="topbar">
@@ -364,7 +417,7 @@
                 <span class="logo-text">Play Tube<sup>MUSIC</sup></span>
             </div>
             <div class="spacer"></div>
-            <button class="zoom-btn" onclick="toggleZoom()" title="Ajustar Tela">🔍</button>
+            <button class="calibrate-btn" onclick="openCalibrator()" title="Calibrar Tela">📐</button>
             <button class="mir-btn" id="mirToggleBtn" onclick="toggleMIR()" title="Detecção Inteligente">🎼 MIR</button>
             <button class="theme-btn" onclick="T.cycle()" title="Tema">🎨</button>
         </div>
@@ -414,13 +467,14 @@
             </div>
             <div id="resultsContainer">
                 <div style="text-align:center;padding:50px;color:var(--text2);">
-                    <div style="font-size:clamp(2rem, 8vw, 3rem);">🎧</div>
-                    <div style="font-size:clamp(0.9rem, 3vw, 1.1rem);color:var(--text);">Play Tube Music Pro</div>
-                    <div style="font-size:clamp(0.7rem, 2vw, 0.8rem);color:var(--text3);">com Detecção Inteligente de Músicas</div>
+                    <div style="font-size:3rem;">🎧</div>
+                    <div style="font-size:1.1rem;color:var(--text);">Play Tube Music Pro</div>
+                    <div style="font-size:0.8rem;color:var(--text3);">com Detecção Inteligente de Músicas</div>
                 </div>
             </div>
+            
             <!-- CONTROLE DE PÁGINAS -->
-            <div class="page-counter" id="pageCounter" style="display:none;">
+            <div class="page-counter" id="pageCounter">
                 <button class="page-btn" onclick="changePage('first')" title="Primeira">⏮</button>
                 <button class="page-btn" onclick="changePage('prev')" title="Anterior">◀</button>
                 <span class="page-info" id="pageInfo">Pág 1 de 1</span>
@@ -458,79 +512,195 @@
     (function() {
         'use strict';
         
-        // ===== AUTO AJUSTE DE TELA =====
-        const AutoSize = {
-            currentZoom: 1,
-            zoomLevels: [0.8, 0.9, 1, 1.1, 1.2],
-            zoomIndex: 2, // Começa em 100%
+        // ===== CALIBRADOR DE TELA INTELIGENTE =====
+        const ScreenCalibrator = {
+            calibration: null,
             
-            calibrate() {
+            // Carregar calibração salva
+            load() {
+                try {
+                    const saved = localStorage.getItem('screen_calibration');
+                    if (saved) {
+                        this.calibration = JSON.parse(saved);
+                        this.apply();
+                        return true;
+                    }
+                } catch(e) {}
+                return false;
+            },
+            
+            // Detectar dados da tela
+            detect() {
                 const w = window.innerWidth;
                 const h = window.innerHeight;
-                const portrait = h > w;
-                const mobile = w < 768;
+                const sw = screen.width;
+                const sh = screen.height;
+                const dpr = window.devicePixelRatio || 1;
+                const orientation = screen.orientation?.type || (w > h ? 'landscape' : 'portrait');
                 
-                // Ajustar altura do player
-                let ph = mobile ? (portrait ? 70 : 55) : 80;
-                document.documentElement.style.setProperty('--player-h', ph + 'px');
+                // Calcular safe area
+                const safeTop = parseInt(getComputedStyle(document.documentElement).getPropertyValue('env(safe-area-inset-top)')) || 0;
+                const safeBottom = parseInt(getComputedStyle(document.documentElement).getPropertyValue('env(safe-area-inset-bottom)')) || 0;
+                const safeLeft = parseInt(getComputedStyle(document.documentElement).getPropertyValue('env(safe-area-inset-left)')) || 0;
+                const safeRight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('env(safe-area-inset-right)')) || 0;
                 
-                // Safe area para notch
-                const sb = parseInt(getComputedStyle(document.documentElement).getPropertyValue('env(safe-area-inset-bottom)')) || 0;
-                document.documentElement.style.setProperty('--safe-b', sb + 'px');
-                document.body.style.paddingBottom = `calc(${ph}px + ${sb}px + 15px)`;
+                // Detectar tipo de dispositivo
+                const ua = navigator.userAgent;
+                let deviceType = 'Desktop';
+                if (/iPhone|iPad|iPod/.test(ua)) deviceType = 'iOS';
+                else if (/Android/.test(ua)) deviceType = 'Android';
+                else if (/Windows Phone/.test(ua)) deviceType = 'Windows Phone';
+                else if (w < 768) deviceType = 'Mobile';
+                else if (w < 1024) deviceType = 'Tablet';
                 
-                // Auto font-size baseado na largura
-                let fs;
-                if (w < 320) fs = 12;
-                else if (w < 360) fs = 13;
-                else if (w < 400) fs = 14;
-                else if (w < 480) fs = 15;
-                else if (w < 768) fs = 16;
-                else fs = 17;
+                // Calcular tamanho ideal da fonte
+                let baseFontSize;
+                if (w < 320) baseFontSize = 12;
+                else if (w < 360) baseFontSize = 13;
+                else if (w < 400) baseFontSize = 14;
+                else if (w < 480) baseFontSize = 15;
+                else if (w < 768) baseFontSize = 16;
+                else if (w < 1024) baseFontSize = 17;
+                else baseFontSize = 18;
                 
-                document.documentElement.style.fontSize = (fs * this.currentZoom) + 'px';
+                // Calcular largura máxima do container
+                let maxWidth = Math.min(550, w);
                 
-                // Ajustar largura do container
+                // Altura do player
+                let playerHeight = w < 768 ? (w > h ? 55 : 70) : 80;
+                
+                this.calibration = {
+                    deviceType,
+                    viewportWidth: w,
+                    viewportHeight: h,
+                    screenWidth: sw,
+                    screenHeight: sh,
+                    pixelRatio: dpr,
+                    orientation,
+                    safeArea: { top: safeTop, bottom: safeBottom, left: safeLeft, right: safeRight },
+                    baseFontSize,
+                    maxWidth,
+                    playerHeight,
+                    timestamp: new Date().toISOString()
+                };
+                
+                return this.calibration;
+            },
+            
+            // Aplicar calibração
+            apply() {
+                if (!this.calibration) return;
+                const cal = this.calibration;
+                
+                // Aplicar fonte base
+                document.documentElement.style.fontSize = cal.baseFontSize + 'px';
+                
+                // Aplicar largura máxima
                 const container = document.querySelector('.app-container');
                 if (container) {
-                    if (w > 768) {
-                        container.style.maxWidth = Math.min(550, w * 0.9) + 'px';
-                    } else {
-                        container.style.maxWidth = '100%';
-                    }
+                    container.style.maxWidth = cal.maxWidth + 'px';
                 }
                 
-                this.updateScaleIndicator();
-            },
-            
-            toggleZoom() {
-                this.zoomIndex = (this.zoomIndex + 1) % this.zoomLevels.length;
-                this.currentZoom = this.zoomLevels[this.zoomIndex];
-                this.calibrate();
+                // Aplicar altura do player
+                document.documentElement.style.setProperty('--player-h', cal.playerHeight + 'px');
                 
-                const percent = Math.round(this.currentZoom * 100);
-                toast(`🔍 Zoom: ${percent}%`);
-                this.showScaleIndicator();
+                // Aplicar safe area
+                document.documentElement.style.setProperty('--safe-b', cal.safeArea.bottom + 'px');
+                document.body.style.paddingBottom = `calc(${cal.playerHeight}px + ${cal.safeArea.bottom}px + 15px)`;
+                
+                // Salvar no localStorage
+                try {
+                    localStorage.setItem('screen_calibration', JSON.stringify(cal));
+                } catch(e) {}
+                
+                // Atualizar indicador
+                this.updateIndicator();
             },
             
-            updateScaleIndicator() {
-                const indicator = document.getElementById('scaleIndicator');
-                if (indicator) {
-                    const percent = Math.round(this.currentZoom * 100);
-                    indicator.textContent = `📱 ${percent}% | ${window.innerWidth}x${window.innerHeight}`;
-                }
+            // Resetar para padrão
+            reset() {
+                localStorage.removeItem('screen_calibration');
+                this.calibration = null;
+                document.documentElement.style.fontSize = '16px';
+                const container = document.querySelector('.app-container');
+                if (container) container.style.maxWidth = '550px';
+                document.documentElement.style.setProperty('--player-h', '80px');
+                document.documentElement.style.setProperty('--safe-b', '0px');
+                document.body.style.paddingBottom = 'calc(80px + 0px + 15px)';
+                this.updateIndicator();
             },
             
-            showScaleIndicator() {
-                const indicator = document.getElementById('scaleIndicator');
-                if (indicator) {
-                    indicator.classList.add('show');
-                    clearTimeout(this._scaleTimeout);
-                    this._scaleTimeout = setTimeout(() => {
-                        indicator.classList.remove('show');
-                    }, 2000);
+            // Atualizar painel de calibração
+            updatePanel() {
+                if (!this.calibration) return;
+                const cal = this.calibration;
+                
+                document.getElementById('calDevice').textContent = cal.deviceType;
+                document.getElementById('calResolution').textContent = `${cal.screenWidth}x${cal.screenHeight} @${cal.pixelRatio}x`;
+                document.getElementById('calViewport').textContent = `${cal.viewportWidth}x${cal.viewportHeight}`;
+                document.getElementById('calOrientation').textContent = cal.orientation === 'portrait' ? '📱 Retrato' : '🖥️ Paisagem';
+                document.getElementById('calSafeArea').textContent = `T:${cal.safeArea.top} B:${cal.safeArea.bottom} L:${cal.safeArea.left} R:${cal.safeArea.right}`;
+                document.getElementById('calPixelRatio').textContent = `${cal.pixelRatio}x`;
+                
+                const saved = localStorage.getItem('screen_calibration');
+                document.getElementById('calSaved').textContent = saved ? 
+                    `✅ ${cal.deviceType} - Fonte:${cal.baseFontSize}px - Player:${cal.playerHeight}px` : 
+                    '⚠️ Não salva';
+                
+                document.getElementById('calibrationStatus').textContent = 
+                    `✅ Detectado: ${cal.deviceType} - ${cal.viewportWidth}x${cal.viewportHeight} - ${cal.orientation}`;
+            },
+            
+            // Atualizar indicador flutuante
+            updateIndicator() {
+                const indicator = document.getElementById('calibrationIndicator');
+                if (!indicator) return;
+                
+                if (this.calibration) {
+                    const cal = this.calibration;
+                    indicator.style.display = 'block';
+                    indicator.textContent = `📐 ${cal.deviceType} | ${cal.viewportWidth}x${cal.viewportHeight} | Fonte:${cal.baseFontSize}px | Player:${cal.playerHeight}px`;
+                } else {
+                    const w = window.innerWidth;
+                    const h = window.innerHeight;
+                    indicator.style.display = 'block';
+                    indicator.textContent = `⚙️ Padrão | ${w}x${h} | Fonte:16px | Player:80px`;
                 }
             }
+        };
+
+        // ===== FUNÇÕES DO CALIBRADOR =====
+        window.openCalibrator = () => {
+            const panel = document.getElementById('screenCalibrator');
+            panel.classList.add('active');
+            ScreenCalibrator.detect();
+            ScreenCalibrator.updatePanel();
+        };
+        
+        window.closeCalibrator = () => {
+            document.getElementById('screenCalibrator').classList.remove('active');
+        };
+        
+        window.detectScreen = () => {
+            ScreenCalibrator.detect();
+            ScreenCalibrator.updatePanel();
+            toast('🔍 Tela detectada!');
+        };
+        
+        window.applyCalibration = () => {
+            if (!ScreenCalibrator.calibration) {
+                ScreenCalibrator.detect();
+            }
+            ScreenCalibrator.apply();
+            ScreenCalibrator.updatePanel();
+            closeCalibrator();
+            toast('✅ Calibração aplicada e salva!');
+        };
+        
+        window.resetCalibration = () => {
+            ScreenCalibrator.reset();
+            ScreenCalibrator.updatePanel();
+            toast('🔄 Calibração resetada!');
         };
 
         // ===== SISTEMA DE PÁGINAS =====
@@ -562,8 +732,6 @@
                     case 'last': this.currentPage = this.totalPages; break;
                 }
                 this.updateUI();
-                
-                // Disparar evento para recarregar conteúdo
                 if (typeof window.onPageChange === 'function') {
                     window.onPageChange(this.currentPage, this.getPageItems());
                 }
@@ -574,7 +742,6 @@
                 if (page >= 1 && page <= this.totalPages) {
                     this.currentPage = page;
                     this.updateUI();
-                    
                     if (typeof window.onPageChange === 'function') {
                         window.onPageChange(this.currentPage, this.getPageItems());
                     }
@@ -586,51 +753,38 @@
                 const info = document.getElementById('pageInfo');
                 const jump = document.getElementById('pageJump');
                 
-                if (this.totalPages <= 1) {
-                    if (counter) counter.style.display = 'none';
-                } else {
-                    if (counter) counter.style.display = 'flex';
-                    if (info) info.textContent = `Pág ${this.currentPage} de ${this.totalPages}`;
+                if (this.totalPages > 1) {
+                    counter.classList.add('active');
+                    info.textContent = `Pág ${this.currentPage} de ${this.totalPages}`;
                     if (jump) {
                         jump.max = this.totalPages;
                         jump.value = '';
                         jump.placeholder = `1-${this.totalPages}`;
                     }
                     
-                    // Atualizar estado dos botões
-                    const buttons = document.querySelectorAll('.page-btn');
+                    const buttons = counter.querySelectorAll('.page-btn');
                     buttons.forEach(btn => {
-                        const action = btn.getAttribute('onclick')?.match(/'(\w+)'/)?.[1];
-                        if (action === 'first' || action === 'prev') {
+                        const onclick = btn.getAttribute('onclick') || '';
+                        if (onclick.includes("'first'") || onclick.includes("'prev'")) {
                             btn.disabled = this.currentPage === 1;
                         }
-                        if (action === 'next' || action === 'last') {
+                        if (onclick.includes("'next'") || onclick.includes("'last'")) {
                             btn.disabled = this.currentPage === this.totalPages;
                         }
                     });
+                } else {
+                    counter.classList.remove('active');
                 }
                 
-                // Atualizar contador de resultados
                 const total = this.currentItems.length;
                 const start = (this.currentPage - 1) * this.itemsPerPage + 1;
                 const end = Math.min(this.currentPage * this.itemsPerPage, total);
-                
                 const resultCount = document.getElementById('resultCount');
                 if (resultCount && total > 0) {
                     resultCount.textContent = total > this.itemsPerPage ? 
                         `${start}-${end} de ${total}` : 
                         `${total} itens`;
                 }
-            }
-        };
-
-        // Handler para mudança de página
-        window.onPageChange = function(page, items) {
-            const resCont = document.getElementById('resultsContainer');
-            if (resCont && items) {
-                resCont.innerHTML = items.map(v => card(v)).join('');
-                updateFavButtons();
-                toast(`📄 Página ${page}`);
             }
         };
 
@@ -725,22 +879,18 @@
                 if (!this.active || !playing) return;
                 const time = yt?.getCurrentTime?.() || 0;
                 if (isNaN(time)) return;
-                
                 const shouldDetect = Math.random() < 0.01;
                 if (shouldDetect || this.segments.length === 0) {
                     this.musicCount++;
                     const seg = { id: Date.now(), start: time, end: null, name: `Música ${this.musicCount}`, duration: null };
-                    
                     if (this.segments.length > 0) {
                         const last = this.segments[this.segments.length - 1];
                         if (!last.end) { last.end = time; last.duration = time - last.start; }
                     }
-                    
                     this.segments.push(seg);
                     this.currentSegment = this.segments.length - 1;
                     this.updateSegmentsList();
                     setStorage('mir_segments', this.segments);
-                    
                     if (this.segments.length > 1) toast(`🎵 ${seg.name} detectada!`);
                 }
             },
@@ -748,13 +898,11 @@
             startVisualization() {
                 const container = document.getElementById('mirWaveform');
                 if (!container) return;
-                
                 const update = () => {
                     if (!this.active) return;
                     const numBars = 40;
                     let bars = '';
                     const energy = playing ? 0.5 + Math.random() * 0.5 : 0.1;
-                    
                     for (let i = 0; i < numBars; i++) {
                         const height = Math.min(100, Math.max(2, energy * 80 + Math.sin(Date.now() * 0.005 + i * 0.5) * 20));
                         bars += `<div class="mir-bar" style="height:${height}px"></div>`;
@@ -763,7 +911,6 @@
                     this.detectMusic();
                     this._animFrame = requestAnimationFrame(update);
                 };
-                
                 this._animFrame = requestAnimationFrame(update);
             },
             
@@ -893,8 +1040,7 @@
         window.showVideo = () => {
             if (!vid) return;
             isVideo = true;
-            const container = document.getElementById('playerContainer');
-            container.classList.add('active');
+            document.getElementById('playerContainer').classList.add('active');
             const startTime = yt?.getCurrentTime?.() || 0;
             const wrapper = document.getElementById('playerWrapper');
             if (!ytTop) {
@@ -905,7 +1051,7 @@
                     events: { onReady: () => { if (!isNaN(startTime)) ytTop.seekTo(startTime); }, onStateChange: (e) => { if (e.data === 1 && yt?.pauseVideo) yt.pauseVideo(); if (e.data === 0) closeVideo(); } }
                 });
             } else { ytTop.loadVideoById({ videoId: vid, startSeconds: startTime }); }
-            container.scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('playerContainer').scrollIntoView({ behavior: 'smooth' });
         };
         window.closeVideo = () => { document.getElementById('playerContainer').classList.remove('active'); if (ytTop) ytTop.stopVideo(); isVideo = false; };
         window.downloadCurrent = () => { if (!vid || idx < 0) { toast('⚠️ Nenhuma música selecionada'); return; } DL.download(playlist[idx].id, playlist[idx].title, playlist[idx].channel, playlist[idx].thumbnail); };
@@ -988,25 +1134,27 @@
                 if (query) { searchYT(query); return; }
                 resCont.innerHTML = '<div style="text-align:center;padding:50px;color:var(--text2);"><div style="font-size:3rem;">🎧</div><div>Busque suas músicas</div></div>';
                 document.getElementById('resultCount').textContent = '';
-                document.getElementById('pageCounter').style.display = 'none';
+                document.getElementById('pageCounter').classList.remove('active');
                 return;
             }
             
             if (items.length === 0) {
                 const empties = { 'favorites': '❤️ Nenhum favorito', 'history': '🕐 Histórico vazio', 'downloads': '📥 Nenhum download', 'segments': 'Ative o MIR e reproduza uma música' };
                 resCont.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text2);">${empties[t] || 'Vazio'}</div>`;
-                document.getElementById('pageCounter').style.display = 'none';
+                document.getElementById('pageCounter').classList.remove('active');
                 document.getElementById('resultCount').textContent = '';
             } else {
                 Paginator.init(items, 10);
-                resCont.innerHTML = Paginator.getPageItems().map(v => {
-                    if (t === 'segments') {
-                        const segIdx = Paginator.currentItems.indexOf(v);
-                        return `<div class="video-card" onclick="MIR.jumpToSegment(${segIdx})" style="border-left:3px solid var(--green);"><div class="video-info"><div class="video-title">🎵 ${v.name}</div><div class="video-channel">${formatTime(v.start)} - ${v.end ? formatTime(v.end) : '...'}</div></div></div>`;
-                    }
-                    return card(v);
-                }).join('');
-                updateFavButtons();
+                const pageItems = Paginator.getPageItems();
+                if (t === 'segments') {
+                    resCont.innerHTML = pageItems.map((seg, i) => {
+                        const segIdx = Paginator.currentItems.indexOf(seg);
+                        return `<div class="video-card" onclick="MIR.jumpToSegment(${segIdx})" style="border-left:3px solid var(--green);"><div class="video-info"><div class="video-title">🎵 ${seg.name}</div><div class="video-channel">${formatTime(seg.start)} - ${seg.end ? formatTime(seg.end) : '...'}</div></div></div>`;
+                    }).join('');
+                } else {
+                    resCont.innerHTML = pageItems.map(v => card(v)).join('');
+                    updateFavButtons();
+                }
             }
         };
 
@@ -1021,7 +1169,6 @@
             document.getElementById('resultCount').textContent = '';
             
             try {
-                // Simulação com mais resultados para testar paginação
                 const mockResults = [];
                 for (let i = 1; i <= 25; i++) {
                     mockResults.push({ id: `video${i}`, title: `${q} - Resultado ${i}`, channel: `Canal ${i}`, thumbnail: '' });
@@ -1041,9 +1188,6 @@
             if (page) Paginator.jumpTo(page);
         };
 
-        // ===== ZOOM =====
-        window.toggleZoom = () => AutoSize.toggleZoom();
-
         // ===== UTILS =====
         function toast(m) {
             if (toastTO) clearTimeout(toastTO);
@@ -1062,20 +1206,48 @@
 
         // ===== INIT =====
         function init() {
-            AutoSize.calibrate();
+            // Carregar calibração salva
+            const hasCalibration = ScreenCalibrator.load();
+            if (!hasCalibration) {
+                // Detectar automaticamente na primeira vez
+                ScreenCalibrator.detect();
+                ScreenCalibrator.apply();
+                console.log('✅ Calibração automática aplicada');
+            } else {
+                console.log('✅ Calibração carregada do storage');
+            }
+            
+            ScreenCalibrator.updateIndicator();
+            
+            // Inicializar visualizador MIR
             const waveform = document.getElementById('mirWaveform');
             if (waveform) { let bars = ''; for (let i = 0; i < 40; i++) bars += '<div class="mir-bar" style="height:2px"></div>'; waveform.innerHTML = bars; }
-            console.log('✅ Play Tube Music Pro v8 - Auto Size + Pages');
+            
+            console.log('✅ Play Tube Music Pro v9 - Calibrador Inteligente');
         }
         
-        window.addEventListener('resize', () => { clearTimeout(window._rt); window._rt = setTimeout(() => AutoSize.calibrate(), 250); });
-        window.addEventListener('orientationchange', () => setTimeout(() => AutoSize.calibrate(), 300));
+        window.addEventListener('resize', () => { 
+            clearTimeout(window._rt); 
+            window._rt = setTimeout(() => {
+                // Recalibrar em resize apenas se não tiver calibração salva
+                if (!ScreenCalibrator.calibration) {
+                    ScreenCalibrator.detect();
+                    ScreenCalibrator.apply();
+                }
+                ScreenCalibrator.updateIndicator();
+            }, 500); 
+        });
+        
+        window.addEventListener('orientationchange', () => setTimeout(() => {
+            ScreenCalibrator.detect();
+            ScreenCalibrator.updateIndicator();
+        }, 300));
+        
         window.addEventListener('load', init);
         window.addEventListener('error', (e) => { if (e.target && e.target.tagName === 'IMG') e.target.style.display = 'none'; }, true);
 
         // Expor globais
-        window.T = T; window.MIR = MIR; window.AutoSize = AutoSize; window.Paginator = Paginator;
-        window.changePage = window.changePage; window.jumpToPage = window.jumpToPage;
+        window.T = T; window.MIR = MIR; window.ScreenCalibrator = ScreenCalibrator; window.Paginator = Paginator;
     })();
     </script>
 </body>
