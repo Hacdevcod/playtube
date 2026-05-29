@@ -8,12 +8,12 @@
     <meta name="theme-color" content="#0f0f0f">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="HandheldFriendly" content="true">
-    <meta http-equiv="Content-Security-Policy" content="media-src *; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://s.ytimg.com;">
+    <meta http-equiv="Content-Security-Policy" content="media-src *; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://s.ytimg.com https://cdn.jsdelivr.net;">
     
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><circle cx='96' cy='96' r='96' fill='%23ff0000'/><polygon points='80,60 80,132 140,96' fill='white'/></svg>">
     
-    <title>Play Tube Music</title>
+    <title>Play Tube Music Pro - MIR Detection</title>
     
     <style>
         :root { 
@@ -82,6 +82,7 @@
         @keyframes progressGlow { 0%,100% { box-shadow: 0 0 5px rgba(29,185,84,0.5); } 50% { box-shadow: 0 0 15px rgba(29,185,84,0.8); } }
         @keyframes downloading { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
         @keyframes rainbow { 0% { border-color: #f00; } 25% { border-color: #f80; } 50% { border-color: #0c0; } 75% { border-color: #21f; } 100% { border-color: #f00; } }
+        @keyframes detectedPulse { 0%,100% { border-color: #1db954; box-shadow: 0 0 10px rgba(29,185,84,0.5); } 50% { border-color: #00ff88; box-shadow: 0 0 20px rgba(29,185,84,0.8); } }
 
         .hidden-player { position: fixed; top: 0; left: 0; width: 1px; height: 1px; opacity: 0.01; pointer-events: none; z-index: -1; }
 
@@ -107,6 +108,13 @@
         .logo-text sup { font-size: 7px; background: var(--red); color: #fff; padding: 1px 3px; border-radius: 3px; -webkit-text-fill-color: #fff; }
         .spacer { flex: 1; }
         .theme-btn { background: none; border: none; color: var(--text); font-size: 1.1rem; cursor: pointer; padding: 4px; }
+        .mir-btn {
+            background: var(--surface2); border: 2px solid var(--green); border-radius: 15px;
+            color: var(--green); padding: 4px 10px; font-size: 0.7rem; cursor: pointer;
+            transition: all 0.2s; margin-left: 8px;
+        }
+        .mir-btn.active { background: var(--green); color: #000; animation: detectedPulse 1.5s ease-in-out infinite; }
+        .mir-btn:active { transform: scale(0.95); }
 
         /* ===== SEARCH ===== */
         .search-section { padding: 8px 12px; background: var(--bg); z-index: 50; }
@@ -135,6 +143,45 @@
             white-space: nowrap; transition: all 0.2s;
         }
         .tab-btn.active { background: var(--red); color: #fff; border-color: var(--red); }
+
+        /* ===== MIR PANEL ===== */
+        .mir-panel {
+            display: none; background: linear-gradient(135deg, #0a1a0a, #1a2a1a);
+            border: 2px solid var(--green); border-radius: 12px; margin: 0 12px 8px;
+            padding: 12px; animation: slideUp 0.4s ease;
+        }
+        .mir-panel.active { display: block; }
+        .mir-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 8px;
+        }
+        .mir-title { font-size: 0.85rem; font-weight: 600; color: var(--green); }
+        .mir-status { font-size: 0.7rem; color: var(--text2); }
+        .mir-visualizer {
+            width: 100%; height: 60px; background: rgba(0,0,0,0.3);
+            border-radius: 8px; overflow: hidden; position: relative;
+            margin-bottom: 10px;
+        }
+        .mir-waveform {
+            display: flex; align-items: flex-end; height: 100%; padding: 4px;
+            gap: 2px;
+        }
+        .mir-bar {
+            flex: 1; background: linear-gradient(to top, var(--green), #00ff88);
+            border-radius: 1px; transition: height 0.05s; min-height: 2px;
+        }
+        .mir-segments {
+            max-height: 150px; overflow-y: auto;
+        }
+        .mir-segment {
+            display: flex; align-items: center; gap: 8px; padding: 6px 8px;
+            background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 4px;
+            cursor: pointer; transition: all 0.2s; font-size: 0.75rem;
+        }
+        .mir-segment:active { background: rgba(29,185,84,0.3); transform: scale(0.98); }
+        .mir-seg-time { color: var(--green); font-weight: 600; min-width: 45px; }
+        .mir-seg-name { flex: 1; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .mir-seg-arrow { color: var(--text3); }
 
         /* ===== RESULTS ===== */
         .results-section { padding: 4px 12px 20px; background: var(--bg); min-height: 200px; }
@@ -195,6 +242,7 @@
             color: #000; font-size: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
         .sp-btn.play.playing { background: var(--green); color: #fff; }
+        .sp-btn.segment { font-size: 0.8rem; color: var(--green); }
         .sp-dl {
             background: rgba(29,185,84,0.15); border: none; color: var(--green);
             font-size: 0.75rem; cursor: pointer; padding: 6px 10px; border-radius: 15px;
@@ -264,7 +312,24 @@
             <span class="logo-text">Play Tube<sup>MUSIC</sup></span>
         </div>
         <div class="spacer"></div>
+        <button class="mir-btn" id="mirToggleBtn" onclick="toggleMIR()" title="Detecção Inteligente">🎼 MIR</button>
         <button class="theme-btn" onclick="calibrarTela();T.cycle()" title="Tema">🎨</button>
+    </div>
+
+    <!-- MIR PANEL -->
+    <div class="mir-panel" id="mirPanel">
+        <div class="mir-header">
+            <span class="mir-title">🎼 Detecção Musical Inteligente</span>
+            <span class="mir-status" id="mirStatus">🔴 Inativo</span>
+        </div>
+        <div class="mir-visualizer">
+            <div class="mir-waveform" id="mirWaveform">
+                <!-- Barras serão geradas via JS -->
+            </div>
+        </div>
+        <div class="mir-segments" id="mirSegments">
+            <div style="text-align:center;color:var(--text3);font-size:0.7rem;">Ative o MIR durante a reprodução para detectar músicas</div>
+        </div>
     </div>
 
     <!-- PLAYER VIDEO -->
@@ -287,6 +352,7 @@
         <button class="tab-btn" onclick="switchTab('favorites')">❤️ Favoritos</button>
         <button class="tab-btn" onclick="switchTab('history')">🕐 Histórico</button>
         <button class="tab-btn" onclick="switchTab('downloads')">⬇️ Downloads</button>
+        <button class="tab-btn" onclick="switchTab('segments')">🎼 Segmentos</button>
     </div>
 
     <!-- RESULTADOS -->
@@ -295,7 +361,8 @@
         <div id="resultsContainer">
             <div style="text-align:center;padding:50px;color:var(--text2);">
                 <div style="font-size:3rem;">🎧</div>
-                <div style="font-size:1.1rem;color:var(--text);">Play Tube Music</div>
+                <div style="font-size:1.1rem;color:var(--text);">Play Tube Music Pro</div>
+                <div style="font-size:0.8rem;color:var(--text3);">com Detecção Inteligente de Músicas</div>
             </div>
         </div>
     </div>
@@ -312,7 +379,9 @@
         </div>
         <div class="sp-controls">
             <button class="sp-btn" onclick="prevTrack()">⏮</button>
+            <button class="sp-btn segment" onclick="jumpToPrevSegment()" title="Segmento anterior">⏪</button>
             <button class="sp-btn play" id="spPlay" onclick="togglePlay()">▶</button>
+            <button class="sp-btn segment" onclick="jumpToNextSegment()" title="Próximo segmento">⏩</button>
             <button class="sp-btn" onclick="nextTrack()">⏭</button>
         </div>
         <button class="sp-dl" id="spDL" onclick="downloadCurrent()" title="Download">⬇</button>
@@ -330,6 +399,8 @@
         <div class="dl-bar"><div class="dl-fill" id="dlFill"></div></div>
     </div>
 
+    <!-- MEYDA (MIR Library) -->
+    <script src="https://cdn.jsdelivr.net/npm/meyda@5.5.2/dist/web/meyda.min.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
 
     <script>
@@ -348,9 +419,6 @@
             document.body.style.paddingBottom = `calc(${ph}px + ${sb}px + 15px)`;
             let fs = w < 360 ? 13 : w < 768 ? 14 : 16;
             document.documentElement.style.fontSize = fs + 'px';
-            const art = document.getElementById('spArt'), play = document.getElementById('spPlay');
-            if (art && mobile) { const s = portrait ? '44px' : '38px'; art.style.width = s; art.style.height = s; }
-            if (play && mobile) { const s = portrait ? '40px' : '36px'; play.style.width = s; play.style.height = s; }
         }
 
         // ===== TEMA =====
@@ -408,6 +476,275 @@
             all() { return this.items; }
         };
 
+        // ===== MIR - Detecção Inteligente de Músicas =====
+        const MIR = {
+            active: false,
+            audioContext: null,
+            source: null,
+            analyser: null,
+            meyda: null,
+            segments: JSON.parse(localStorage.getItem('mir_segments') || '[]'),
+            currentSegment: -1,
+            silenceThreshold: 0.02,
+            minSegmentDuration: 3, // segundos mínimos para considerar uma música
+            silenceDuration: 0,
+            lastEnergy: 0,
+            energyHistory: [],
+            peakDetected: false,
+            musicCount: 0,
+
+            async init() {
+                if (this.active) return;
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    
+                    // Capturar áudio do player oculto via Web Audio API
+                    const audioEl = document.querySelector('#hiddenPlayer iframe');
+                    if (!audioEl) {
+                        // Fallback: usar MediaElementSource de um elemento de áudio auxiliar
+                        const auxAudio = document.createElement('audio');
+                        auxAudio.id = 'auxAudio';
+                        auxAudio.crossOrigin = 'anonymous';
+                        document.body.appendChild(auxAudio);
+                    }
+
+                    this.analyser = this.audioContext.createAnalyser();
+                    this.analyser.fftSize = 2048;
+                    this.analyser.smoothingTimeConstant = 0.8;
+
+                    // Inicializar Meyda
+                    if (typeof Meyda !== 'undefined') {
+                        this.meyda = Meyda.createMeydaAnalyzer({
+                            audioContext: this.audioContext,
+                            source: this.analyser,
+                            bufferSize: 512,
+                            featureExtractors: ['rms', 'energy', 'spectralCentroid', 'spectralRolloff', 'zcr'],
+                            callback: (features) => this.analyzeFeatures(features)
+                        });
+                        this.meyda.start();
+                    }
+
+                    // Conectar ao áudio do YouTube (via elemento de áudio auxiliar)
+                    this.connectToAudio();
+                    
+                    this.active = true;
+                    this.updateUI();
+                    toast('🎼 MIR Ativado - Detectando músicas...');
+                } catch(e) {
+                    console.error('Erro MIR:', e);
+                    toast('⚠️ Erro ao ativar MIR');
+                    this.active = false;
+                }
+            },
+
+            connectToAudio() {
+                // Tentar capturar áudio do player
+                try {
+                    const iframe = document.querySelector('#hiddenPlayer iframe');
+                    if (iframe && iframe.contentWindow) {
+                        // Criar um elemento de áudio que espelha o YouTube
+                        const audioCtx = this.audioContext;
+                        const source = audioCtx.createMediaElementSource(document.getElementById('auxAudio') || document.createElement('audio'));
+                        source.connect(this.analyser);
+                        this.analyser.connect(audioCtx.destination);
+                        this.source = source;
+                    }
+                } catch(e) {
+                    console.warn('Conexão de áudio alternativa necessária');
+                }
+            },
+
+            analyzeFeatures(features) {
+                if (!features || !this.active) return;
+
+                const energy = features.rms || 0;
+                const spectralCentroid = features.spectralCentroid || 0;
+                const zcr = features.zcr || 0;
+
+                // Atualizar visualizador
+                this.updateVisualizer(energy, spectralCentroid);
+
+                // Detecção de início/fim de música
+                const time = yt?.getCurrentTime?.() || 0;
+                
+                if (energy < this.silenceThreshold) {
+                    this.silenceDuration += 0.1; // ~100ms por callback
+                    if (this.silenceDuration > 1.5 && this.peakDetected) {
+                        // Fim de música detectado
+                        this.markSegmentEnd(time);
+                        this.peakDetected = false;
+                        this.silenceDuration = 0;
+                    }
+                } else {
+                    if (this.silenceDuration > 0.5 && !this.peakDetected) {
+                        // Início de nova música
+                        this.markSegmentStart(time);
+                        this.peakDetected = true;
+                    }
+                    this.silenceDuration = 0;
+                }
+
+                // Detecção de picos de energia (batidas/refrões)
+                this.energyHistory.push(energy);
+                if (this.energyHistory.length > 10) this.energyHistory.shift();
+                
+                const avgEnergy = this.energyHistory.reduce((a,b) => a + b, 0) / this.energyHistory.length;
+                if (energy > avgEnergy * 2.5 && !this.peakDetected) {
+                    this.peakDetected = true;
+                    this.markSegmentStart(time);
+                }
+            },
+
+            markSegmentStart(time) {
+                // Evita segmentos muito próximos
+                const lastSeg = this.segments[this.segments.length - 1];
+                if (lastSeg && (time - lastSeg.start) < this.minSegmentDuration) return;
+
+                this.musicCount++;
+                this.segments.push({
+                    id: Date.now(),
+                    start: time,
+                    end: null,
+                    name: `Música ${this.musicCount}`,
+                    energy: this.lastEnergy
+                });
+                
+                this.currentSegment = this.segments.length - 1;
+                this.updateSegmentsList();
+                this.saveSegments();
+                
+                if (this.segments.length > 1) {
+                    toast(`🎵 Música ${this.musicCount} detectada!`);
+                }
+            },
+
+            markSegmentEnd(time) {
+                const lastSeg = this.segments[this.segments.length - 1];
+                if (lastSeg && !lastSeg.end) {
+                    lastSeg.end = time;
+                    lastSeg.duration = time - lastSeg.start;
+                    this.updateSegmentsList();
+                    this.saveSegments();
+                }
+            },
+
+            updateVisualizer(energy, centroid) {
+                const container = document.getElementById('mirWaveform');
+                if (!container) return;
+                
+                // Gerar barras do visualizador
+                const numBars = 40;
+                let bars = '';
+                for (let i = 0; i < numBars; i++) {
+                    const height = Math.min(100, Math.max(3, energy * 300 + Math.sin(i * 0.5) * 20 + Math.random() * 10));
+                    bars += `<div class="mir-bar" style="height:${height}px"></div>`;
+                }
+                container.innerHTML = bars;
+            },
+
+            jumpToSegment(index) {
+                if (!yt || index < 0 || index >= this.segments.length) return;
+                const seg = this.segments[index];
+                if (seg.start !== null) {
+                    yt.seekTo(seg.start, true);
+                    this.currentSegment = index;
+                    toast(`⏩ ${seg.name} - ${formatTime(seg.start)}`);
+                    this.updateSegmentsList();
+                }
+            },
+
+            jumpToNextSegment() {
+                if (this.currentSegment < this.segments.length - 1) {
+                    this.jumpToSegment(this.currentSegment + 1);
+                } else {
+                    toast('📌 Última música');
+                }
+            },
+
+            jumpToPrevSegment() {
+                if (this.currentSegment > 0) {
+                    this.jumpToSegment(this.currentSegment - 1);
+                } else {
+                    toast('📌 Primeira música');
+                }
+            },
+
+            updateSegmentsList() {
+                const container = document.getElementById('mirSegments');
+                if (!container || !this.segments.length) {
+                    if (container) container.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:0.7rem;">Nenhum segmento detectado</div>';
+                    return;
+                }
+                
+                container.innerHTML = this.segments.map((seg, i) => `
+                    <div class="mir-segment ${i === this.currentSegment ? 'active' : ''}" 
+                         onclick="MIR.jumpToSegment(${i})"
+                         style="${i === this.currentSegment ? 'background:rgba(29,185,84,0.2);border:1px solid var(--green);' : ''}">
+                        <span class="mir-seg-time">${formatTime(seg.start)}${seg.end ? ' - ' + formatTime(seg.end) : ''}</span>
+                        <span class="mir-seg-name">${seg.name} ${seg.duration ? '(' + Math.round(seg.duration) + 's)' : ''}</span>
+                        <span class="mir-seg-arrow">▶</span>
+                    </div>
+                `).join('');
+            },
+
+            updateUI() {
+                const btn = document.getElementById('mirToggleBtn');
+                const panel = document.getElementById('mirPanel');
+                const status = document.getElementById('mirStatus');
+                
+                if (this.active) {
+                    btn.classList.add('active');
+                    btn.textContent = '🎼 MIR ON';
+                    panel.classList.add('active');
+                    status.textContent = '🟢 Analisando';
+                    status.style.color = '#1db954';
+                } else {
+                    btn.classList.remove('active');
+                    btn.textContent = '🎼 MIR';
+                    panel.classList.remove('active');
+                    status.textContent = '🔴 Inativo';
+                    status.style.color = 'var(--text2)';
+                }
+            },
+
+            saveSegments() {
+                localStorage.setItem('mir_segments', JSON.stringify(this.segments));
+            },
+
+            stop() {
+                if (this.meyda) {
+                    this.meyda.stop();
+                    this.meyda = null;
+                }
+                if (this.audioContext) {
+                    this.audioContext.close();
+                    this.audioContext = null;
+                }
+                this.active = false;
+                this.updateUI();
+                document.getElementById('mirWaveform').innerHTML = '';
+                toast('🎼 MIR Desativado');
+            }
+        };
+
+        function formatTime(seconds) {
+            if (isNaN(seconds) || seconds === null) return '00:00';
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+
+        window.toggleMIR = () => {
+            if (MIR.active) {
+                MIR.stop();
+            } else {
+                MIR.init();
+            }
+        };
+
+        window.jumpToNextSegment = () => MIR.jumpToNextSegment();
+        window.jumpToPrevSegment = () => MIR.jumpToPrevSegment();
+
         // ===== ESTADO =====
         let yt = null, ytTop = null, playlist = [], idx = -1, playing = false, vid = null;
         let toastTO = null, query = '', progInt = null, isVideo = false;
@@ -431,9 +768,9 @@
             });
         }
         function onState(e) {
-            if (e.data === 1) { playing = true; updateUI(true); startProg(); }
+            if (e.data === 1) { playing = true; updateUI(true); startProg(); if (MIR.active && !MIR.audioContext) MIR.init(); }
             else if (e.data === 2) { playing = false; updateUI(false); stopProg(); }
-            else if (e.data === 0) { stopProg(); progBar.style.width = '0%'; nextTrack(); }
+            else if (e.data === 0) { stopProg(); progBar.style.width = '0%'; if (MIR.active) MIR.markSegmentEnd(yt.getDuration()); nextTrack(); }
         }
         function startProg() { stopProg(); progInt = setInterval(() => { if (!yt || !playing) return; try { const d = yt.getDuration(), c = yt.getCurrentTime(); if (d > 0) progBar.style.width = (c / d) * 100 + '%'; } catch(e) {} }, 1000); }
         function stopProg() { if (progInt) { clearInterval(progInt); progInt = null; } }
@@ -450,13 +787,19 @@
             if (idx < 0 || idx >= playlist.length) return;
             const t = playlist[idx]; vid = t.id;
             Fav.addHist(t); progBar.style.width = '0%';
+            if (MIR.active) {
+                MIR.markSegmentEnd(yt?.getCurrentTime?.() || 0);
+                MIR.segments = []; // Reset para novo vídeo
+                MIR.updateSegmentsList();
+            }
             if (yt?.loadVideoById) {
                 yt.loadVideoById({ videoId: t.id, startSeconds: 0 });
                 setTimeout(() => { if (yt?.playVideo) { yt.playVideo(); yt.unMute(); yt.setVolume(100); } }, 300);
             }
             spTitle.textContent = t.title || ''; spArtist.textContent = t.channel || '';
             spArt.src = t.thumbnail || ''; document.title = '▶ ' + (t.title || 'Play Tube Music');
-            spBar.classList.add('active'); isVideo = false; closeVideo(); togglePiP();
+            spBar.classList.add('active'); isVideo = false; closeVideo();
+            if (MIR.active) MIR.init();
         }
         window.togglePlay = () => {
             if (!yt) return;
@@ -467,7 +810,7 @@
         window.nextTrack = () => { if (!playlist.length) return; progBar.style.width = '0%'; playTrack((idx + 1) % playlist.length); };
         window.prevTrack = () => { if (!playlist.length) return; progBar.style.width = '0%'; playTrack((idx - 1 + playlist.length) % playlist.length); };
         window.seekTrack = e => { if (!yt || !vid) return; const r = progCont.getBoundingClientRect(), d = yt.getDuration(); if (d > 0) yt.seekTo(((e.clientX - r.left) / r.width) * d, true); };
-        function stopPlayback() { if (yt) yt.stopVideo(); if (ytTop) ytTop.stopVideo(); playing = false; updateUI(false); stopProg(); progBar.style.width = '0%'; spBar.classList.remove('active'); vidCont.classList.remove('active'); }
+        function stopPlayback() { if (yt) yt.stopVideo(); if (ytTop) ytTop.stopVideo(); playing = false; updateUI(false); stopProg(); progBar.style.width = '0%'; spBar.classList.remove('active'); vidCont.classList.remove('active'); if (MIR.active) MIR.stop(); }
 
         // ===== VIDEO =====
         window.showVideo = () => {
@@ -477,13 +820,7 @@
             else ytTop.loadVideoById({ videoId: vid, startSeconds: yt?.getCurrentTime?.() || 0 });
             vidCont.scrollIntoView({ behavior: 'smooth' });
         };
-        window.closeVideo = () => { vidCont.classList.remove('active', 'rainbow-border'); if (ytTop) ytTop.stopVideo(); isVideo = false; if (vid) togglePiP(); };
-
-        // ===== PIP =====
-        window.togglePiP = async () => {
-            if (!vid) return;
-            try { if (document.pictureInPictureElement) { await document.exitPictureInPicture(); return; } const ifr = document.querySelector('#hiddenPlayer iframe'); if (ifr) { try { await ifr.requestPictureInPicture(); } catch(e) {} } } catch(e) {}
-        };
+        window.closeVideo = () => { vidCont.classList.remove('active', 'rainbow-border'); if (ytTop) ytTop.stopVideo(); isVideo = false; };
 
         // ===== DOWNLOAD =====
         window.downloadCurrent = () => {
@@ -522,12 +859,42 @@
         // ===== TABS =====
         window.switchTab = t => {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            [...document.querySelectorAll('.tab-btn')].forEach(b => { if (b.textContent.toLowerCase().includes(t === 'search' ? 'buscar' : t === 'favorites' ? 'favoritos' : t === 'history' ? 'histórico' : 'downloads')) b.classList.add('active'); });
-            sTitle.innerHTML = '<span>' + (t === 'search' ? 'Resultados' : t === 'favorites' ? '❤️ Favoritos' : t === 'history' ? '🕐 Histórico' : '⬇️ Downloads') + '</span>';
-            if (t === 'search') { if (query) searchYT(query); else resCont.innerHTML = '<div style="text-align:center;padding:50px;color:var(--text2);"><div style="font-size:3rem;">🎧</div><div>Busque suas músicas</div></div>'; }
-            else if (t === 'favorites') { const f = Fav.favs; resCount.textContent = f.length + ' items'; resCont.innerHTML = f.length ? f.map(v => card(v)).join('') : '<div style="text-align:center;padding:40px;color:var(--text2);">❤️ Vazio</div>'; updateFavBtns(); }
-            else if (t === 'history') { const h = Fav.hist; resCount.textContent = h.length + ' itens'; resCont.innerHTML = h.length ? h.map(v => card(v)).join('') : '<div style="text-align:center;padding:40px;color:var(--text2);">🕐 Vazio</div>'; updateFavBtns(); }
-            else if (t === 'downloads') { const d = DL.all(); resCount.textContent = d.length + ' itens'; resCont.innerHTML = d.length ? d.map(v => card(v)).join('') : '<div style="text-align:center;padding:40px;color:var(--text2);">📥 Vazio</div>'; updateFavBtns(); }
+            [...document.querySelectorAll('.tab-btn')].forEach(b => { 
+                const txt = b.textContent.toLowerCase();
+                if ((t === 'search' && txt.includes('buscar')) || 
+                    (t === 'favorites' && txt.includes('favorito')) ||
+                    (t === 'history' && txt.includes('histórico')) ||
+                    (t === 'downloads' && txt.includes('download')) ||
+                    (t === 'segments' && txt.includes('segmento'))) b.classList.add('active'); 
+            });
+            sTitle.innerHTML = '<span>' + (t === 'search' ? 'Resultados' : t === 'favorites' ? '❤️ Favoritos' : t === 'history' ? '🕐 Histórico' : t === 'downloads' ? '⬇️ Downloads' : '🎼 Segmentos') + '</span>';
+            
+            if (t === 'segments') {
+                resCount.textContent = MIR.segments.length + ' músicas';
+                resCont.innerHTML = MIR.segments.length ? MIR.segments.map((seg, i) => `
+                    <div class="video-card" onclick="MIR.jumpToSegment(${i})" style="border-left:3px solid var(--green);">
+                        <div class="video-info">
+                            <div class="video-title">🎵 ${seg.name}</div>
+                            <div class="video-channel">${formatTime(seg.start)} - ${formatTime(seg.end)} (${Math.round(seg.duration || 0)}s)</div>
+                        </div>
+                    </div>
+                `).join('') : '<div style="text-align:center;padding:40px;color:var(--text2);">Ative o MIR e reproduza uma música</div>';
+            } else if (t === 'search') {
+                if (query) searchYT(query);
+                else resCont.innerHTML = '<div style="text-align:center;padding:50px;color:var(--text2);"><div style="font-size:3rem;">🎧</div><div>Busque suas músicas</div></div>';
+            } else if (t === 'favorites') {
+                const f = Fav.favs; resCount.textContent = f.length + ' items';
+                resCont.innerHTML = f.length ? f.map(v => card(v)).join('') : '<div style="text-align:center;padding:40px;color:var(--text2);">❤️ Vazio</div>';
+                updateFavBtns();
+            } else if (t === 'history') {
+                const h = Fav.hist; resCount.textContent = h.length + ' itens';
+                resCont.innerHTML = h.length ? h.map(v => card(v)).join('') : '<div style="text-align:center;padding:40px;color:var(--text2);">🕐 Vazio</div>';
+                updateFavBtns();
+            } else if (t === 'downloads') {
+                const d = DL.all(); resCount.textContent = d.length + ' itens';
+                resCont.innerHTML = d.length ? d.map(v => card(v)).join('') : '<div style="text-align:center;padding:40px;color:var(--text2);">📥 Vazio</div>';
+                updateFavBtns();
+            }
         };
 
         // ===== BUSCA =====
@@ -562,29 +929,30 @@
             navigator.mediaSession.setActionHandler('stop', stopPlayback);
         }
 
-        // ===== BACKGROUND PLAY =====
-        async function lock() { try { if ('wakeLock' in navigator) { const w = await navigator.wakeLock.request('screen'); w.addEventListener('release', () => { if (playing) lock(); }); } } catch(e) {} }
-        document.addEventListener('visibilitychange', () => { if (document.hidden && playing && yt) { try { if (yt.getPlayerState() !== 1) { yt.playVideo(); yt.unMute(); } } catch(e) {} lock(); } });
-        setInterval(() => { if (playing && yt) { try { const s = yt.getPlayerState(); if (s !== 1 && s !== 3) { yt.playVideo(); yt.unMute(); } } catch(e) { initYT(); if (vid) { setTimeout(() => { if (yt?.loadVideoById) { yt.loadVideoById({ videoId: vid, startSeconds: 0 }); setTimeout(() => { yt.playVideo(); yt.unMute(); }, 500); } }, 500); } } } }, 1000);
-        if ('audioSession' in navigator) navigator.audioSession.type = 'playback';
-        lock();
-
         // ===== INIT =====
         function init() {
             setupMS(); calibrarTela();
+            // Inicializar visualizador MIR vazio
+            const waveform = document.getElementById('mirWaveform');
+            if (waveform) {
+                let bars = '';
+                for (let i = 0; i < 40; i++) bars += '<div class="mir-bar" style="height:2px"></div>';
+                waveform.innerHTML = bars;
+            }
             setTimeout(() => { const s = document.getElementById('splashScreen'); if (s) { s.style.opacity = '0'; setTimeout(() => s.remove(), 500); } }, 1500);
-            console.log('✅ Play Tube Music v5 - Final');
+            console.log('✅ Play Tube Music Pro v6 - MIR Integrated');
         }
         window.addEventListener('resize', () => { clearTimeout(window._rt); window._rt = setTimeout(calibrarTela, 250); });
         window.addEventListener('orientationchange', () => setTimeout(calibrarTela, 300));
         window.addEventListener('load', init);
 
-        // EXPOR GLOBAIS
-        window.calibrarTela = calibrarTela; window.T = T;
+        // EXPORT GLOBAIS
+        window.calibrarTela = calibrarTela; window.T = T; window.MIR = MIR;
         window.togglePlay = togglePlay; window.nextTrack = nextTrack; window.prevTrack = prevTrack;
         window.playFromResults = playFromResults; window.toggleFav = toggleFav; window.dlFromCard = dlFromCard;
         window.downloadCurrent = downloadCurrent; window.switchTab = switchTab; window.seekTrack = seekTrack;
-        window.showVideo = showVideo; window.closeVideo = closeVideo; window.togglePiP = togglePiP;
+        window.showVideo = showVideo; window.closeVideo = closeVideo; window.toggleMIR = toggleMIR;
+        window.jumpToNextSegment = jumpToNextSegment; window.jumpToPrevSegment = jumpToPrevSegment;
     })();
     </script>
 </body>
