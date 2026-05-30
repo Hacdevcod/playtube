@@ -6,8 +6,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0f0f0f">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="HandheldFriendly" content="true">
     
     <title>Play Tube Music Pro</title>
     
@@ -28,491 +26,296 @@
             --player-h: 80px;
             --safe-t: 0px;
             --safe-b: 0px;
-            --scale: 1;
-        }
-        
-        [data-theme="light"] {
-            --bg: #fff;
-            --surface: #f5f5f5;
-            --surface2: #e8e8e8;
-            --border: #ddd;
-            --text: #000;
-            --text2: #555;
-            --text3: #888;
-            --input-bg: #fff;
-            --input-text: #000;
-            --input-ph: #888;
-        }
-        
-        [data-theme="amoled"] {
-            --bg: #000;
-            --surface: #0a0a0a;
-            --surface2: #111;
-            --border: #1a1a1a;
-            --text: #fff;
-            --text2: #aaa;
-            --text3: #717171;
-            --input-bg: #0a0a0a;
-            --input-text: #fff;
-            --input-ph: #555;
+            --zoom-level: 1;
         }
 
         * { margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent; }
-        html { 
-            font-size:16px;
-            height: 100%;
-        }
+        html { font-size:16px; height: 100%; }
         body { 
             font-family: -apple-system, 'Roboto', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            min-height: 100dvh;
-            overflow-x: hidden;
-            transition: background 0.3s, color 0.3s;
-            /* Padding corrigido: topo (safe area) + bottom (player + safe area) */
+            background: var(--bg); color: var(--text);
+            min-height: 100vh; min-height: 100dvh; overflow-x: hidden;
             padding-top: var(--safe-t);
             padding-bottom: calc(var(--player-h) + var(--safe-b) + 15px);
-            max-width: 100vw;
-            margin: 0 auto;
-            position: relative;
-        }
-        
-        .app-container {
-            width: 100%;
-            margin: 0 auto;
-            position: relative;
+            transform: scale(var(--zoom-level));
             transform-origin: top center;
+            transition: transform 0.3s ease;
         }
 
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes slideUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes fadeInUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        @keyframes shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
-        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
-        @keyframes pulseLogo { 0%,100% { box-shadow: 0 0 20px rgba(255,0,0,0.4); } 50% { box-shadow: 0 0 40px rgba(255,0,0,0.8); } }
-        @keyframes progressGlow { 0%,100% { box-shadow: 0 0 5px rgba(29,185,84,0.5); } 50% { box-shadow: 0 0 15px rgba(29,185,84,0.8); } }
-        @keyframes downloading { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
-        @keyframes rainbow { 0% { border-color: #f00; } 25% { border-color: #f80; } 50% { border-color: #0c0; } 75% { border-color: #21f; } 100% { border-color: #f00; } }
-        @keyframes detectedPulse { 0%,100% { border-color: #1db954; box-shadow: 0 0 10px rgba(29,185,84,0.5); } 50% { border-color: #00ff88; box-shadow: 0 0 20px rgba(29,185,84,0.8); } }
-        @keyframes calibratePulse { 0%,100% { border-color: #ff0; box-shadow: 0 0 10px rgba(255,255,0,0.5); } 50% { border-color: #ff0; box-shadow: 0 0 25px rgba(255,255,0,0.9); } }
+        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+        @keyframes detectedPulse { 0%,100% { border-color: #1db954; } 50% { border-color: #00ff88; } }
 
-        .hidden-player { 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            opacity: 0; 
-            pointer-events: none; 
-            z-index: -1; 
-        }
-        .hidden-player iframe {
-            width: 100%;
-            height: 100%;
-        }
-
-        /* ===== CALIBRADOR ===== */
-        .screen-calibrator {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.95); z-index: 9999;
-            display: none; flex-direction: column; align-items: center; justify-content: center;
-            padding: 20px; color: #fff;
-            /* Garantir que fique visível */
-            padding-top: calc(20px + var(--safe-t));
-        }
-        .screen-calibrator.active { display: flex; }
-        
-        .calibration-box {
-            width: 90%; max-width: 400px; background: #1a1a1a;
-            border: 2px solid #ff0; border-radius: 20px; padding: 25px;
-            animation: calibratePulse 2s ease-in-out infinite;
-            text-align: center;
-        }
-        
-        .calibration-title {
-            font-size: 1.2rem; font-weight: 700; color: #ff0; margin-bottom: 15px;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-        }
-        
-        .calibration-info {
-            background: #000; border-radius: 10px; padding: 15px; margin: 15px 0;
-            font-family: 'Courier New', monospace; font-size: 0.85rem; line-height: 1.8;
-            text-align: left; color: #0f0;
-        }
-        
-        .calibration-info span { color: #fff; }
-        .calibration-info .highlight { color: #ff0; font-weight: bold; }
-        
-        .calibration-btn {
-            width: 100%; padding: 14px; border: none; border-radius: 25px;
-            font-size: 1rem; font-weight: 700; cursor: pointer; margin: 8px 0;
-            transition: all 0.3s; text-transform: uppercase; letter-spacing: 1px;
-        }
-        
-        .calibration-btn.detect { background: linear-gradient(135deg, #ff0, #ffa500); color: #000; }
-        .calibration-btn.apply { background: linear-gradient(135deg, #0f0, #00b300); color: #000; }
-        .calibration-btn.reset { background: linear-gradient(135deg, #f00, #ff4444); color: #fff; }
-        .calibration-btn:active { transform: scale(0.95); opacity: 0.8; }
-        
-        .calibration-status {
-            font-size: 0.75rem; color: #aaa; margin-top: 10px;
-        }
-        
-        .calibration-close {
-            position: absolute; top: calc(20px + var(--safe-t)); right: 20px;
-            width: 40px; height: 40px; border-radius: 50%;
-            background: rgba(255,255,255,0.1); border: 2px solid #fff;
-            color: #fff; font-size: 18px; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            transition: all 0.3s;
-        }
-        .calibration-close:active { background: #f00; border-color: #f00; }
-        
-        .calibration-indicator {
-            position: fixed; bottom: 10px; right: 10px;
-            background: rgba(0,0,0,0.8); color: #0f0;
-            font-size: 9px; padding: 3px 8px; border-radius: 10px;
-            z-index: 500; pointer-events: none; opacity: 0.7;
-            font-family: monospace; display: none;
-        }
+        .hidden-player { position: fixed; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; pointer-events: none; z-index: -1; }
 
         /* ===== TOPBAR ===== */
         .topbar {
-            position: sticky; 
-            top: var(--safe-t); /* Agora respeita a safe area do topo */
-            background: var(--bg);
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            height: 50px; display: flex; align-items: center; padding: 0 12px; gap: 10px;
+            position: sticky; top: var(--safe-t); background: var(--bg);
+            backdrop-filter: blur(20px); height: 50px; display: flex; 
+            align-items: center; padding: 0 8px; gap: 6px;
             border-bottom: 1px solid var(--border); z-index: 100;
         }
-        .logo { display: flex; align-items: center; gap: 6px; animation: float 3s ease-in-out infinite; }
+        .logo { display: flex; align-items: center; gap: 4px; }
         .logo-icon {
-            width: 28px; height: 28px; background: var(--red); border-radius: 50%;
+            width: 26px; height: 26px; background: var(--red); border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            font-size: 12px; color: #fff; animation: pulseLogo 2s ease-in-out infinite;
+            font-size: 11px; color: #fff;
         }
-        .logo-text {
-            font-size: 1rem; font-weight: 700;
-            background: linear-gradient(90deg, var(--text), #f44, var(--text), #f66);
-            background-size: 200% auto; -webkit-background-clip: text; background-clip: text;
-            -webkit-text-fill-color: transparent; animation: shimmer 3s linear infinite;
-        }
-        .logo-text sup { font-size: 7px; background: var(--red); color: #fff; padding: 1px 3px; border-radius: 3px; -webkit-text-fill-color: #fff; }
+        .logo-text { font-size: 0.9rem; font-weight: 700; color: var(--text); }
+        .logo-text sup { font-size: 6px; background: var(--red); color: #fff; padding: 1px 3px; border-radius: 3px; }
         .spacer { flex: 1; }
-        .calibrate-btn { 
-            background: linear-gradient(135deg, #ff0, #ffa500); border: none; 
-            color: #000; font-size: 0.9rem; font-weight: 700; cursor: pointer; 
-            padding: 5px 12px; border-radius: 15px; transition: all 0.2s;
-            animation: calibratePulse 3s ease-in-out infinite;
+        .toolbar-btn {
+            background: var(--surface2); border: 1px solid var(--border);
+            color: var(--text); font-size: 0.7rem; cursor: pointer;
+            padding: 5px 10px; border-radius: 12px; white-space: nowrap;
+            transition: all 0.2s;
         }
-        .calibrate-btn:active { transform: scale(0.95); }
-        .theme-btn { background: none; border: none; color: var(--text); font-size: 1.1rem; cursor: pointer; padding: 4px; }
-        .mir-btn {
-            background: var(--surface2); border: 2px solid var(--green); border-radius: 15px;
-            color: var(--green); padding: 4px 10px; font-size: 0.7rem; cursor: pointer;
-            transition: all 0.2s; margin-left: 8px;
+        .toolbar-btn:active { background: var(--red); color: #fff; }
+        .toolbar-btn.highlight { border-color: #ff0; color: #ff0; }
+
+        /* ===== PAGE COUNTER (SUPERIOR) ===== */
+        .page-counter-top {
+            display: flex; align-items: center; justify-content: center;
+            gap: 6px; padding: 6px 10px; background: var(--surface);
+            border-bottom: 1px solid var(--border); flex-wrap: wrap;
         }
-        .mir-btn.active { background: var(--green); color: #000; animation: detectedPulse 1.5s ease-in-out infinite; }
+        .page-counter-top.hidden { display: none; }
+        .page-btn-top {
+            padding: 4px 10px; background: var(--surface2); border: 1px solid var(--border);
+            border-radius: 12px; color: var(--text); font-size: 0.7rem; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .page-btn-top:active { background: var(--red); color: #fff; }
+        .page-btn-top:disabled { opacity: 0.3; pointer-events: none; }
+        .page-info-top {
+            font-size: 0.7rem; color: var(--text2); min-width: 80px; text-align: center;
+            font-weight: 600;
+        }
+        .page-info-top .current { color: var(--red); font-size: 0.85rem; }
+        .page-jump-top {
+            width: 40px; text-align: center; background: var(--input-bg); border: 1px solid var(--border);
+            border-radius: 8px; color: var(--text); font-size: 0.7rem; padding: 4px;
+        }
 
         /* ===== SEARCH ===== */
-        .search-section { padding: 8px 12px; background: var(--bg); z-index: 50; }
+        .search-section { padding: 6px 10px; }
         .search-box {
             display: flex; background: var(--input-bg); border: 2px solid var(--border);
-            border-radius: 20px; overflow: hidden; transition: border-color 0.3s, box-shadow 0.3s;
+            border-radius: 20px; overflow: hidden;
         }
-        .search-box:focus-within { border-color: var(--red); box-shadow: 0 0 0 2px rgba(255,0,0,0.2); }
         .search-box input {
             flex: 1; padding: 10px 14px; background: transparent; border: none;
-            color: var(--input-text); font-size: 0.9rem; outline: none; min-width: 0;
+            color: var(--input-text); font-size: 0.9rem; outline: none;
         }
-        .search-box input::placeholder { color: var(--input-ph); }
         .search-btn {
-            width: 42px; background: var(--surface2); border: none; color: var(--text);
-            cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center;
+            width: 42px; background: var(--surface2); border: none;
+            color: var(--text); cursor: pointer; font-size: 1rem;
         }
+        .search-btn:active { background: var(--red); }
 
         /* ===== TABS ===== */
-        .tabs-container { display: flex; gap: 4px; padding: 4px 12px 8px; background: var(--bg); overflow-x: auto; }
-        .tabs-container::-webkit-scrollbar { height: 0; }
+        .tabs-container { display: flex; gap: 3px; padding: 4px 10px 6px; overflow-x: auto; }
         .tab-btn {
-            padding: 6px 14px; background: var(--surface); border: 1px solid var(--border);
-            border-radius: 16px; color: var(--text2); font-size: 0.75rem; cursor: pointer;
-            white-space: nowrap; transition: all 0.2s;
+            padding: 5px 12px; background: var(--surface); border: 1px solid var(--border);
+            border-radius: 14px; color: var(--text2); font-size: 0.7rem; cursor: pointer;
+            white-space: nowrap; flex-shrink: 0;
         }
         .tab-btn.active { background: var(--red); color: #fff; border-color: var(--red); }
 
-        /* ===== MIR PANEL ===== */
-        .mir-panel {
-            display: none; background: linear-gradient(135deg, #0a1a0a, #1a2a1a);
-            border: 2px solid var(--green); border-radius: 12px; margin: 0 12px 8px;
-            padding: 12px; animation: slideUp 0.4s ease;
-        }
-        .mir-panel.active { display: block; }
-        .mir-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .mir-title { font-size: 0.85rem; font-weight: 600; color: var(--green); }
-        .mir-status { font-size: 0.7rem; color: var(--text2); }
-        .mir-visualizer { width: 100%; height: 60px; background: rgba(0,0,0,0.3); border-radius: 8px; overflow: hidden; margin-bottom: 10px; }
-        .mir-waveform { display: flex; align-items: flex-end; height: 100%; padding: 4px; gap: 2px; }
-        .mir-bar { flex: 1; background: linear-gradient(to top, var(--green), #00ff88); border-radius: 1px; transition: height 0.05s; min-height: 2px; }
-        .mir-segments { max-height: 150px; overflow-y: auto; }
-        .mir-segment {
-            display: flex; align-items: center; gap: 8px; padding: 6px 8px;
-            background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 4px;
-            cursor: pointer; transition: all 0.2s; font-size: 0.75rem;
-        }
-        .mir-seg-time { color: var(--green); font-weight: 600; min-width: 45px; }
-        .mir-seg-name { flex: 1; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .mir-seg-arrow { color: var(--text3); }
-
         /* ===== RESULTS ===== */
-        .results-section { padding: 4px 12px 20px; background: var(--bg); min-height: 200px; }
+        .results-section { padding: 4px 10px 20px; min-height: 150px; }
+        .section-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 4px 6px;
+        }
         .section-title {
-            font-size: 0.8rem; font-weight: 600; margin-bottom: 8px; padding-left: 4px;
-            display: flex; align-items: center; justify-content: space-between;
-            color: var(--text2); text-transform: uppercase; letter-spacing: 1px;
+            font-size: 0.75rem; font-weight: 600; color: var(--text2); text-transform: uppercase;
         }
         .result-count { font-size: 0.65rem; color: var(--text3); }
         .video-card {
-            display: flex; gap: 10px; background: var(--surface); border-radius: 8px;
-            padding: 8px; cursor: pointer; transition: background 0.15s, transform 0.15s;
+            display: flex; gap: 8px; background: var(--surface); border-radius: 8px;
+            padding: 8px; cursor: pointer; margin-bottom: 4px; position: relative;
             animation: fadeInUp 0.3s ease forwards; opacity: 0;
-            border: 2px solid transparent; margin-bottom: 6px; position: relative;
+            border: 2px solid transparent; transition: all 0.15s;
         }
         .video-card:active { background: var(--surface2); transform: scale(0.98); }
-        .video-thumb { width: 48px; height: 48px; border-radius: 6px; object-fit: cover; flex-shrink: 0; background: var(--surface2); }
-        .video-info { flex: 1; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
-        .video-title { font-size: 0.85rem; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .video-channel { font-size: 0.7rem; color: var(--text2); margin-top: 2px; }
+        .video-card.playing { border-color: var(--green); animation: detectedPulse 2s infinite; }
+        .video-thumb { 
+            width: 44px; height: 44px; border-radius: 6px; object-fit: cover; 
+            flex-shrink: 0; background: var(--surface2); 
+        }
+        .video-info { flex: 1; min-width: 0; }
+        .video-title { font-size: 0.8rem; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .video-channel { font-size: 0.65rem; color: var(--text2); margin-top: 2px; }
         .video-actions { position: absolute; bottom: 6px; right: 6px; display: flex; gap: 4px; z-index: 5; }
         .v-btn {
-            width: 26px; height: 26px; border-radius: 50%; background: rgba(0,0,0,0.5);
-            border: none; color: #fff; font-size: 11px; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+            width: 24px; height: 24px; border-radius: 50%; background: rgba(0,0,0,0.5);
+            border: none; color: #fff; font-size: 10px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
         }
         .v-btn:active { transform: scale(1.1); }
         .v-btn.fav-active { color: #f00; background: rgba(255,0,0,0.3); }
 
-        /* ===== PAGE COUNTER ===== */
-        .page-counter {
-            display: none; align-items: center; justify-content: center;
-            gap: 10px; padding: 8px 0; margin-top: 8px;
+        /* ===== PAGE COUNTER (INFERIOR) ===== */
+        .page-counter-bottom {
+            display: flex; align-items: center; justify-content: center;
+            gap: 8px; padding: 10px 0; margin-top: 8px;
         }
-        .page-counter.active { display: flex; }
-        .page-info { font-size: 0.8rem; color: var(--text2); min-width: 80px; text-align: center; }
-        .page-btn {
-            padding: 8px 16px; background: var(--surface); border: 1px solid var(--border);
-            border-radius: 20px; color: var(--text); font-size: 0.8rem; cursor: pointer;
+        .page-counter-bottom.hidden { display: none; }
+        .page-btn-bottom {
+            padding: 6px 14px; background: var(--surface2); border: 1px solid var(--border);
+            border-radius: 16px; color: var(--text); font-size: 0.75rem; cursor: pointer;
             transition: all 0.2s;
         }
-        .page-btn:active { background: var(--red); color: #fff; }
-        .page-btn:disabled { opacity: 0.3; pointer-events: none; }
-        .page-jump {
-            width: 50px; text-align: center; background: var(--input-bg); border: 1px solid var(--border);
-            border-radius: 12px; color: var(--text); font-size: 0.8rem; padding: 6px;
+        .page-btn-bottom:active { background: var(--red); color: #fff; }
+        .page-btn-bottom:disabled { opacity: 0.3; pointer-events: none; }
+        .page-info-bottom {
+            font-size: 0.75rem; color: var(--text2); min-width: 80px; text-align: center;
         }
-        .page-jump:focus { outline: none; border-color: var(--red); }
 
         /* ===== SPOTIFY BAR ===== */
         .spotify-bar {
             position: fixed; bottom: 0; left: 0; right: 0; height: var(--player-h);
             background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            display: none; align-items: center; padding: 0 12px; 
-            padding-bottom: var(--safe-b); /* Safe area no bottom */
-            gap: 10px;
+            backdrop-filter: blur(20px); display: none; align-items: center;
+            padding: 0 10px; padding-bottom: var(--safe-b); gap: 8px;
             z-index: 200; border-top: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.5); animation: slideUp 0.4s ease;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
         }
         .spotify-bar.active { display: flex; }
-        .spotify-bar.playing { background: linear-gradient(135deg, #0a1a0a, #1a2a1a); }
-        .sp-art { width: 52px; height: 52px; border-radius: 8px; object-fit: cover; flex-shrink: 0; cursor: pointer; background: var(--surface2); }
-        .sp-art.playing { animation: spin 8s linear infinite; border-radius: 50%; }
-        .sp-info { flex: 1; min-width: 0; cursor: pointer; display: flex; flex-direction: column; gap: 2px; }
-        .sp-title { font-size: 0.9rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .sp-artist { font-size: 0.7rem; color: rgba(255,255,255,0.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .sp-progress { position: absolute; top: -2px; left: 0; right: 0; height: 3px; background: rgba(255,255,255,0.1); cursor: pointer; }
         .sp-progress-bar { height: 100%; background: linear-gradient(90deg, #1db954, #1ed760); width: 0%; transition: width 0.3s linear; }
-        .sp-controls { display: flex; gap: 12px; align-items: center; }
-        .sp-btn { background: none; border: none; color: rgba(255,255,255,0.9); font-size: 1rem; cursor: pointer; padding: 6px; transition: all 0.2s; }
-        .sp-btn.play { width: 44px; height: 44px; background: #fff; border-radius: 50%; color: #000; font-size: 1rem; }
+        .sp-art { width: 46px; height: 46px; border-radius: 8px; object-fit: cover; flex-shrink: 0; cursor: pointer; background: var(--surface2); }
+        .sp-art.playing { animation: spin 8s linear infinite; border-radius: 50%; }
+        .sp-info { flex: 1; min-width: 0; cursor: pointer; }
+        .sp-title { font-size: 0.85rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sp-artist { font-size: 0.65rem; color: rgba(255,255,255,0.7); }
+        .sp-controls { display: flex; gap: 8px; align-items: center; }
+        .sp-btn { background: none; border: none; color: rgba(255,255,255,0.9); font-size: 0.9rem; cursor: pointer; padding: 4px; }
+        .sp-btn.play { width: 38px; height: 38px; background: #fff; border-radius: 50%; color: #000; }
         .sp-btn.play.playing { background: var(--green); color: #fff; }
-        .sp-btn.segment { font-size: 0.8rem; color: var(--green); }
-        .sp-dl {
-            background: rgba(29,185,84,0.15); border: none; color: var(--green);
-            font-size: 0.75rem; cursor: pointer; padding: 6px 10px; border-radius: 15px;
-        }
-        .sp-dl.downloading { animation: downloading 0.8s infinite; }
+        .sp-dl { background: rgba(29,185,84,0.15); border: none; color: var(--green); font-size: 0.7rem; cursor: pointer; padding: 5px 10px; border-radius: 12px; }
 
         /* ===== TOAST ===== */
         .toast {
             position: fixed; bottom: calc(var(--player-h) + var(--safe-b) + 20px); left: 50%;
             transform: translateX(-50%) translateY(120px); background: #333;
             color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 0.75rem;
-            z-index: 600; transition: transform 0.3s; white-space: nowrap;
-            max-width: 90vw; overflow: hidden; text-overflow: ellipsis; pointer-events: none;
+            z-index: 600; transition: transform 0.3s; white-space: nowrap; max-width: 90vw;
+            pointer-events: none;
         }
         .toast.show { transform: translateX(-50%) translateY(0); }
         .loading { text-align: center; padding: 40px; color: var(--text2); }
         .spinner { width: 30px; height: 30px; border: 3px solid var(--border); border-top-color: var(--red); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px; }
+        .loading-text { font-size: 0.8rem; margin-top: 8px; }
 
         /* ===== PLAYER VIDEO ===== */
-        .player-container {
-            width: 100%; background: #000; display: none; position: relative;
-            animation: slideUp 0.4s ease; border-bottom: 2px solid var(--red);
-        }
+        .player-container { width: 100%; background: #000; display: none; animation: slideUp 0.4s ease; }
         .player-container.active { display: block; }
-        .player-wrapper { width: 100%; aspect-ratio: 16/9; position: relative; }
+        .player-wrapper { width: 100%; aspect-ratio: 16/9; }
         .player-wrapper iframe { width: 100%; height: 100%; border: none; }
         .player-close {
-            position: absolute; top: 8px; right: 8px; width: 32px; height: 32px;
+            position: absolute; top: 8px; right: 8px; width: 30px; height: 30px;
             border-radius: 50%; background: rgba(0,0,0,0.7); border: none;
-            color: #fff; font-size: 16px; cursor: pointer; z-index: 10;
-            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 14px; cursor: pointer; z-index: 10;
         }
     </style>
 </head>
 <body data-theme="dark">
 
-    <div class="app-container">
-        <!-- PLAYER OCULTO (CORRIGIDO) -->
-        <div class="hidden-player" id="hiddenPlayer"></div>
-        
-        <!-- CALIBRADOR -->
-        <div class="screen-calibrator" id="screenCalibrator">
-            <button class="calibration-close" onclick="closeCalibrator()">✕</button>
-            <div class="calibration-box">
-                <div class="calibration-title">📐 Calibrador de Tela</div>
-                
-                <div class="calibration-info" id="calibrationInfo">
-                    <div>📱 <span>Dispositivo:</span> <span class="highlight" id="calDevice">--</span></div>
-                    <div>📏 <span>Resolução:</span> <span class="highlight" id="calResolution">--</span></div>
-                    <div>🖥️ <span>Viewport:</span> <span class="highlight" id="calViewport">--</span></div>
-                    <div>📐 <span>Orientação:</span> <span class="highlight" id="calOrientation">--</span></div>
-                    <div>🔲 <span>Safe Area Top:</span> <span class="highlight" id="calSafeTop">--</span></div>
-                    <div>🔲 <span>Safe Area Bottom:</span> <span class="highlight" id="calSafeBottom">--</span></div>
-                    <div>📊 <span>Pixel Ratio:</span> <span class="highlight" id="calPixelRatio">--</span></div>
-                    <div style="margin-top:8px;padding-top:8px;border-top:1px solid #333;">
-                        <span>⚙️ Calibração Salva:</span><br>
-                        <span class="highlight" id="calSaved">Nenhuma</span>
-                    </div>
-                </div>
-                
-                <button class="calibration-btn detect" onclick="detectScreen()">
-                    🔍 Detectar Tela
-                </button>
-                
-                <button class="calibration-btn apply" onclick="applyCalibration()">
-                    ✅ Aplicar e Salvar
-                </button>
-                
-                <button class="calibration-btn reset" onclick="resetCalibration()">
-                    🔄 Resetar Padrão
-                </button>
-                
-                <div class="calibration-status" id="calibrationStatus">
-                    Pressione "Detectar" para analisar
-                </div>
+    <!-- PLAYER OCULTO -->
+    <div class="hidden-player" id="hiddenPlayer"></div>
+    
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <div class="logo">
+            <div class="logo-icon">♪</div>
+            <span class="logo-text">Play Tube<sup>MUSIC</sup></span>
+        </div>
+        <div class="spacer"></div>
+        <button class="toolbar-btn" onclick="T.cycle()">🎨</button>
+    </div>
+
+    <!-- CONTADOR DE PÁGINAS (SUPERIOR) -->
+    <div class="page-counter-top hidden" id="pageCounterTop">
+        <button class="page-btn-top" onclick="changePage('first')" id="btnFirstTop">⏮</button>
+        <button class="page-btn-top" onclick="changePage('prev')" id="btnPrevTop">◀</button>
+        <span class="page-info-top" id="pageInfoTop">
+            Pág <span class="current" id="pageCurrentTop">1</span> de <span id="pageTotalTop">1</span>
+        </span>
+        <button class="page-btn-top" onclick="changePage('next')" id="btnNextTop">▶</button>
+        <button class="page-btn-top" onclick="changePage('last')" id="btnLastTop">⏭</button>
+        <input type="number" class="page-jump-top" id="pageJumpTop" min="1" placeholder="#" 
+               onkeydown="if(event.key==='Enter')jumpToPage()">
+        <span style="font-size:0.65rem;color:var(--text3);" id="itemsRangeTop"></span>
+    </div>
+
+    <!-- PLAYER VIDEO -->
+    <div class="player-container" id="playerContainer">
+        <div class="player-wrapper" id="playerWrapper"></div>
+        <button class="player-close" onclick="closeVideo()">✕</button>
+    </div>
+
+    <!-- BUSCA -->
+    <div class="search-section">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🎵 Buscar música..." autocomplete="off" enterkeyhint="search">
+            <button class="search-btn" id="searchBtn" onclick="doSearch()">🔍</button>
+        </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs-container">
+        <button class="tab-btn active" onclick="switchTab('search')">🔍 Buscar</button>
+        <button class="tab-btn" onclick="switchTab('favorites')">❤️ Favoritos</button>
+        <button class="tab-btn" onclick="switchTab('history')">🕐 Histórico</button>
+        <button class="tab-btn" onclick="switchTab('downloads')">⬇️ Downloads</button>
+    </div>
+
+    <!-- RESULTADOS -->
+    <div class="results-section">
+        <div class="section-header">
+            <span class="section-title" id="sectionTitle">Resultados</span>
+            <span class="result-count" id="resultCount"></span>
+        </div>
+        <div id="resultsContainer">
+            <div style="text-align:center;padding:50px;color:var(--text2);">
+                <div style="font-size:3rem;">🎧</div>
+                <div style="font-size:1rem;color:var(--text);">Play Tube Music Pro</div>
+                <div style="font-size:0.75rem;color:var(--text3);">Busque músicas para começar</div>
             </div>
         </div>
         
-        <div class="calibration-indicator" id="calibrationIndicator"></div>
-
-        <!-- TOPBAR -->
-        <div class="topbar">
-            <div class="logo">
-                <div class="logo-icon">♪</div>
-                <span class="logo-text">Play Tube<sup>MUSIC</sup></span>
-            </div>
-            <div class="spacer"></div>
-            <button class="calibrate-btn" onclick="openCalibrator()" title="Calibrar Tela">📐</button>
-            <button class="mir-btn" id="mirToggleBtn" onclick="toggleMIR()" title="Detecção Inteligente">🎼 MIR</button>
-            <button class="theme-btn" onclick="T.cycle()" title="Tema">🎨</button>
-        </div>
-
-        <!-- MIR PANEL -->
-        <div class="mir-panel" id="mirPanel">
-            <div class="mir-header">
-                <span class="mir-title">🎼 Detecção Musical Inteligente</span>
-                <span class="mir-status" id="mirStatus">🔴 Inativo</span>
-            </div>
-            <div class="mir-visualizer">
-                <div class="mir-waveform" id="mirWaveform"></div>
-            </div>
-            <div class="mir-segments" id="mirSegments">
-                <div style="text-align:center;color:var(--text3);font-size:0.7rem;">Ative o MIR durante a reprodução</div>
-            </div>
-        </div>
-
-        <!-- PLAYER VIDEO -->
-        <div class="player-container" id="playerContainer">
-            <div class="player-wrapper" id="playerWrapper"></div>
-            <button class="player-close" onclick="closeVideo()">✕</button>
-        </div>
-
-        <!-- BUSCA -->
-        <div class="search-section">
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="🎵 Buscar música..." autocomplete="off">
-                <button class="search-btn" id="searchBtn">🔍</button>
-            </div>
-        </div>
-
-        <!-- TABS -->
-        <div class="tabs-container">
-            <button class="tab-btn active" onclick="switchTab('search')">🔍 Buscar</button>
-            <button class="tab-btn" onclick="switchTab('favorites')">❤️ Favoritos</button>
-            <button class="tab-btn" onclick="switchTab('history')">🕐 Histórico</button>
-            <button class="tab-btn" onclick="switchTab('downloads')">⬇️ Downloads</button>
-            <button class="tab-btn" onclick="switchTab('segments')">🎼 Segmentos</button>
-        </div>
-
-        <!-- RESULTADOS -->
-        <div class="results-section">
-            <div class="section-title" id="sectionTitle">
-                <span>Resultados</span>
-                <span class="result-count" id="resultCount"></span>
-            </div>
-            <div id="resultsContainer">
-                <div style="text-align:center;padding:50px;color:var(--text2);">
-                    <div style="font-size:3rem;">🎧</div>
-                    <div style="font-size:1.1rem;color:var(--text);">Play Tube Music Pro</div>
-                    <div style="font-size:0.8rem;color:var(--text3);">Busque músicas para começar</div>
-                </div>
-            </div>
-            
-            <div class="page-counter" id="pageCounter">
-                <button class="page-btn" onclick="changePage('first')">⏮</button>
-                <button class="page-btn" onclick="changePage('prev')">◀</button>
-                <span class="page-info" id="pageInfo">Pág 1 de 1</span>
-                <button class="page-btn" onclick="changePage('next')">▶</button>
-                <button class="page-btn" onclick="changePage('last')">⏭</button>
-                <input type="number" class="page-jump" id="pageJump" min="1" placeholder="Pág" onkeydown="if(event.key==='Enter')jumpToPage()">
-            </div>
+        <!-- CONTADOR DE PÁGINAS (INFERIOR) -->
+        <div class="page-counter-bottom hidden" id="pageCounterBottom">
+            <button class="page-btn-bottom" onclick="changePage('first')" id="btnFirstBottom">⏮ Primeira</button>
+            <button class="page-btn-bottom" onclick="changePage('prev')" id="btnPrevBottom">◀ Anterior</button>
+            <span class="page-info-bottom" id="pageInfoBottom">Pág 1 de 1</span>
+            <button class="page-btn-bottom" onclick="changePage('next')" id="btnNextBottom">Próxima ▶</button>
+            <button class="page-btn-bottom" onclick="changePage('last')" id="btnLastBottom">Última ⏭</button>
         </div>
     </div>
 
     <!-- BARRA SPOTIFY -->
     <div class="spotify-bar" id="spotifyBar">
-        <div class="sp-progress" id="progressContainer" onclick="seekTrack(event)">
+        <div class="sp-progress" onclick="seekTrack(event)">
             <div class="sp-progress-bar" id="progressBar"></div>
         </div>
-        <img class="sp-art" id="spArt" src="" alt="" onclick="showVideo()">
+        <img class="sp-art" id="spArt" src="" alt="" onclick="showVideo()" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23333%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%23777%22 font-size=%2214%22>♪</text></svg>'">
         <div class="sp-info" onclick="showVideo()">
-            <div class="sp-title" id="spTitle">Nenhuma música</div>
-            <div class="sp-artist" id="spArtist">Toque para tocar</div>
+            <div class="sp-title" id="spTitle">Toque para tocar</div>
+            <div class="sp-artist" id="spArtist">--</div>
         </div>
         <div class="sp-controls">
             <button class="sp-btn" onclick="prevTrack()">⏮</button>
-            <button class="sp-btn segment" onclick="jumpToPrevSegment()">⏪</button>
             <button class="sp-btn play" id="spPlay" onclick="togglePlay()">▶</button>
-            <button class="sp-btn segment" onclick="jumpToNextSegment()">⏩</button>
             <button class="sp-btn" onclick="nextTrack()">⏭</button>
         </div>
         <button class="sp-dl" id="spDL" onclick="downloadCurrent()">⬇</button>
     </div>
 
-    <!-- TOAST -->
     <div class="toast" id="toast"></div>
 
     <script src="https://www.youtube.com/iframe_api"></script>
@@ -520,275 +323,160 @@
     (function() {
         'use strict';
         
-        // ===== CALIBRADOR DE TELA =====
-        const ScreenCalibrator = {
-            calibration: null,
+        // ===== CONFIGURAÇÃO DA API =====
+        const API_CONFIG = {
+            // Use um proxy CORS para desenvolvimento local
+            // Em produção, configure seu próprio backend
+            proxy: 'https://api.allorigins.win/raw?url=',
+            youtubeSearchURL: 'https://www.googleapis.com/youtube/v3/search',
+            // ⚠️ IMPORTANTE: Substitua por sua chave da API do YouTube
+            // Obtenha em: https://console.cloud.google.com/apis/credentials
+            apiKey: 'AIzaSyAqzGt5QmBQhJQ-NxrPBHZqOcN9GrNZF8o', // Chave de exemplo (NÃO FUNCIONA - substitua!)
             
-            load() {
-                try {
-                    const saved = localStorage.getItem('screen_calibration');
-                    if (saved) {
-                        this.calibration = JSON.parse(saved);
-                        this.apply();
-                        return true;
-                    }
-                } catch(e) {}
-                return false;
-            },
-            
-            detect() {
-                const w = window.innerWidth;
-                const h = window.innerHeight;
-                const sw = screen.width;
-                const sh = screen.height;
-                const dpr = window.devicePixelRatio || 1;
-                const orientation = screen.orientation?.type || (w > h ? 'landscape' : 'portrait');
-                
-                // CORRIGIDO: Detecção correta das safe areas
-                const style = getComputedStyle(document.documentElement);
-                const safeTop = parseInt(style.getPropertyValue('env(safe-area-inset-top)')) || 
-                               parseInt(style.getPropertyValue('constant(safe-area-inset-top)')) || 0;
-                const safeBottom = parseInt(style.getPropertyValue('env(safe-area-inset-bottom)')) || 
-                                  parseInt(style.getPropertyValue('constant(safe-area-inset-bottom)')) || 0;
-                const safeLeft = parseInt(style.getPropertyValue('env(safe-area-inset-left)')) || 
-                                parseInt(style.getPropertyValue('constant(safe-area-inset-left)')) || 0;
-                const safeRight = parseInt(style.getPropertyValue('env(safe-area-inset-right)')) || 
-                                 parseInt(style.getPropertyValue('constant(safe-area-inset-right)')) || 0;
-                
-                // Se não detectou safe area, estimar para dispositivos com notch
-                let estimatedSafeTop = safeTop;
-                let estimatedSafeBottom = safeBottom;
-                
-                if (safeTop === 0 && dpr >= 3 && w < 500) {
-                    // Provável iPhone com notch
-                    estimatedSafeTop = orientation === 'portrait' ? 47 : 0;
-                    estimatedSafeBottom = orientation === 'portrait' ? 34 : 21;
-                }
-                
-                const ua = navigator.userAgent;
-                let deviceType = 'Desktop';
-                if (/iPhone/.test(ua)) deviceType = 'iPhone';
-                else if (/iPad/.test(ua)) deviceType = 'iPad';
-                else if (/Android/.test(ua)) deviceType = 'Android';
-                else if (w < 768) deviceType = 'Mobile';
-                else if (w < 1024) deviceType = 'Tablet';
-                
-                let baseFontSize;
-                if (w < 320) baseFontSize = 13;
-                else if (w < 360) baseFontSize = 14;
-                else if (w < 400) baseFontSize = 15;
-                else if (w < 480) baseFontSize = 16;
-                else if (w < 768) baseFontSize = 17;
-                else baseFontSize = 18;
-                
-                let maxWidth = Math.min(550, w);
-                let playerHeight = w < 768 ? (orientation === 'portrait' ? 70 : 55) : 80;
-                
-                this.calibration = {
-                    deviceType,
-                    viewportWidth: w,
-                    viewportHeight: h,
-                    screenWidth: sw,
-                    screenHeight: sh,
-                    pixelRatio: dpr,
-                    orientation,
-                    safeArea: { 
-                        top: Math.max(safeTop, estimatedSafeTop), 
-                        bottom: Math.max(safeBottom, estimatedSafeBottom), 
-                        left: safeLeft, 
-                        right: safeRight 
-                    },
-                    baseFontSize,
-                    maxWidth,
-                    playerHeight,
-                    timestamp: new Date().toISOString()
-                };
-                
-                return this.calibration;
-            },
-            
-            apply() {
-                if (!this.calibration) return;
-                const cal = this.calibration;
-                
-                // Aplicar safe areas
-                document.documentElement.style.setProperty('--safe-t', cal.safeArea.top + 'px');
-                document.documentElement.style.setProperty('--safe-b', cal.safeArea.bottom + 'px');
-                
-                // Aplicar fonte
-                document.documentElement.style.fontSize = cal.baseFontSize + 'px';
-                
-                // Aplicar largura máxima
-                const container = document.querySelector('.app-container');
-                if (container) container.style.maxWidth = cal.maxWidth + 'px';
-                
-                // Aplicar altura do player
-                document.documentElement.style.setProperty('--player-h', cal.playerHeight + 'px');
-                
-                // CORRIGIDO: Padding do body incluindo safe area top
-                document.body.style.paddingTop = cal.safeArea.top + 'px';
-                document.body.style.paddingBottom = `calc(${cal.playerHeight}px + ${cal.safeArea.bottom}px + 15px)`;
-                
-                try { localStorage.setItem('screen_calibration', JSON.stringify(cal)); } catch(e) {}
-                this.updateIndicator();
-            },
-            
-            reset() {
-                localStorage.removeItem('screen_calibration');
-                this.calibration = null;
-                document.documentElement.style.setProperty('--safe-t', '0px');
-                document.documentElement.style.setProperty('--safe-b', '0px');
-                document.documentElement.style.fontSize = '16px';
-                document.body.style.paddingTop = '0px';
-                document.body.style.paddingBottom = 'calc(80px + 0px + 15px)';
-                const container = document.querySelector('.app-container');
-                if (container) container.style.maxWidth = '550px';
-                document.documentElement.style.setProperty('--player-h', '80px');
-                this.updateIndicator();
-            },
-            
-            updatePanel() {
-                if (!this.calibration) return;
-                const cal = this.calibration;
-                
-                const el = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
-                
-                el('calDevice', cal.deviceType);
-                el('calResolution', `${cal.screenWidth}x${cal.screenHeight} @${cal.pixelRatio}x`);
-                el('calViewport', `${cal.viewportWidth}x${cal.viewportHeight}`);
-                el('calOrientation', cal.orientation === 'portrait' ? '📱 Retrato' : '🖥️ Paisagem');
-                el('calSafeTop', `${cal.safeArea.top}px`);
-                el('calSafeBottom', `${cal.safeArea.bottom}px`);
-                el('calPixelRatio', `${cal.pixelRatio}x`);
-                
-                const saved = localStorage.getItem('screen_calibration');
-                el('calSaved', saved ? 
-                    `✅ ${cal.deviceType} - Safe T:${cal.safeArea.top} B:${cal.safeArea.bottom}` : 
-                    '⚠️ Não salva');
-                
-                el('calibrationStatus', 
-                    `✅ ${cal.deviceType} - ${cal.viewportWidth}x${cal.viewportHeight}`);
-            },
-            
-            updateIndicator() {
-                const indicator = document.getElementById('calibrationIndicator');
-                if (!indicator) return;
-                
-                if (this.calibration) {
-                    const cal = this.calibration;
-                    indicator.style.display = 'block';
-                    indicator.textContent = `📐 ${cal.deviceType} | ${cal.viewportWidth}x${cal.viewportHeight} | Safe T:${cal.safeArea.top} B:${cal.safeArea.bottom}`;
-                } else {
-                    const w = window.innerWidth, h = window.innerHeight;
-                    indicator.style.display = 'block';
-                    indicator.textContent = `⚙️ Padrão | ${w}x${h}`;
-                }
-            }
+            // Fallback: usar API de busca interna do YouTube (scraping)
+            useFallback: true,
+            fallbackURL: 'https://www.youtube.com/results'
+        };
+        
+        // ===== DATABASE DE MÚSICAS (FALLBACK) =====
+        const MusicDB = {
+            songs: [
+                { id: 'dQw4w9WgXcQ', title: 'Never Gonna Give You Up', artist: 'Rick Astley', thumbnail: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/default.jpg' },
+                { id: '9bZkp7q19f0', title: 'Gangnam Style', artist: 'PSY', thumbnail: 'https://i.ytimg.com/vi/9bZkp7q19f0/default.jpg' },
+                { id: 'kJQP7kiw5Fk', title: 'Despacito', artist: 'Luis Fonsi ft. Daddy Yankee', thumbnail: 'https://i.ytimg.com/vi/kJQP7kiw5Fk/default.jpg' },
+                { id: 'JGwWNGJdvx8', title: 'Shape of You', artist: 'Ed Sheeran', thumbnail: 'https://i.ytimg.com/vi/JGwWNGJdvx8/default.jpg' },
+                { id: 'RgKAFK5djSk', title: 'See You Again', artist: 'Wiz Khalifa ft. Charlie Puth', thumbnail: 'https://i.ytimg.com/vi/RgKAFK5djSk/default.jpg' },
+                { id: 'OPf0YbXqDm0', title: 'Uptown Funk', artist: 'Mark Ronson ft. Bruno Mars', thumbnail: 'https://i.ytimg.com/vi/OPf0YbXqDm0/default.jpg' },
+                { id: 'YQHsXMglC9A', title: 'Hello', artist: 'Adele', thumbnail: 'https://i.ytimg.com/vi/YQHsXMglC9A/default.jpg' },
+                { id: 'fRh_vgS2dFE', title: 'Sorry', artist: 'Justin Bieber', thumbnail: 'https://i.ytimg.com/vi/fRh_vgS2dFE/default.jpg' },
+                { id: 'CevxZvSJLk8', title: 'Roar', artist: 'Katy Perry', thumbnail: 'https://i.ytimg.com/vi/CevxZvSJLk8/default.jpg' },
+                { id: 'HP-MbfHFUqs', title: 'Blank Space', artist: 'Taylor Swift', thumbnail: 'https://i.ytimg.com/vi/HP-MbfHFUqs/default.jpg' },
+                { id: 'JGwWNGJdvx8', title: 'Shape of You', artist: 'Ed Sheeran', thumbnail: 'https://i.ytimg.com/vi/JGwWNGJdvx8/default.jpg' },
+                { id: 'bnCT0GElVBg', title: 'Bohemian Rhapsody', artist: 'Queen', thumbnail: 'https://i.ytimg.com/vi/bnCT0GElVBg/default.jpg' },
+                { id: 'hT_nvWreIhg', title: 'Counting Stars', artist: 'OneRepublic', thumbnail: 'https://i.ytimg.com/vi/hT_nvWreIhg/default.jpg' },
+                { id: '0KSOMA3QBU0', title: 'Perfect', artist: 'Ed Sheeran', thumbnail: 'https://i.ytimg.com/vi/0KSOMA3QBU0/default.jpg' },
+                { id: 'aJOTlE1K90k', title: 'Girls Like You', artist: 'Maroon 5', thumbnail: 'https://i.ytimg.com/vi/aJOTlE1K90k/default.jpg' },
+                { id: 'UceaB4D0jpo', title: 'Rockabye', artist: 'Clean Bandit', thumbnail: 'https://i.ytimg.com/vi/UceaB4D0jpo/default.jpg' },
+                { id: 'YykjpeuMNEk', title: 'Hymn For The Weekend', artist: 'Coldplay', thumbnail: 'https://i.ytimg.com/vi/YykjpeuMNEk/default.jpg' },
+                { id: 'VbfpW0pbvaU', title: 'Starboy', artist: 'The Weeknd', thumbnail: 'https://i.ytimg.com/vi/VbfpW0pbvaU/default.jpg' },
+                { id: 'PMivT7MJ41M', title: 'Cheap Thrills', artist: 'Sia', thumbnail: 'https://i.ytimg.com/vi/PMivT7MJ41M/default.jpg' },
+                { id: 'JRfuAukYTKg', title: 'Shake It Off', artist: 'Taylor Swift', thumbnail: 'https://i.ytimg.com/vi/JRfuAukYTKg/default.jpg' },
+                { id: 'CduA0TULnow', title: 'Let Her Go', artist: 'Passenger', thumbnail: 'https://i.ytimg.com/vi/CduA0TULnow/default.jpg' },
+                { id: 'lp-EO5I60KA', title: 'Thinking Out Loud', artist: 'Ed Sheeran', thumbnail: 'https://i.ytimg.com/vi/lp-EO5I60KA/default.jpg' },
+                { id: '450p7goxZqg', title: 'All of Me', artist: 'John Legend', thumbnail: 'https://i.ytimg.com/vi/450p7goxZqg/default.jpg' },
+                { id: 'NuCOfRkz2oI', title: 'Havana', artist: 'Camila Cabello', thumbnail: 'https://i.ytimg.com/vi/NuCOfRkz2oI/default.jpg' },
+                { id: 'pRpeEdMmmQ0', title: 'Waka Waka', artist: 'Shakira', thumbnail: 'https://i.ytimg.com/vi/pRpeEdMmmQ0/default.jpg' },
+            ]
         };
 
-        // ===== FUNÇÕES DO CALIBRADOR =====
-        window.openCalibrator = () => {
-            document.getElementById('screenCalibrator').classList.add('active');
-            ScreenCalibrator.detect();
-            ScreenCalibrator.updatePanel();
-        };
-        
-        window.closeCalibrator = () => {
-            document.getElementById('screenCalibrator').classList.remove('active');
-        };
-        
-        window.detectScreen = () => {
-            ScreenCalibrator.detect();
-            ScreenCalibrator.updatePanel();
-            toast('🔍 Tela detectada!');
-        };
-        
-        window.applyCalibration = () => {
-            if (!ScreenCalibrator.calibration) ScreenCalibrator.detect();
-            ScreenCalibrator.apply();
-            ScreenCalibrator.updatePanel();
-            closeCalibrator();
-            toast('✅ Calibração salva!');
-        };
-        
-        window.resetCalibration = () => {
-            ScreenCalibrator.reset();
-            ScreenCalibrator.updatePanel();
-            toast('🔄 Resetado ao padrão');
-        };
-
-        // ===== PAGINADOR =====
+        // ===== SISTEMA DE PAGINAÇÃO =====
         const Paginator = {
             currentPage: 1,
             totalPages: 1,
-            itemsPerPage: 10,
-            currentItems: [],
+            itemsPerPage: 8,
+            allItems: [],
             
-            init(items, itemsPerPage = 10) {
-                this.currentItems = items || [];
-                this.itemsPerPage = itemsPerPage;
-                this.totalPages = Math.ceil(this.currentItems.length / this.itemsPerPage) || 1;
-                this.currentPage = 1;
-                this.updateUI();
+            setItems(items, perPage = 8) {
+                this.allItems = items || [];
+                this.itemsPerPage = perPage;
+                this.totalPages = Math.ceil(this.allItems.length / this.itemsPerPage) || 1;
+                this.currentPage = Math.min(this.currentPage, this.totalPages);
+                if (this.currentPage < 1) this.currentPage = 1;
             },
             
-            getPageItems() {
+            getCurrentItems() {
                 const start = (this.currentPage - 1) * this.itemsPerPage;
-                return this.currentItems.slice(start, start + this.itemsPerPage);
+                return this.allItems.slice(start, start + this.itemsPerPage);
             },
             
             changePage(action) {
+                const oldPage = this.currentPage;
                 switch(action) {
                     case 'first': this.currentPage = 1; break;
                     case 'prev': if (this.currentPage > 1) this.currentPage--; break;
                     case 'next': if (this.currentPage < this.totalPages) this.currentPage++; break;
                     case 'last': this.currentPage = this.totalPages; break;
                 }
-                this.updateUI();
-                if (typeof window.onPageChange === 'function') {
-                    window.onPageChange(this.currentPage, this.getPageItems());
+                if (this.currentPage !== oldPage) {
+                    this.updateAllUI();
+                    this.dispatchChange();
                 }
             },
             
-            jumpTo(page) {
+            jumpToPage(page) {
                 page = parseInt(page);
-                if (page >= 1 && page <= this.totalPages) {
+                if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
                     this.currentPage = page;
-                    this.updateUI();
-                    if (typeof window.onPageChange === 'function') {
-                        window.onPageChange(this.currentPage, this.getPageItems());
-                    }
+                    this.updateAllUI();
+                    this.dispatchChange();
                 }
             },
             
-            updateUI() {
-                const counter = document.getElementById('pageCounter');
-                const info = document.getElementById('pageInfo');
-                
+            dispatchChange() {
+                window.dispatchEvent(new CustomEvent('pageChanged', { 
+                    detail: { page: this.currentPage, items: this.getCurrentItems() }
+                }));
+            },
+            
+            updateAllUI() {
+                this.updateTopCounter();
+                this.updateBottomCounter();
+                this.updateItemsRange();
+            },
+            
+            updateTopCounter() {
+                const topEl = document.getElementById('pageCounterTop');
                 if (this.totalPages > 1) {
-                    counter.classList.add('active');
-                    info.textContent = `Pág ${this.currentPage} de ${this.totalPages}`;
+                    topEl.classList.remove('hidden');
+                    document.getElementById('pageCurrentTop').textContent = this.currentPage;
+                    document.getElementById('pageTotalTop').textContent = this.totalPages;
                     
-                    const buttons = counter.querySelectorAll('.page-btn');
-                    buttons.forEach(btn => {
-                        const onclick = btn.getAttribute('onclick') || '';
-                        if (onclick.includes("'first'") || onclick.includes("'prev'")) {
-                            btn.disabled = this.currentPage === 1;
-                        }
-                        if (onclick.includes("'next'") || onclick.includes("'last'")) {
-                            btn.disabled = this.currentPage === this.totalPages;
-                        }
-                    });
+                    document.getElementById('btnFirstTop').disabled = this.currentPage === 1;
+                    document.getElementById('btnPrevTop').disabled = this.currentPage === 1;
+                    document.getElementById('btnNextTop').disabled = this.currentPage === this.totalPages;
+                    document.getElementById('btnLastTop').disabled = this.currentPage === this.totalPages;
+                    
+                    const jumpInput = document.getElementById('pageJumpTop');
+                    if (jumpInput) {
+                        jumpInput.max = this.totalPages;
+                        jumpInput.placeholder = `1-${this.totalPages}`;
+                    }
                 } else {
-                    counter.classList.remove('active');
+                    topEl.classList.add('hidden');
+                }
+            },
+            
+            updateBottomCounter() {
+                const bottomEl = document.getElementById('pageCounterBottom');
+                if (this.totalPages > 1) {
+                    bottomEl.classList.remove('hidden');
+                    document.getElementById('pageInfoBottom').textContent = 
+                        `Pág ${this.currentPage} de ${this.totalPages}`;
+                    
+                    document.getElementById('btnFirstBottom').disabled = this.currentPage === 1;
+                    document.getElementById('btnPrevBottom').disabled = this.currentPage === 1;
+                    document.getElementById('btnNextBottom').disabled = this.currentPage === this.totalPages;
+                    document.getElementById('btnLastBottom').disabled = this.currentPage === this.totalPages;
+                } else {
+                    bottomEl.classList.add('hidden');
+                }
+            },
+            
+            updateItemsRange() {
+                const total = this.allItems.length;
+                const start = total > 0 ? (this.currentPage - 1) * this.itemsPerPage + 1 : 0;
+                const end = Math.min(this.currentPage * this.itemsPerPage, total);
+                
+                const rangeEl = document.getElementById('itemsRangeTop');
+                if (rangeEl) {
+                    rangeEl.textContent = total > 0 ? `${start}-${end} de ${total}` : '';
                 }
                 
-                const total = this.currentItems.length;
-                const start = (this.currentPage - 1) * this.itemsPerPage + 1;
-                const end = Math.min(this.currentPage * this.itemsPerPage, total);
-                const rc = document.getElementById('resultCount');
-                if (rc && total > 0) {
-                    rc.textContent = total > this.itemsPerPage ? `${start}-${end} de ${total}` : `${total} itens`;
+                const countEl = document.getElementById('resultCount');
+                if (countEl) {
+                    countEl.textContent = total > this.itemsPerPage ? 
+                        `${start}-${end} de ${total} resultados` : 
+                        `${total} resultados`;
                 }
             }
         };
@@ -796,12 +484,12 @@
         // ===== TEMA =====
         const T = {
             themes: ['dark', 'light', 'amoled'],
-            current: 'dark',
+            current: localStorage.getItem('theme') || 'dark',
             apply() {
                 document.body.setAttribute('data-theme', this.current);
                 document.querySelector('meta[name="theme-color"]').setAttribute('content',
                     this.current === 'light' ? '#fff' : this.current === 'amoled' ? '#000' : '#0f0f0f');
-                try { localStorage.setItem('theme', this.current); } catch(e) {}
+                localStorage.setItem('theme', this.current);
             },
             cycle() {
                 const i = this.themes.indexOf(this.current);
@@ -810,20 +498,16 @@
                 toast('🎨 ' + ({dark:'Escuro', light:'Claro', amoled:'AMOLED'})[this.current]);
             }
         };
-        try { T.current = localStorage.getItem('theme') || 'dark'; } catch(e) {}
         T.apply();
 
-        function getStorage(key, def) { try { return JSON.parse(localStorage.getItem(key) || def); } catch(e) { return JSON.parse(def); } }
-        function setStorage(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {} }
-
-        // ===== FAVORITOS =====
+        // ===== STORAGE =====
         const Fav = {
-            favs: getStorage('favs', '[]'),
-            hist: getStorage('hist', '[]'),
+            favs: JSON.parse(localStorage.getItem('favs') || '[]'),
+            hist: JSON.parse(localStorage.getItem('hist') || '[]'),
             toggle(tr) {
                 const i = this.favs.findIndex(f => f.id === tr.id);
-                i > -1 ? (this.favs.splice(i, 1), toast('💔 Removido')) : (this.favs.unshift(tr), toast('❤️ Favoritado'));
-                setStorage('favs', this.favs);
+                i > -1 ? this.favs.splice(i, 1) : this.favs.unshift(tr);
+                localStorage.setItem('favs', JSON.stringify(this.favs));
                 return i === -1;
             },
             is(id) { return this.favs.some(f => f.id === id); },
@@ -831,221 +515,221 @@
                 this.hist = this.hist.filter(h => h.id !== tr.id);
                 this.hist.unshift({...tr, at: new Date().toISOString()});
                 if (this.hist.length > 50) this.hist.pop();
-                setStorage('hist', this.hist);
+                localStorage.setItem('hist', JSON.stringify(this.hist));
             }
         };
 
         const DL = {
-            items: getStorage('dls', '[]'),
+            items: JSON.parse(localStorage.getItem('dls') || '[]'),
             async download(id, title, channel, thumb) {
                 toast('⬇️ Baixando...');
                 this.items.unshift({id, title, channel, thumbnail:thumb, at: new Date().toISOString()});
-                setStorage('dls', this.items);
+                localStorage.setItem('dls', JSON.stringify(this.items));
                 await new Promise(r => setTimeout(r, 1000));
                 toast('✅ Concluído!');
             },
-            has(id) { return this.items.some(d => d.id === id); },
-            all() { return this.items; }
+            has(id) { return this.items.some(d => d.id === id); }
         };
 
-        const MIR = {
-            active: false,
-            segments: getStorage('mir_segments', '[]'),
-            currentSegment: -1,
-            musicCount: 0,
-            
-            init() {
-                if (this.active) return;
-                this.active = true;
-                this.musicCount = 0;
-                this.segments = [];
-                this.currentSegment = -1;
-                this.updateUI();
-                this.startVisualization();
-                toast('🎼 MIR Ativado');
-            },
-            
-            stop() {
-                this.active = false;
-                if (this._animFrame) cancelAnimationFrame(this._animFrame);
-                this.updateUI();
-                document.getElementById('mirWaveform').innerHTML = '';
-                toast('🎼 MIR Desativado');
-            },
-            
-            detectMusic() {
-                if (!this.active || !playing) return;
-                const time = yt?.getCurrentTime?.() || 0;
-                if (isNaN(time)) return;
-                if (Math.random() < 0.01 || this.segments.length === 0) {
-                    this.musicCount++;
-                    const seg = { id: Date.now(), start: time, end: null, name: `Música ${this.musicCount}`, duration: null };
-                    if (this.segments.length > 0) {
-                        const last = this.segments[this.segments.length - 1];
-                        if (!last.end) { last.end = time; last.duration = time - last.start; }
-                    }
-                    this.segments.push(seg);
-                    this.currentSegment = this.segments.length - 1;
-                    this.updateSegmentsList();
-                    setStorage('mir_segments', this.segments);
-                }
-            },
-            
-            startVisualization() {
-                const container = document.getElementById('mirWaveform');
-                if (!container) return;
-                const update = () => {
-                    if (!this.active) return;
-                    let bars = '';
-                    const energy = playing ? 0.5 + Math.random() * 0.5 : 0.1;
-                    for (let i = 0; i < 40; i++) {
-                        const height = Math.min(100, Math.max(2, energy * 80 + Math.sin(Date.now() * 0.005 + i * 0.5) * 20));
-                        bars += `<div class="mir-bar" style="height:${height}px"></div>`;
-                    }
-                    container.innerHTML = bars;
-                    this.detectMusic();
-                    this._animFrame = requestAnimationFrame(update);
-                };
-                this._animFrame = requestAnimationFrame(update);
-            },
-            
-            jumpToSegment(index) {
-                if (!yt || index < 0 || index >= this.segments.length) return;
-                const seg = this.segments[index];
-                if (seg.start !== null && !isNaN(seg.start)) {
-                    yt.seekTo(seg.start, true);
-                    this.currentSegment = index;
-                    toast(`⏩ ${seg.name}`);
-                    this.updateSegmentsList();
-                }
-            },
-            
-            jumpNext() { if (this.currentSegment < this.segments.length - 1) this.jumpToSegment(this.currentSegment + 1); },
-            jumpPrev() { if (this.currentSegment > 0) this.jumpToSegment(this.currentSegment - 1); },
-            
-            updateSegmentsList() {
-                const container = document.getElementById('mirSegments');
-                if (!container || !this.segments.length) {
-                    if (container) container.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:0.7rem;">Nenhum segmento</div>';
-                    return;
-                }
-                container.innerHTML = this.segments.map((seg, i) => `
-                    <div class="mir-segment" onclick="MIR.jumpToSegment(${i})"
-                         style="${i === this.currentSegment ? 'background:rgba(29,185,84,0.2);border:1px solid var(--green);' : ''}">
-                        <span class="mir-seg-time">${formatTime(seg.start)}${seg.end ? ' - ' + formatTime(seg.end) : ''}</span>
-                        <span class="mir-seg-name">${seg.name}</span>
-                        <span class="mir-seg-arrow">▶</span>
-                    </div>
-                `).join('');
-            },
-            
-            updateUI() {
-                const btn = document.getElementById('mirToggleBtn');
-                const panel = document.getElementById('mirPanel');
-                const status = document.getElementById('mirStatus');
-                if (this.active) {
-                    btn.classList.add('active'); btn.textContent = '🎼 MIR ON';
-                    panel.classList.add('active');
-                    status.textContent = '🟢 Analisando'; status.style.color = '#1db954';
-                } else {
-                    btn.classList.remove('active'); btn.textContent = '🎼 MIR';
-                    panel.classList.remove('active');
-                    status.textContent = '🔴 Inativo'; status.style.color = 'var(--text2)';
-                }
+        // ===== BUSCA NA API =====
+        let currentQuery = '';
+        let allSearchResults = [];
+
+        async function searchYouTube(query) {
+            if (!query || !query.trim()) {
+                toast('⚠️ Digite algo para buscar');
+                return;
             }
-        };
-
-        function formatTime(s) {
-            if (isNaN(s) || s === null) return '00:00';
-            const m = Math.floor(s / 60), sec = Math.floor(s % 60);
-            return `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
-        }
-
-        // ===== YOUTUBE PLAYER (CORRIGIDO) =====
-        let yt = null, ytTop = null, playlist = [], idx = -1, playing = false, vid = null;
-        let toastTO = null, query = '', progInt = null, isVideo = false;
-
-        function initPlayer() {
-            console.log('🎬 Inicializando player...');
-            if (yt) {
-                try { yt.destroy(); } catch(e) {}
-            }
+            
+            currentQuery = query.trim();
+            const resCont = document.getElementById('resultsContainer');
+            resCont.innerHTML = '<div class="loading"><div class="spinner"></div><div class="loading-text">🔍 Buscando...</div></div>';
             
             try {
-                yt = new YT.Player('hiddenPlayer', {
-                    height: '100%',
-                    width: '100%',
-                    videoId: '',
-                    playerVars: {
-                        autoplay: 0,
-                        playsinline: 1,
-                        controls: 0,
-                        disablekb: 1,
-                        fs: 0,
-                        rel: 0,
-                        modestbranding: 1,
-                        iv_load_policy: 3,
-                        origin: window.location.origin,
-                        enablejsapi: 1,
-                        mute: 0,
-                        volume: 100
-                    },
-                    events: {
-                        onReady: (e) => {
-                            console.log('✅ Player YouTube PRONTO!');
-                            e.target.setVolume(100);
-                            e.target.unMute();
-                            // Se já tem vídeo, carrega
-                            if (vid) {
-                                e.target.loadVideoById({ videoId: vid, startSeconds: 0 });
-                            }
-                        },
-                        onStateChange: onState,
-                        onError: (e) => {
-                            console.error('❌ Erro no player:', e.data);
-                            if (e.data === 2 || e.data === 5) {
-                                setTimeout(() => {
-                                    if (vid) yt?.loadVideoById?.({ videoId: vid, startSeconds: 0 });
-                                }, 2000);
-                            }
-                        }
-                    }
-                });
-            } catch(e) {
-                console.error('Erro ao criar player:', e);
-                setTimeout(initPlayer, 1000);
+                // Tentar buscar via API do YouTube
+                const results = await fetchFromYouTubeAPI(query);
+                
+                if (results && results.length > 0) {
+                    allSearchResults = results;
+                    displayPaginatedResults(results);
+                    toast(`✅ ${results.length} resultados encontrados`);
+                } else {
+                    // Fallback para database local
+                    useLocalFallback(query);
+                }
+            } catch (error) {
+                console.error('Erro na busca:', error);
+                // Fallback para database local
+                useLocalFallback(query);
             }
         }
 
-        // Garantir que a API carregue
+        async function fetchFromYouTubeAPI(query) {
+            // TENTATIVA 1: API oficial do YouTube
+            if (API_CONFIG.apiKey && API_CONFIG.apiKey !== 'AIzaSyAqzGt5QmBQhJQ-NxrPBHZqOcN9GrNZF8o') {
+                try {
+                    const url = `${API_CONFIG.youtubeSearchURL}?part=snippet&maxResults=50&q=${encodeURIComponent(query + ' música')}&type=video&videoCategoryId=10&key=${API_CONFIG.apiKey}`;
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    
+                    if (data.items && data.items.length > 0) {
+                        return data.items.map(item => ({
+                            id: item.id.videoId,
+                            title: item.snippet.title,
+                            channel: item.snippet.channelTitle,
+                            thumbnail: item.snippet.thumbnails?.default?.url || 
+                                      item.snippet.thumbnails?.medium?.url || ''
+                        }));
+                    }
+                } catch(e) {
+                    console.log('API YouTube falhou, tentando fallback...');
+                }
+            }
+            
+            // TENTATIVA 2: Proxy CORS
+            try {
+                const searchURL = `https://www.youtube.com/results?search_query=${encodeURIComponent(query + ' música')}`;
+                const proxyURL = API_CONFIG.proxy + encodeURIComponent(searchURL);
+                const response = await fetch(proxyURL);
+                const html = await response.text();
+                
+                // Extrair dados do HTML (scraping básico)
+                const results = parseYouTubeHTML(html);
+                if (results.length > 0) return results;
+            } catch(e) {
+                console.log('Proxy falhou, usando database local...');
+            }
+            
+            return [];
+        }
+
+        function parseYouTubeHTML(html) {
+            const results = [];
+            // Regex para extrair videoId e título do HTML do YouTube
+            const videoRegex = /\/watch\?v=([a-zA-Z0-9_-]{11})/g;
+            const titleRegex = /"title":{"runs":\[{"text":"([^"]+)"}/g;
+            
+            let match;
+            const ids = [];
+            while ((match = videoRegex.exec(html)) !== null) {
+                if (!ids.includes(match[1])) ids.push(match[1]);
+            }
+            
+            const titles = [];
+            while ((match = titleRegex.exec(html)) !== null) {
+                titles.push(match[1]);
+            }
+            
+            for (let i = 0; i < Math.min(ids.length, titles.length, 50); i++) {
+                results.push({
+                    id: ids[i],
+                    title: decodeHTML(titles[i]),
+                    channel: '',
+                    thumbnail: `https://i.ytimg.com/vi/${ids[i]}/default.jpg`
+                });
+            }
+            
+            return results;
+        }
+
+        function useLocalFallback(query) {
+            const q = query.toLowerCase();
+            const filtered = MusicDB.songs.filter(s => 
+                s.title.toLowerCase().includes(q) || 
+                s.artist.toLowerCase().includes(q)
+            );
+            
+            if (filtered.length > 0) {
+                allSearchResults = filtered.map(s => ({
+                    id: s.id,
+                    title: s.title,
+                    channel: s.artist,
+                    thumbnail: s.thumbnail
+                }));
+            } else {
+                // Se não encontrou nada, mostrar todos
+                allSearchResults = MusicDB.songs.map(s => ({
+                    id: s.id,
+                    title: s.title,
+                    channel: s.artist,
+                    thumbnail: s.thumbnail
+                }));
+                toast('📚 Mostrando biblioteca completa');
+            }
+            
+            displayPaginatedResults(allSearchResults);
+        }
+
+        function displayPaginatedResults(results) {
+            Paginator.setItems(results, 8);
+            const pageItems = Paginator.getCurrentItems();
+            const resCont = document.getElementById('resultsContainer');
+            
+            if (pageItems.length === 0) {
+                resCont.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text2);">Nenhum resultado encontrado</div>';
+                document.getElementById('pageCounterTop').classList.add('hidden');
+                document.getElementById('pageCounterBottom').classList.add('hidden');
+                document.getElementById('resultCount').textContent = '0 resultados';
+                return;
+            }
+            
+            resCont.innerHTML = pageItems.map((v, i) => card(v, i)).join('');
+            updateFavButtons();
+            Paginator.updateAllUI();
+        }
+
+        function decodeHTML(html) {
+            const txt = document.createElement('textarea');
+            txt.innerHTML = html;
+            return txt.value;
+        }
+
+        // ===== YOUTUBE PLAYER =====
+        let yt = null, ytTop = null, playlist = [], idx = -1, playing = false, vid = null;
+        let toastTO = null, progInt = null;
+
+        function initPlayer() {
+            if (yt) { try { yt.destroy(); } catch(e) {} }
+            
+            yt = new YT.Player('hiddenPlayer', {
+                height: '100%', width: '100%', videoId: '',
+                playerVars: {
+                    autoplay: 0, playsinline: 1, controls: 0, disablekb: 1,
+                    fs: 0, rel: 0, modestbranding: 1, iv_load_policy: 3,
+                    origin: window.location.origin, enablejsapi: 1, mute: 0, volume: 100
+                },
+                events: {
+                    onReady: (e) => {
+                        console.log('✅ Player YouTube pronto');
+                        e.target.setVolume(100);
+                        e.target.unMute();
+                        if (vid) {
+                            e.target.loadVideoById({ videoId: vid, startSeconds: 0 });
+                        }
+                    },
+                    onStateChange: (e) => {
+                        if (e.data === 1) { playing = true; updatePlayBtn(true); startProgress(); }
+                        else if (e.data === 2) { playing = false; updatePlayBtn(false); stopProgress(); }
+                        else if (e.data === 0) { stopProgress(); document.getElementById('progressBar').style.width = '0%'; nextTrack(); }
+                    },
+                    onError: (e) => {
+                        console.error('Erro player:', e.data);
+                        if (e.data === 2 || e.data === 5) {
+                            setTimeout(() => { if (vid) yt?.loadVideoById?.({ videoId: vid, startSeconds: 0 }); }, 2000);
+                        }
+                    }
+                }
+            });
+        }
+
         window.onYouTubeIframeAPIReady = () => {
             console.log('✅ API YouTube carregada');
             initPlayer();
         };
-
-        // Fallback
+        
         setTimeout(() => {
-            if (!yt && typeof YT !== 'undefined' && YT.Player) {
-                initPlayer();
-            }
+            if (!yt && typeof YT !== 'undefined' && YT.Player) initPlayer();
         }, 2000);
-
-        function onState(e) {
-            console.log('🎵 Estado:', e.data);
-            if (e.data === 1) { // Playing
-                playing = true; 
-                updatePlayBtn(true); 
-                startProgress(); 
-            } else if (e.data === 2) { // Paused
-                playing = false; 
-                updatePlayBtn(false); 
-                stopProgress(); 
-            } else if (e.data === 0) { // Ended
-                stopProgress(); 
-                document.getElementById('progressBar').style.width = '0%'; 
-                nextTrack(); 
-            }
-        }
 
         function startProgress() {
             stopProgress();
@@ -1059,13 +743,13 @@
         }
 
         function stopProgress() { if (progInt) { clearInterval(progInt); progInt = null; } }
+        
         function updatePlayBtn(p) { 
-            const btn = document.getElementById('spPlay'); 
+            const btn = document.getElementById('spPlay');
             if (btn) { btn.textContent = p ? '⏸' : '▶'; btn.classList.toggle('playing', p); }
         }
 
         function playTrack(i = -1) {
-            console.log('▶️ playTrack:', i);
             if (i >= 0 && i < playlist.length) idx = i;
             if (idx < 0 || idx >= playlist.length) return;
             
@@ -1074,95 +758,89 @@
             Fav.addHist(t);
             document.getElementById('progressBar').style.width = '0%';
             
-            if (MIR.active) { 
-                MIR.segments = []; 
-                MIR.musicCount = 0; 
-                MIR.currentSegment = -1; 
-                MIR.updateSegmentsList(); 
+            if (yt?.loadVideoById) {
+                yt.loadVideoById({ videoId: vid, startSeconds: 0 });
+                setTimeout(() => {
+                    if (yt?.playVideo) { yt.playVideo(); yt.unMute(); yt.setVolume(100); }
+                }, 500);
+            } else {
+                initPlayer();
+                setTimeout(() => playTrack(i), 1000);
+                return;
             }
             
-            // CORRIGIDO: Verificar se o player está pronto
-            const loadAndPlay = () => {
-                if (yt?.loadVideoById) {
-                    console.log('🎬 Carregando vídeo:', vid);
-                    yt.loadVideoById({ videoId: vid, startSeconds: 0 });
-                    setTimeout(() => {
-                        if (yt?.playVideo) {
-                            yt.playVideo();
-                            yt.unMute();
-                            yt.setVolume(100);
-                            console.log('▶️ Reproduzindo!');
-                        }
-                    }, 500);
-                } else {
-                    console.log('⏳ Aguardando player...');
-                    setTimeout(loadAndPlay, 500);
-                }
-            };
-            
-            loadAndPlay();
-            
             document.getElementById('spTitle').textContent = t.title || '';
-            document.getElementById('spArtist').textContent = t.channel || '';
+            document.getElementById('spArtist').textContent = t.channel || t.artist || '';
             document.getElementById('spArt').src = t.thumbnail || '';
             document.title = '▶ ' + (t.title || 'Play Tube Music');
             document.getElementById('spotifyBar').classList.add('active');
-            closeVideo();
+            
+            // Marcar card como tocando
+            document.querySelectorAll('.video-card').forEach(c => c.classList.remove('playing'));
+            const cards = document.querySelectorAll('.video-card');
+            cards.forEach(c => {
+                if (c.getAttribute('data-videoid') === vid) c.classList.add('playing');
+            });
         }
 
         window.togglePlay = () => {
-            console.log('⏯️ Toggle play, yt:', !!yt, 'playing:', playing, 'vid:', vid);
-            if (!yt) {
-                toast('⚠️ Player não está pronto');
-                return;
+            if (!yt) { 
+                initPlayer();
+                setTimeout(() => togglePlay(), 500);
+                return; 
             }
-            if (playing) {
-                yt.pauseVideo();
-                if (ytTop) ytTop.pauseVideo();
-            } else if (vid) {
-                yt.playVideo();
-                yt.unMute();
-            } else if (playlist.length > 0) {
-                playTrack(0);
-            }
+            if (playing) { yt.pauseVideo(); if (ytTop) ytTop.pauseVideo(); }
+            else if (vid) { yt.playVideo(); yt.unMute(); }
+            else if (playlist.length > 0) playTrack(0);
         };
-        window.nextTrack = () => { if (!playlist.length) return; stopProgress(); playTrack((idx + 1) % playlist.length); };
-        window.prevTrack = () => { if (!playlist.length) return; stopProgress(); playTrack((idx - 1 + playlist.length) % playlist.length); };
+        
+        window.nextTrack = () => { 
+            if (playlist.length) { stopProgress(); playTrack((idx + 1) % playlist.length); } 
+        };
+        
+        window.prevTrack = () => { 
+            if (playlist.length) { stopProgress(); playTrack((idx - 1 + playlist.length) % playlist.length); } 
+        };
+        
         window.seekTrack = (e) => {
             if (!yt || !vid) return;
-            const r = document.getElementById('progressContainer').getBoundingClientRect();
+            const r = e.currentTarget.getBoundingClientRect();
             const d = yt.getDuration();
             if (d > 0) yt.seekTo(((e.clientX - r.left) / r.width) * d, true);
         };
+        
         window.showVideo = () => {
             if (!vid) return;
-            isVideo = true;
             document.getElementById('playerContainer').classList.add('active');
-            const startTime = yt?.getCurrentTime?.() || 0;
+            const st = yt?.getCurrentTime?.() || 0;
+            const wrapper = document.getElementById('playerWrapper');
+            
             if (!ytTop) {
-                document.getElementById('playerWrapper').innerHTML = '<div id="topPlayerElement"></div>';
+                wrapper.innerHTML = '<div id="topPlayerElement"></div>';
                 ytTop = new YT.Player('topPlayerElement', {
                     videoId: vid,
                     playerVars: { autoplay: 1, playsinline: 1, controls: 1, rel: 0, modestbranding: 1, fs: 1, origin: window.location.origin },
                     events: {
-                        onReady: () => { if (!isNaN(startTime)) ytTop.seekTo(startTime); },
+                        onReady: () => { if (!isNaN(st)) ytTop.seekTo(st); },
                         onStateChange: (e) => { if (e.data === 1 && yt?.pauseVideo) yt.pauseVideo(); if (e.data === 0) closeVideo(); }
                     }
                 });
             } else {
-                ytTop.loadVideoById({ videoId: vid, startSeconds: startTime });
+                ytTop.loadVideoById({ videoId: vid, startSeconds: st });
             }
             document.getElementById('playerContainer').scrollIntoView({ behavior: 'smooth' });
         };
-        window.closeVideo = () => { document.getElementById('playerContainer').classList.remove('active'); if (ytTop) ytTop.stopVideo(); isVideo = false; };
+        
+        window.closeVideo = () => {
+            document.getElementById('playerContainer').classList.remove('active');
+            if (ytTop) ytTop.stopVideo();
+        };
+        
         window.downloadCurrent = () => {
             if (!vid || idx < 0) { toast('⚠️ Nenhuma música'); return; }
-            DL.download(playlist[idx].id, playlist[idx].title, playlist[idx].channel, playlist[idx].thumbnail);
+            const t = playlist[idx];
+            DL.download(t.id, t.title, t.channel || t.artist, t.thumbnail);
         };
-
-        window.toggleMIR = () => { MIR.active ? MIR.stop() : MIR.init(); };
-        window.jumpToNextSegment = () => MIR.jumpNext();
-        window.jumpToPrevSegment = () => MIR.jumpPrev();
 
         // ===== RESULTADOS =====
         window.playFromResults = (id, title, channel, thumb) => {
@@ -1171,13 +849,16 @@
             playlist.unshift(v);
             idx = 0; 
             playTrack(0); 
-            toast('▶ ' + title.substring(0, 30));
+            toast('▶ ' + title.substring(0, 35));
         };
+        
         window.toggleFav = (id, title, channel, thumb, e) => { 
             if (e) e.stopPropagation(); 
-            Fav.toggle({ id, title, channel, thumbnail: thumb }); 
-            updateFavButtons(); 
+            const isFav = Fav.toggle({ id, title, channel, thumbnail: thumb }); 
+            updateFavButtons();
+            toast(isFav ? '❤️ Favoritado' : '💔 Removido');
         };
+        
         window.dlFromCard = (id, title, channel, thumb, e) => { 
             if (e) e.stopPropagation(); 
             DL.download(id, title, channel, thumb); 
@@ -1191,116 +872,121 @@
             });
         }
 
-        function esc(t) { if (!t) return ''; const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+        function esc(t) { 
+            if (!t) return ''; 
+            const d = document.createElement('div'); 
+            d.textContent = t; 
+            return d.innerHTML; 
+        }
 
-        function card(v) {
+        function card(v, index) {
             const f = Fav.is(v.id), d = DL.has(v.id);
-            return `<div class="video-card" onclick="playFromResults('${v.id}','${esc(v.title)}','${esc(v.channel)}','${esc(v.thumbnail || '')}')" style="animation-delay:${Math.random()*0.2}s">
-                <img class="video-thumb" src="${v.thumbnail || ''}" loading="lazy" onerror="this.style.display='none'">
+            const isPlaying = vid === v.id;
+            return `<div class="video-card${isPlaying ? ' playing' : ''}" 
+                         data-videoid="${v.id}"
+                         onclick="playFromResults('${v.id}','${esc(v.title)}','${esc(v.channel)}','${esc(v.thumbnail || '')}')" 
+                         style="animation-delay:${index * 0.03}s">
+                <img class="video-thumb" src="${v.thumbnail || ''}" loading="lazy" 
+                     onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23333%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%23777%22 font-size=%2214%22>♪</text></svg>'">
                 <div class="video-info">
                     <div class="video-title">${esc(v.title)}</div>
-                    <div class="video-channel">${esc(v.channel)}</div>
+                    <div class="video-channel">${esc(v.channel || 'YouTube')}</div>
                 </div>
                 <div class="video-actions">
-                    <button class="v-btn fav${f?' fav-active':''}" data-id="${v.id}" onclick="toggleFav('${v.id}','${esc(v.title)}','${esc(v.channel)}','${esc(v.thumbnail || '')}',event)">${f?'❤️':'🤍'}</button>
+                    <button class="v-btn fav${f?' fav-active':''}" data-id="${v.id}" 
+                            onclick="toggleFav('${v.id}','${esc(v.title)}','${esc(v.channel)}','${esc(v.thumbnail || '')}',event)">${f?'❤️':'🤍'}</button>
                     ${!d ? `<button class="v-btn dl" onclick="dlFromCard('${v.id}','${esc(v.title)}','${esc(v.channel)}','${esc(v.thumbnail || '')}',event)">⬇</button>` : ''}
                 </div></div>`;
         }
 
         // ===== TABS =====
+        let currentTab = 'search';
+        
         window.switchTab = (t) => {
+            currentTab = t;
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             [...document.querySelectorAll('.tab-btn')].forEach(b => {
                 const txt = b.textContent.toLowerCase();
-                if ((t === 'search' && txt.includes('buscar')) || (t === 'favorites' && txt.includes('favorito')) ||
-                    (t === 'history' && txt.includes('histórico')) || (t === 'downloads' && txt.includes('download')) ||
-                    (t === 'segments' && txt.includes('segmento'))) b.classList.add('active');
+                if ((t === 'search' && txt.includes('buscar')) || 
+                    (t === 'favorites' && txt.includes('favorito')) ||
+                    (t === 'history' && txt.includes('histórico')) ||
+                    (t === 'downloads' && txt.includes('download'))) {
+                    b.classList.add('active');
+                }
             });
             
-            const titles = { 'search': 'Resultados', 'favorites': '❤️ Favoritos', 'history': '🕐 Histórico', 'downloads': '⬇️ Downloads', 'segments': '🎼 Segmentos' };
-            document.getElementById('sectionTitle').innerHTML = `<span>${titles[t] || 'Resultados'}</span>`;
-            
-            const resCont = document.getElementById('resultsContainer');
-            let items = [];
+            const titles = { 
+                'search': '🔍 Resultados da Busca', 
+                'favorites': '❤️ Favoritos', 
+                'history': '🕐 Histórico', 
+                'downloads': '⬇️ Downloads' 
+            };
+            document.getElementById('sectionTitle').textContent = titles[t] || 'Resultados';
             
             if (t === 'search') {
-                if (query) { searchYT(query); return; }
-                resCont.innerHTML = '<div style="text-align:center;padding:50px;color:var(--text2);"><div style="font-size:3rem;">🎧</div><div>Busque suas músicas</div></div>';
-                document.getElementById('resultCount').textContent = '';
-                document.getElementById('pageCounter').classList.remove('active');
+                if (currentQuery) {
+                    searchYouTube(currentQuery);
+                } else {
+                    document.getElementById('resultsContainer').innerHTML = 
+                        '<div style="text-align:center;padding:50px;color:var(--text2);"><div style="font-size:3rem;">🎧</div><div>Busque suas músicas favoritas</div></div>';
+                    document.getElementById('pageCounterTop').classList.add('hidden');
+                    document.getElementById('pageCounterBottom').classList.add('hidden');
+                    document.getElementById('resultCount').textContent = '';
+                }
                 return;
             }
             
-            items = t === 'favorites' ? Fav.favs : t === 'history' ? Fav.hist : t === 'downloads' ? DL.items : t === 'segments' ? MIR.segments : [];
+            let items = [];
+            if (t === 'favorites') items = Fav.favs;
+            else if (t === 'history') items = Fav.hist;
+            else if (t === 'downloads') items = DL.items;
             
-            window.onPageChange = (page, pageItems) => {
-                resCont.innerHTML = pageItems.map(v => {
-                    if (t === 'segments') {
-                        const idx = MIR.segments.indexOf(v);
-                        return `<div class="video-card" onclick="MIR.jumpToSegment(${idx})" style="border-left:3px solid var(--green);"><div class="video-info"><div class="video-title">🎵 ${v.name}</div><div class="video-channel">${formatTime(v.start)} - ${v.end ? formatTime(v.end) : '...'}</div></div></div>`;
-                    }
-                    return card(v);
-                }).join('');
-                if (t !== 'segments') updateFavButtons();
-            };
-            
-            if (!items.length) {
-                const empties = { 'favorites': '❤️ Nenhum favorito', 'history': '🕐 Histórico vazio', 'downloads': '📥 Nenhum download', 'segments': 'Ative o MIR' };
-                resCont.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text2);">${empties[t]}</div>`;
-                document.getElementById('pageCounter').classList.remove('active');
-                document.getElementById('resultCount').textContent = '';
+            if (items.length === 0) {
+                const empties = { 'favorites': '❤️ Nenhum favorito ainda', 'history': '🕐 Histórico vazio', 'downloads': '📥 Nenhum download' };
+                document.getElementById('resultsContainer').innerHTML = 
+                    `<div style="text-align:center;padding:40px;color:var(--text2);">${empties[t]}</div>`;
+                document.getElementById('pageCounterTop').classList.add('hidden');
+                document.getElementById('pageCounterBottom').classList.add('hidden');
+                document.getElementById('resultCount').textContent = '0 itens';
             } else {
-                Paginator.init(items, 10);
-                resCont.innerHTML = Paginator.getPageItems().map(v => {
-                    if (t === 'segments') {
-                        const idx = MIR.segments.indexOf(v);
-                        return `<div class="video-card" onclick="MIR.jumpToSegment(${idx})" style="border-left:3px solid var(--green);"><div class="video-info"><div class="video-title">🎵 ${v.name}</div><div class="video-channel">${formatTime(v.start)} - ${v.end ? formatTime(v.end) : '...'}</div></div></div>`;
-                    }
-                    return card(v);
-                }).join('');
-                if (t !== 'segments') updateFavButtons();
+                Paginator.setItems(items, 8);
+                document.getElementById('resultsContainer').innerHTML = Paginator.getCurrentItems().map((v, i) => card(v, i)).join('');
+                Paginator.updateAllUI();
+                updateFavButtons();
             }
         };
 
-        // ===== BUSCA (SIMULADA PARA TESTE) =====
-        document.getElementById('searchBtn').addEventListener('click', () => { 
-            query = document.getElementById('searchInput').value.trim(); 
-            searchYT(query); 
-        });
-        document.getElementById('searchInput').addEventListener('keydown', (e) => { 
-            if (e.key === 'Enter') { 
-                query = document.getElementById('searchInput').value.trim(); 
-                searchYT(query); 
-            } 
-        });
-        
-        async function searchYT(q) {
-            if (!q) { toast('⚠️ Digite algo'); return; }
-            const resCont = document.getElementById('resultsContainer');
-            resCont.innerHTML = '<div class="loading"><div class="spinner"></div><div>Buscando...</div></div>';
-            
-            // RESULTADOS DE TESTE - Substitua pela API real
-            const mockResults = [
-                { id: 'dQw4w9WgXcQ', title: 'Rick Astley - Never Gonna Give You Up', channel: 'Rick Astley', thumbnail: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/default.jpg' },
-                { id: '9bZkp7q19f0', title: 'PSY - Gangnam Style', channel: 'PSY', thumbnail: 'https://i.ytimg.com/vi/9bZkp7q19f0/default.jpg' },
-                { id: 'kJQP7kiw5Fk', title: 'Luis Fonsi - Despacito', channel: 'Luis Fonsi', thumbnail: 'https://i.ytimg.com/vi/kJQP7kiw5Fk/default.jpg' },
-            ];
-            
-            window.onPageChange = (page, items) => { 
-                resCont.innerHTML = items.map(v => card(v)).join(''); 
-                updateFavButtons(); 
-            };
-            Paginator.init(mockResults, 10);
-            resCont.innerHTML = Paginator.getPageItems().map(v => card(v)).join('');
-            updateFavButtons();
-        }
-
+        // ===== CONTROLES DE PÁGINA =====
         window.changePage = (action) => Paginator.changePage(action);
+        
         window.jumpToPage = () => {
-            const page = parseInt(document.getElementById('pageJump').value);
-            if (page) Paginator.jumpTo(page);
+            const page = parseInt(document.getElementById('pageJumpTop').value);
+            if (page) Paginator.jumpToPage(page);
+        };
+        
+        window.doSearch = () => {
+            const query = document.getElementById('searchInput').value;
+            searchYouTube(query);
         };
 
+        // Event listener para página mudar
+        window.addEventListener('pageChanged', (e) => {
+            const { items } = e.detail;
+            document.getElementById('resultsContainer').innerHTML = items.map((v, i) => card(v, i)).join('');
+            updateFavButtons();
+            
+            // Scroll suave para o topo dos resultados
+            document.getElementById('resultsContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+
+        // Enter no campo de busca
+        document.getElementById('searchInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                doSearch();
+            }
+        });
+
+        // ===== UTILS =====
         function toast(m) {
             if (toastTO) clearTimeout(toastTO);
             const el = document.getElementById('toast');
@@ -1318,42 +1004,28 @@
 
         // ===== INIT =====
         function init() {
-            console.log('🚀 Iniciando app...');
+            // Detectar safe areas
+            const style = getComputedStyle(document.documentElement);
+            const safeTop = parseInt(style.getPropertyValue('env(safe-area-inset-top)')) || 0;
+            const safeBottom = parseInt(style.getPropertyValue('env(safe-area-inset-bottom)')) || 0;
+            document.documentElement.style.setProperty('--safe-t', safeTop + 'px');
+            document.documentElement.style.setProperty('--safe-b', safeBottom + 'px');
+            document.body.style.paddingTop = safeTop + 'px';
             
-            // Carregar calibração
-            const hasCalibration = ScreenCalibrator.load();
-            if (!hasCalibration) {
-                ScreenCalibrator.detect();
-                ScreenCalibrator.apply();
-                console.log('✅ Safe areas configuradas:', ScreenCalibrator.calibration?.safeArea);
-            }
-            ScreenCalibrator.updateIndicator();
-            
-            // Visualizador MIR
-            const waveform = document.getElementById('mirWaveform');
-            if (waveform) { 
-                let bars = ''; 
-                for (let i = 0; i < 40; i++) bars += '<div class="mir-bar" style="height:2px"></div>'; 
-                waveform.innerHTML = bars; 
-            }
-            
-            console.log('✅ Play Tube Music Pro v10 - Corrigido');
+            console.log('✅ Play Tube Music Pro v12 - Busca API + Paginação Superior');
+            console.log('📚 Database local:', MusicDB.songs.length, 'músicas');
+            console.log('🔑 API Key configurada:', API_CONFIG.apiKey ? 'Sim' : 'Não (usando fallback)');
         }
         
-        window.addEventListener('resize', () => { 
-            clearTimeout(window._rt); 
-            window._rt = setTimeout(() => {
-                ScreenCalibrator.updateIndicator();
-            }, 500); 
-        });
-        
         window.addEventListener('load', init);
-        window.addEventListener('error', (e) => { 
-            if (e.target && e.target.tagName === 'IMG') e.target.style.display = 'none'; 
-        }, true);
 
         // Expor globais
-        window.T = T; window.MIR = MIR; window.ScreenCalibrator = ScreenCalibrator; window.Paginator = Paginator;
+        window.T = T;
+        window.Paginator = Paginator;
+        window.searchYouTube = searchYouTube;
+        window.doSearch = doSearch;
+        window.changePage = changePage;
+        window.jumpToPage = jumpToPage;
     })();
     </script>
 </body>
