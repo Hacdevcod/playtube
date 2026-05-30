@@ -26,6 +26,7 @@
             --input-ph: #717171;
             --green: #1db954;
             --player-h: 80px;
+            --safe-t: 0px;
             --safe-b: 0px;
             --scale: 1;
         }
@@ -57,7 +58,10 @@
         }
 
         * { margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent; }
-        html { font-size:16px; }
+        html { 
+            font-size:16px;
+            height: 100%;
+        }
         body { 
             font-family: -apple-system, 'Roboto', sans-serif;
             background: var(--bg);
@@ -66,13 +70,14 @@
             min-height: 100dvh;
             overflow-x: hidden;
             transition: background 0.3s, color 0.3s;
+            /* Padding corrigido: topo (safe area) + bottom (player + safe area) */
+            padding-top: var(--safe-t);
             padding-bottom: calc(var(--player-h) + var(--safe-b) + 15px);
             max-width: 100vw;
             margin: 0 auto;
             position: relative;
         }
         
-        /* Container principal com largura calibrada */
         .app-container {
             width: 100%;
             margin: 0 auto;
@@ -92,14 +97,29 @@
         @keyframes detectedPulse { 0%,100% { border-color: #1db954; box-shadow: 0 0 10px rgba(29,185,84,0.5); } 50% { border-color: #00ff88; box-shadow: 0 0 20px rgba(29,185,84,0.8); } }
         @keyframes calibratePulse { 0%,100% { border-color: #ff0; box-shadow: 0 0 10px rgba(255,255,0,0.5); } 50% { border-color: #ff0; box-shadow: 0 0 25px rgba(255,255,0,0.9); } }
 
-        .hidden-player { position: fixed; top: 0; left: 0; width: 1px; height: 1px; opacity: 0.01; pointer-events: none; z-index: -1; }
+        .hidden-player { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            opacity: 0; 
+            pointer-events: none; 
+            z-index: -1; 
+        }
+        .hidden-player iframe {
+            width: 100%;
+            height: 100%;
+        }
 
-        /* ===== CALIBRADOR DE TELA ===== */
+        /* ===== CALIBRADOR ===== */
         .screen-calibrator {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.95); z-index: 9999;
             display: none; flex-direction: column; align-items: center; justify-content: center;
             padding: 20px; color: #fff;
+            /* Garantir que fique visível */
+            padding-top: calc(20px + var(--safe-t));
         }
         .screen-calibrator.active { display: flex; }
         
@@ -130,21 +150,9 @@
             transition: all 0.3s; text-transform: uppercase; letter-spacing: 1px;
         }
         
-        .calibration-btn.detect {
-            background: linear-gradient(135deg, #ff0, #ffa500);
-            color: #000;
-        }
-        
-        .calibration-btn.apply {
-            background: linear-gradient(135deg, #0f0, #00b300);
-            color: #000;
-        }
-        
-        .calibration-btn.reset {
-            background: linear-gradient(135deg, #f00, #ff4444);
-            color: #fff;
-        }
-        
+        .calibration-btn.detect { background: linear-gradient(135deg, #ff0, #ffa500); color: #000; }
+        .calibration-btn.apply { background: linear-gradient(135deg, #0f0, #00b300); color: #000; }
+        .calibration-btn.reset { background: linear-gradient(135deg, #f00, #ff4444); color: #fff; }
         .calibration-btn:active { transform: scale(0.95); opacity: 0.8; }
         
         .calibration-status {
@@ -152,7 +160,7 @@
         }
         
         .calibration-close {
-            position: absolute; top: 20px; right: 20px;
+            position: absolute; top: calc(20px + var(--safe-t)); right: 20px;
             width: 40px; height: 40px; border-radius: 50%;
             background: rgba(255,255,255,0.1); border: 2px solid #fff;
             color: #fff; font-size: 18px; cursor: pointer;
@@ -161,7 +169,6 @@
         }
         .calibration-close:active { background: #f00; border-color: #f00; }
         
-        /* Indicador de calibração na tela */
         .calibration-indicator {
             position: fixed; bottom: 10px; right: 10px;
             background: rgba(0,0,0,0.8); color: #0f0;
@@ -172,7 +179,9 @@
 
         /* ===== TOPBAR ===== */
         .topbar {
-            position: sticky; top: 0; background: var(--bg);
+            position: sticky; 
+            top: var(--safe-t); /* Agora respeita a safe area do topo */
+            background: var(--bg);
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             height: 50px; display: flex; align-items: center; padding: 0 12px; gap: 10px;
             border-bottom: 1px solid var(--border); z-index: 100;
@@ -290,9 +299,7 @@
             gap: 10px; padding: 8px 0; margin-top: 8px;
         }
         .page-counter.active { display: flex; }
-        .page-info {
-            font-size: 0.8rem; color: var(--text2); min-width: 80px; text-align: center;
-        }
+        .page-info { font-size: 0.8rem; color: var(--text2); min-width: 80px; text-align: center; }
         .page-btn {
             padding: 8px 16px; background: var(--surface); border: 1px solid var(--border);
             border-radius: 20px; color: var(--text); font-size: 0.8rem; cursor: pointer;
@@ -311,7 +318,9 @@
             position: fixed; bottom: 0; left: 0; right: 0; height: var(--player-h);
             background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            display: none; align-items: center; padding: 0 12px; gap: 10px;
+            display: none; align-items: center; padding: 0 12px; 
+            padding-bottom: var(--safe-b); /* Safe area no bottom */
+            gap: 10px;
             z-index: 200; border-top: 1px solid rgba(255,255,255,0.1);
             box-shadow: 0 -4px 20px rgba(0,0,0,0.5); animation: slideUp 0.4s ease;
         }
@@ -337,7 +346,7 @@
 
         /* ===== TOAST ===== */
         .toast {
-            position: fixed; bottom: calc(var(--player-h) + 20px); left: 50%;
+            position: fixed; bottom: calc(var(--player-h) + var(--safe-b) + 20px); left: 50%;
             transform: translateX(-50%) translateY(120px); background: #333;
             color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 0.75rem;
             z-index: 600; transition: transform 0.3s; white-space: nowrap;
@@ -366,22 +375,22 @@
 <body data-theme="dark">
 
     <div class="app-container">
+        <!-- PLAYER OCULTO (CORRIGIDO) -->
         <div class="hidden-player" id="hiddenPlayer"></div>
         
-        <!-- CALIBRADOR DE TELA -->
+        <!-- CALIBRADOR -->
         <div class="screen-calibrator" id="screenCalibrator">
             <button class="calibration-close" onclick="closeCalibrator()">✕</button>
             <div class="calibration-box">
-                <div class="calibration-title">
-                    📐 Calibrador de Tela
-                </div>
+                <div class="calibration-title">📐 Calibrador de Tela</div>
                 
                 <div class="calibration-info" id="calibrationInfo">
                     <div>📱 <span>Dispositivo:</span> <span class="highlight" id="calDevice">--</span></div>
                     <div>📏 <span>Resolução:</span> <span class="highlight" id="calResolution">--</span></div>
                     <div>🖥️ <span>Viewport:</span> <span class="highlight" id="calViewport">--</span></div>
                     <div>📐 <span>Orientação:</span> <span class="highlight" id="calOrientation">--</span></div>
-                    <div>🔲 <span>Safe Area:</span> <span class="highlight" id="calSafeArea">--</span></div>
+                    <div>🔲 <span>Safe Area Top:</span> <span class="highlight" id="calSafeTop">--</span></div>
+                    <div>🔲 <span>Safe Area Bottom:</span> <span class="highlight" id="calSafeBottom">--</span></div>
                     <div>📊 <span>Pixel Ratio:</span> <span class="highlight" id="calPixelRatio">--</span></div>
                     <div style="margin-top:8px;padding-top:8px;border-top:1px solid #333;">
                         <span>⚙️ Calibração Salva:</span><br>
@@ -390,24 +399,23 @@
                 </div>
                 
                 <button class="calibration-btn detect" onclick="detectScreen()">
-                    🔍 Detectar Tela Automaticamente
+                    🔍 Detectar Tela
                 </button>
                 
                 <button class="calibration-btn apply" onclick="applyCalibration()">
-                    ✅ Aplicar e Salvar Calibração
+                    ✅ Aplicar e Salvar
                 </button>
                 
                 <button class="calibration-btn reset" onclick="resetCalibration()">
-                    🔄 Resetar para Padrão
+                    🔄 Resetar Padrão
                 </button>
                 
                 <div class="calibration-status" id="calibrationStatus">
-                    Pressione "Detectar" para analisar sua tela
+                    Pressione "Detectar" para analisar
                 </div>
             </div>
         </div>
         
-        <!-- Indicador de calibração -->
         <div class="calibration-indicator" id="calibrationIndicator"></div>
 
         <!-- TOPBAR -->
@@ -469,17 +477,16 @@
                 <div style="text-align:center;padding:50px;color:var(--text2);">
                     <div style="font-size:3rem;">🎧</div>
                     <div style="font-size:1.1rem;color:var(--text);">Play Tube Music Pro</div>
-                    <div style="font-size:0.8rem;color:var(--text3);">com Detecção Inteligente de Músicas</div>
+                    <div style="font-size:0.8rem;color:var(--text3);">Busque músicas para começar</div>
                 </div>
             </div>
             
-            <!-- CONTROLE DE PÁGINAS -->
             <div class="page-counter" id="pageCounter">
-                <button class="page-btn" onclick="changePage('first')" title="Primeira">⏮</button>
-                <button class="page-btn" onclick="changePage('prev')" title="Anterior">◀</button>
+                <button class="page-btn" onclick="changePage('first')">⏮</button>
+                <button class="page-btn" onclick="changePage('prev')">◀</button>
                 <span class="page-info" id="pageInfo">Pág 1 de 1</span>
-                <button class="page-btn" onclick="changePage('next')" title="Próxima">▶</button>
-                <button class="page-btn" onclick="changePage('last')" title="Última">⏭</button>
+                <button class="page-btn" onclick="changePage('next')">▶</button>
+                <button class="page-btn" onclick="changePage('last')">⏭</button>
                 <input type="number" class="page-jump" id="pageJump" min="1" placeholder="Pág" onkeydown="if(event.key==='Enter')jumpToPage()">
             </div>
         </div>
@@ -497,26 +504,26 @@
         </div>
         <div class="sp-controls">
             <button class="sp-btn" onclick="prevTrack()">⏮</button>
-            <button class="sp-btn segment" onclick="jumpToPrevSegment()" title="Segmento anterior">⏪</button>
+            <button class="sp-btn segment" onclick="jumpToPrevSegment()">⏪</button>
             <button class="sp-btn play" id="spPlay" onclick="togglePlay()">▶</button>
-            <button class="sp-btn segment" onclick="jumpToNextSegment()" title="Próximo segmento">⏩</button>
+            <button class="sp-btn segment" onclick="jumpToNextSegment()">⏩</button>
             <button class="sp-btn" onclick="nextTrack()">⏭</button>
         </div>
-        <button class="sp-dl" id="spDL" onclick="downloadCurrent()" title="Download">⬇</button>
+        <button class="sp-dl" id="spDL" onclick="downloadCurrent()">⬇</button>
     </div>
 
     <!-- TOAST -->
     <div class="toast" id="toast"></div>
 
+    <script src="https://www.youtube.com/iframe_api"></script>
     <script>
     (function() {
         'use strict';
         
-        // ===== CALIBRADOR DE TELA INTELIGENTE =====
+        // ===== CALIBRADOR DE TELA =====
         const ScreenCalibrator = {
             calibration: null,
             
-            // Carregar calibração salva
             load() {
                 try {
                     const saved = localStorage.getItem('screen_calibration');
@@ -529,7 +536,6 @@
                 return false;
             },
             
-            // Detectar dados da tela
             detect() {
                 const w = window.innerWidth;
                 const h = window.innerHeight;
@@ -538,36 +544,45 @@
                 const dpr = window.devicePixelRatio || 1;
                 const orientation = screen.orientation?.type || (w > h ? 'landscape' : 'portrait');
                 
-                // Calcular safe area
-                const safeTop = parseInt(getComputedStyle(document.documentElement).getPropertyValue('env(safe-area-inset-top)')) || 0;
-                const safeBottom = parseInt(getComputedStyle(document.documentElement).getPropertyValue('env(safe-area-inset-bottom)')) || 0;
-                const safeLeft = parseInt(getComputedStyle(document.documentElement).getPropertyValue('env(safe-area-inset-left)')) || 0;
-                const safeRight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('env(safe-area-inset-right)')) || 0;
+                // CORRIGIDO: Detecção correta das safe areas
+                const style = getComputedStyle(document.documentElement);
+                const safeTop = parseInt(style.getPropertyValue('env(safe-area-inset-top)')) || 
+                               parseInt(style.getPropertyValue('constant(safe-area-inset-top)')) || 0;
+                const safeBottom = parseInt(style.getPropertyValue('env(safe-area-inset-bottom)')) || 
+                                  parseInt(style.getPropertyValue('constant(safe-area-inset-bottom)')) || 0;
+                const safeLeft = parseInt(style.getPropertyValue('env(safe-area-inset-left)')) || 
+                                parseInt(style.getPropertyValue('constant(safe-area-inset-left)')) || 0;
+                const safeRight = parseInt(style.getPropertyValue('env(safe-area-inset-right)')) || 
+                                 parseInt(style.getPropertyValue('constant(safe-area-inset-right)')) || 0;
                 
-                // Detectar tipo de dispositivo
+                // Se não detectou safe area, estimar para dispositivos com notch
+                let estimatedSafeTop = safeTop;
+                let estimatedSafeBottom = safeBottom;
+                
+                if (safeTop === 0 && dpr >= 3 && w < 500) {
+                    // Provável iPhone com notch
+                    estimatedSafeTop = orientation === 'portrait' ? 47 : 0;
+                    estimatedSafeBottom = orientation === 'portrait' ? 34 : 21;
+                }
+                
                 const ua = navigator.userAgent;
                 let deviceType = 'Desktop';
-                if (/iPhone|iPad|iPod/.test(ua)) deviceType = 'iOS';
+                if (/iPhone/.test(ua)) deviceType = 'iPhone';
+                else if (/iPad/.test(ua)) deviceType = 'iPad';
                 else if (/Android/.test(ua)) deviceType = 'Android';
-                else if (/Windows Phone/.test(ua)) deviceType = 'Windows Phone';
                 else if (w < 768) deviceType = 'Mobile';
                 else if (w < 1024) deviceType = 'Tablet';
                 
-                // Calcular tamanho ideal da fonte
                 let baseFontSize;
-                if (w < 320) baseFontSize = 12;
-                else if (w < 360) baseFontSize = 13;
-                else if (w < 400) baseFontSize = 14;
-                else if (w < 480) baseFontSize = 15;
-                else if (w < 768) baseFontSize = 16;
-                else if (w < 1024) baseFontSize = 17;
+                if (w < 320) baseFontSize = 13;
+                else if (w < 360) baseFontSize = 14;
+                else if (w < 400) baseFontSize = 15;
+                else if (w < 480) baseFontSize = 16;
+                else if (w < 768) baseFontSize = 17;
                 else baseFontSize = 18;
                 
-                // Calcular largura máxima do container
                 let maxWidth = Math.min(550, w);
-                
-                // Altura do player
-                let playerHeight = w < 768 ? (w > h ? 55 : 70) : 80;
+                let playerHeight = w < 768 ? (orientation === 'portrait' ? 70 : 55) : 80;
                 
                 this.calibration = {
                     deviceType,
@@ -577,7 +592,12 @@
                     screenHeight: sh,
                     pixelRatio: dpr,
                     orientation,
-                    safeArea: { top: safeTop, bottom: safeBottom, left: safeLeft, right: safeRight },
+                    safeArea: { 
+                        top: Math.max(safeTop, estimatedSafeTop), 
+                        bottom: Math.max(safeBottom, estimatedSafeBottom), 
+                        left: safeLeft, 
+                        right: safeRight 
+                    },
                     baseFontSize,
                     maxWidth,
                     playerHeight,
@@ -587,71 +607,69 @@
                 return this.calibration;
             },
             
-            // Aplicar calibração
             apply() {
                 if (!this.calibration) return;
                 const cal = this.calibration;
                 
-                // Aplicar fonte base
+                // Aplicar safe areas
+                document.documentElement.style.setProperty('--safe-t', cal.safeArea.top + 'px');
+                document.documentElement.style.setProperty('--safe-b', cal.safeArea.bottom + 'px');
+                
+                // Aplicar fonte
                 document.documentElement.style.fontSize = cal.baseFontSize + 'px';
                 
                 // Aplicar largura máxima
                 const container = document.querySelector('.app-container');
-                if (container) {
-                    container.style.maxWidth = cal.maxWidth + 'px';
-                }
+                if (container) container.style.maxWidth = cal.maxWidth + 'px';
                 
                 // Aplicar altura do player
                 document.documentElement.style.setProperty('--player-h', cal.playerHeight + 'px');
                 
-                // Aplicar safe area
-                document.documentElement.style.setProperty('--safe-b', cal.safeArea.bottom + 'px');
+                // CORRIGIDO: Padding do body incluindo safe area top
+                document.body.style.paddingTop = cal.safeArea.top + 'px';
                 document.body.style.paddingBottom = `calc(${cal.playerHeight}px + ${cal.safeArea.bottom}px + 15px)`;
                 
-                // Salvar no localStorage
-                try {
-                    localStorage.setItem('screen_calibration', JSON.stringify(cal));
-                } catch(e) {}
-                
-                // Atualizar indicador
+                try { localStorage.setItem('screen_calibration', JSON.stringify(cal)); } catch(e) {}
                 this.updateIndicator();
             },
             
-            // Resetar para padrão
             reset() {
                 localStorage.removeItem('screen_calibration');
                 this.calibration = null;
+                document.documentElement.style.setProperty('--safe-t', '0px');
+                document.documentElement.style.setProperty('--safe-b', '0px');
                 document.documentElement.style.fontSize = '16px';
+                document.body.style.paddingTop = '0px';
+                document.body.style.paddingBottom = 'calc(80px + 0px + 15px)';
                 const container = document.querySelector('.app-container');
                 if (container) container.style.maxWidth = '550px';
                 document.documentElement.style.setProperty('--player-h', '80px');
-                document.documentElement.style.setProperty('--safe-b', '0px');
-                document.body.style.paddingBottom = 'calc(80px + 0px + 15px)';
                 this.updateIndicator();
             },
             
-            // Atualizar painel de calibração
             updatePanel() {
                 if (!this.calibration) return;
                 const cal = this.calibration;
                 
-                document.getElementById('calDevice').textContent = cal.deviceType;
-                document.getElementById('calResolution').textContent = `${cal.screenWidth}x${cal.screenHeight} @${cal.pixelRatio}x`;
-                document.getElementById('calViewport').textContent = `${cal.viewportWidth}x${cal.viewportHeight}`;
-                document.getElementById('calOrientation').textContent = cal.orientation === 'portrait' ? '📱 Retrato' : '🖥️ Paisagem';
-                document.getElementById('calSafeArea').textContent = `T:${cal.safeArea.top} B:${cal.safeArea.bottom} L:${cal.safeArea.left} R:${cal.safeArea.right}`;
-                document.getElementById('calPixelRatio').textContent = `${cal.pixelRatio}x`;
+                const el = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
+                
+                el('calDevice', cal.deviceType);
+                el('calResolution', `${cal.screenWidth}x${cal.screenHeight} @${cal.pixelRatio}x`);
+                el('calViewport', `${cal.viewportWidth}x${cal.viewportHeight}`);
+                el('calOrientation', cal.orientation === 'portrait' ? '📱 Retrato' : '🖥️ Paisagem');
+                el('calSafeTop', `${cal.safeArea.top}px`);
+                el('calSafeBottom', `${cal.safeArea.bottom}px`);
+                el('calPixelRatio', `${cal.pixelRatio}x`);
                 
                 const saved = localStorage.getItem('screen_calibration');
-                document.getElementById('calSaved').textContent = saved ? 
-                    `✅ ${cal.deviceType} - Fonte:${cal.baseFontSize}px - Player:${cal.playerHeight}px` : 
-                    '⚠️ Não salva';
+                el('calSaved', saved ? 
+                    `✅ ${cal.deviceType} - Safe T:${cal.safeArea.top} B:${cal.safeArea.bottom}` : 
+                    '⚠️ Não salva');
                 
-                document.getElementById('calibrationStatus').textContent = 
-                    `✅ Detectado: ${cal.deviceType} - ${cal.viewportWidth}x${cal.viewportHeight} - ${cal.orientation}`;
+                el('calibrationStatus', 
+                    `✅ ${cal.deviceType} - ${cal.viewportWidth}x${cal.viewportHeight}`);
             },
             
-            // Atualizar indicador flutuante
             updateIndicator() {
                 const indicator = document.getElementById('calibrationIndicator');
                 if (!indicator) return;
@@ -659,20 +677,18 @@
                 if (this.calibration) {
                     const cal = this.calibration;
                     indicator.style.display = 'block';
-                    indicator.textContent = `📐 ${cal.deviceType} | ${cal.viewportWidth}x${cal.viewportHeight} | Fonte:${cal.baseFontSize}px | Player:${cal.playerHeight}px`;
+                    indicator.textContent = `📐 ${cal.deviceType} | ${cal.viewportWidth}x${cal.viewportHeight} | Safe T:${cal.safeArea.top} B:${cal.safeArea.bottom}`;
                 } else {
-                    const w = window.innerWidth;
-                    const h = window.innerHeight;
+                    const w = window.innerWidth, h = window.innerHeight;
                     indicator.style.display = 'block';
-                    indicator.textContent = `⚙️ Padrão | ${w}x${h} | Fonte:16px | Player:80px`;
+                    indicator.textContent = `⚙️ Padrão | ${w}x${h}`;
                 }
             }
         };
 
         // ===== FUNÇÕES DO CALIBRADOR =====
         window.openCalibrator = () => {
-            const panel = document.getElementById('screenCalibrator');
-            panel.classList.add('active');
+            document.getElementById('screenCalibrator').classList.add('active');
             ScreenCalibrator.detect();
             ScreenCalibrator.updatePanel();
         };
@@ -688,22 +704,20 @@
         };
         
         window.applyCalibration = () => {
-            if (!ScreenCalibrator.calibration) {
-                ScreenCalibrator.detect();
-            }
+            if (!ScreenCalibrator.calibration) ScreenCalibrator.detect();
             ScreenCalibrator.apply();
             ScreenCalibrator.updatePanel();
             closeCalibrator();
-            toast('✅ Calibração aplicada e salva!');
+            toast('✅ Calibração salva!');
         };
         
         window.resetCalibration = () => {
             ScreenCalibrator.reset();
             ScreenCalibrator.updatePanel();
-            toast('🔄 Calibração resetada!');
+            toast('🔄 Resetado ao padrão');
         };
 
-        // ===== SISTEMA DE PÁGINAS =====
+        // ===== PAGINADOR =====
         const Paginator = {
             currentPage: 1,
             totalPages: 1,
@@ -720,8 +734,7 @@
             
             getPageItems() {
                 const start = (this.currentPage - 1) * this.itemsPerPage;
-                const end = start + this.itemsPerPage;
-                return this.currentItems.slice(start, end);
+                return this.currentItems.slice(start, start + this.itemsPerPage);
             },
             
             changePage(action) {
@@ -751,16 +764,10 @@
             updateUI() {
                 const counter = document.getElementById('pageCounter');
                 const info = document.getElementById('pageInfo');
-                const jump = document.getElementById('pageJump');
                 
                 if (this.totalPages > 1) {
                     counter.classList.add('active');
                     info.textContent = `Pág ${this.currentPage} de ${this.totalPages}`;
-                    if (jump) {
-                        jump.max = this.totalPages;
-                        jump.value = '';
-                        jump.placeholder = `1-${this.totalPages}`;
-                    }
                     
                     const buttons = counter.querySelectorAll('.page-btn');
                     buttons.forEach(btn => {
@@ -779,11 +786,9 @@
                 const total = this.currentItems.length;
                 const start = (this.currentPage - 1) * this.itemsPerPage + 1;
                 const end = Math.min(this.currentPage * this.itemsPerPage, total);
-                const resultCount = document.getElementById('resultCount');
-                if (resultCount && total > 0) {
-                    resultCount.textContent = total > this.itemsPerPage ? 
-                        `${start}-${end} de ${total}` : 
-                        `${total} itens`;
+                const rc = document.getElementById('resultCount');
+                if (rc && total > 0) {
+                    rc.textContent = total > this.itemsPerPage ? `${start}-${end} de ${total}` : `${total} itens`;
                 }
             }
         };
@@ -808,13 +813,8 @@
         try { T.current = localStorage.getItem('theme') || 'dark'; } catch(e) {}
         T.apply();
 
-        // ===== STORAGE =====
-        function getStorage(key, def) {
-            try { return JSON.parse(localStorage.getItem(key) || def); } catch(e) { return JSON.parse(def); }
-        }
-        function setStorage(key, val) {
-            try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {}
-        }
+        function getStorage(key, def) { try { return JSON.parse(localStorage.getItem(key) || def); } catch(e) { return JSON.parse(def); } }
+        function setStorage(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {} }
 
         // ===== FAVORITOS =====
         const Fav = {
@@ -835,7 +835,6 @@
             }
         };
 
-        // ===== DOWNLOADS =====
         const DL = {
             items: getStorage('dls', '[]'),
             async download(id, title, channel, thumb) {
@@ -849,7 +848,6 @@
             all() { return this.items; }
         };
 
-        // ===== MIR =====
         const MIR = {
             active: false,
             segments: getStorage('mir_segments', '[]'),
@@ -879,8 +877,7 @@
                 if (!this.active || !playing) return;
                 const time = yt?.getCurrentTime?.() || 0;
                 if (isNaN(time)) return;
-                const shouldDetect = Math.random() < 0.01;
-                if (shouldDetect || this.segments.length === 0) {
+                if (Math.random() < 0.01 || this.segments.length === 0) {
                     this.musicCount++;
                     const seg = { id: Date.now(), start: time, end: null, name: `Música ${this.musicCount}`, duration: null };
                     if (this.segments.length > 0) {
@@ -891,7 +888,6 @@
                     this.currentSegment = this.segments.length - 1;
                     this.updateSegmentsList();
                     setStorage('mir_segments', this.segments);
-                    if (this.segments.length > 1) toast(`🎵 ${seg.name} detectada!`);
                 }
             },
             
@@ -900,10 +896,9 @@
                 if (!container) return;
                 const update = () => {
                     if (!this.active) return;
-                    const numBars = 40;
                     let bars = '';
                     const energy = playing ? 0.5 + Math.random() * 0.5 : 0.1;
-                    for (let i = 0; i < numBars; i++) {
+                    for (let i = 0; i < 40; i++) {
                         const height = Math.min(100, Math.max(2, energy * 80 + Math.sin(Date.now() * 0.005 + i * 0.5) * 20));
                         bars += `<div class="mir-bar" style="height:${height}px"></div>`;
                     }
@@ -920,7 +915,7 @@
                 if (seg.start !== null && !isNaN(seg.start)) {
                     yt.seekTo(seg.start, true);
                     this.currentSegment = index;
-                    toast(`⏩ ${seg.name} - ${formatTime(seg.start)}`);
+                    toast(`⏩ ${seg.name}`);
                     this.updateSegmentsList();
                 }
             },
@@ -930,16 +925,15 @@
             
             updateSegmentsList() {
                 const container = document.getElementById('mirSegments');
-                if (!container) return;
-                if (!this.segments.length) {
-                    container.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:0.7rem;">Nenhum segmento detectado</div>';
+                if (!container || !this.segments.length) {
+                    if (container) container.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:0.7rem;">Nenhum segmento</div>';
                     return;
                 }
                 container.innerHTML = this.segments.map((seg, i) => `
                     <div class="mir-segment" onclick="MIR.jumpToSegment(${i})"
                          style="${i === this.currentSegment ? 'background:rgba(29,185,84,0.2);border:1px solid var(--green);' : ''}">
                         <span class="mir-seg-time">${formatTime(seg.start)}${seg.end ? ' - ' + formatTime(seg.end) : ''}</span>
-                        <span class="mir-seg-name">${seg.name} ${seg.duration ? '(' + Math.round(seg.duration) + 's)' : ''}</span>
+                        <span class="mir-seg-name">${seg.name}</span>
                         <span class="mir-seg-arrow">▶</span>
                     </div>
                 `).join('');
@@ -961,60 +955,153 @@
             }
         };
 
-        function formatTime(seconds) {
-            if (isNaN(seconds) || seconds === null) return '00:00';
-            const m = Math.floor(seconds / 60);
-            const s = Math.floor(seconds % 60);
-            return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        function formatTime(s) {
+            if (isNaN(s) || s === null) return '00:00';
+            const m = Math.floor(s / 60), sec = Math.floor(s % 60);
+            return `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
         }
 
-        // ===== YOUTUBE PLAYER =====
+        // ===== YOUTUBE PLAYER (CORRIGIDO) =====
         let yt = null, ytTop = null, playlist = [], idx = -1, playing = false, vid = null;
         let toastTO = null, query = '', progInt = null, isVideo = false;
 
         function initPlayer() {
-            if (yt) { try { yt.destroy(); } catch(e) {} }
-            yt = new YT.Player('hiddenPlayer', {
-                height: '360', width: '640', videoId: '',
-                playerVars: { autoplay: 0, playsinline: 1, controls: 0, disablekb: 1, fs: 0, rel: 0, modestbranding: 1, iv_load_policy: 3, origin: window.location.origin, enablejsapi: 1, mute: 0, volume: 100 },
-                events: {
-                    onReady: (e) => { e.target.setVolume(100); e.target.unMute(); },
-                    onStateChange: onState,
-                    onError: (e) => { if (e.data === 2 || e.data === 5) setTimeout(() => { if (vid) yt?.loadVideoById?.({ videoId: vid, startSeconds: 0 }); }, 2000); }
-                }
-            });
+            console.log('🎬 Inicializando player...');
+            if (yt) {
+                try { yt.destroy(); } catch(e) {}
+            }
+            
+            try {
+                yt = new YT.Player('hiddenPlayer', {
+                    height: '100%',
+                    width: '100%',
+                    videoId: '',
+                    playerVars: {
+                        autoplay: 0,
+                        playsinline: 1,
+                        controls: 0,
+                        disablekb: 1,
+                        fs: 0,
+                        rel: 0,
+                        modestbranding: 1,
+                        iv_load_policy: 3,
+                        origin: window.location.origin,
+                        enablejsapi: 1,
+                        mute: 0,
+                        volume: 100
+                    },
+                    events: {
+                        onReady: (e) => {
+                            console.log('✅ Player YouTube PRONTO!');
+                            e.target.setVolume(100);
+                            e.target.unMute();
+                            // Se já tem vídeo, carrega
+                            if (vid) {
+                                e.target.loadVideoById({ videoId: vid, startSeconds: 0 });
+                            }
+                        },
+                        onStateChange: onState,
+                        onError: (e) => {
+                            console.error('❌ Erro no player:', e.data);
+                            if (e.data === 2 || e.data === 5) {
+                                setTimeout(() => {
+                                    if (vid) yt?.loadVideoById?.({ videoId: vid, startSeconds: 0 });
+                                }, 2000);
+                            }
+                        }
+                    }
+                });
+            } catch(e) {
+                console.error('Erro ao criar player:', e);
+                setTimeout(initPlayer, 1000);
+            }
         }
 
-        window.onYouTubeIframeAPIReady = () => initPlayer();
-        if (typeof YT !== 'undefined') setTimeout(initPlayer, 100);
+        // Garantir que a API carregue
+        window.onYouTubeIframeAPIReady = () => {
+            console.log('✅ API YouTube carregada');
+            initPlayer();
+        };
+
+        // Fallback
+        setTimeout(() => {
+            if (!yt && typeof YT !== 'undefined' && YT.Player) {
+                initPlayer();
+            }
+        }, 2000);
 
         function onState(e) {
-            if (e.data === 1) { playing = true; updatePlayBtn(true); startProgress(); }
-            else if (e.data === 2) { playing = false; updatePlayBtn(false); stopProgress(); }
-            else if (e.data === 0) { stopProgress(); document.getElementById('progressBar').style.width = '0%'; nextTrack(); }
+            console.log('🎵 Estado:', e.data);
+            if (e.data === 1) { // Playing
+                playing = true; 
+                updatePlayBtn(true); 
+                startProgress(); 
+            } else if (e.data === 2) { // Paused
+                playing = false; 
+                updatePlayBtn(false); 
+                stopProgress(); 
+            } else if (e.data === 0) { // Ended
+                stopProgress(); 
+                document.getElementById('progressBar').style.width = '0%'; 
+                nextTrack(); 
+            }
         }
 
         function startProgress() {
             stopProgress();
             progInt = setInterval(() => {
                 if (!yt || !playing) return;
-                try { const d = yt.getDuration(), c = yt.getCurrentTime(); if (d > 0) document.getElementById('progressBar').style.width = (c / d) * 100 + '%'; } catch(e) {}
+                try {
+                    const d = yt.getDuration(), c = yt.getCurrentTime();
+                    if (d > 0) document.getElementById('progressBar').style.width = (c / d) * 100 + '%';
+                } catch(e) {}
             }, 1000);
         }
 
         function stopProgress() { if (progInt) { clearInterval(progInt); progInt = null; } }
-        function updatePlayBtn(p) { const btn = document.getElementById('spPlay'); btn.textContent = p ? '⏸' : '▶'; btn.classList.toggle('playing', p); }
+        function updatePlayBtn(p) { 
+            const btn = document.getElementById('spPlay'); 
+            if (btn) { btn.textContent = p ? '⏸' : '▶'; btn.classList.toggle('playing', p); }
+        }
 
         function playTrack(i = -1) {
+            console.log('▶️ playTrack:', i);
             if (i >= 0 && i < playlist.length) idx = i;
             if (idx < 0 || idx >= playlist.length) return;
-            const t = playlist[idx]; vid = t.id; Fav.addHist(t);
+            
+            const t = playlist[idx]; 
+            vid = t.id; 
+            Fav.addHist(t);
             document.getElementById('progressBar').style.width = '0%';
-            if (MIR.active) { MIR.segments = []; MIR.musicCount = 0; MIR.currentSegment = -1; MIR.updateSegmentsList(); }
-            if (yt?.loadVideoById) {
-                yt.loadVideoById({ videoId: t.id, startSeconds: 0 });
-                setTimeout(() => { if (yt?.playVideo) { yt.playVideo(); yt.unMute(); yt.setVolume(100); } }, 300);
+            
+            if (MIR.active) { 
+                MIR.segments = []; 
+                MIR.musicCount = 0; 
+                MIR.currentSegment = -1; 
+                MIR.updateSegmentsList(); 
             }
+            
+            // CORRIGIDO: Verificar se o player está pronto
+            const loadAndPlay = () => {
+                if (yt?.loadVideoById) {
+                    console.log('🎬 Carregando vídeo:', vid);
+                    yt.loadVideoById({ videoId: vid, startSeconds: 0 });
+                    setTimeout(() => {
+                        if (yt?.playVideo) {
+                            yt.playVideo();
+                            yt.unMute();
+                            yt.setVolume(100);
+                            console.log('▶️ Reproduzindo!');
+                        }
+                    }, 500);
+                } else {
+                    console.log('⏳ Aguardando player...');
+                    setTimeout(loadAndPlay, 500);
+                }
+            };
+            
+            loadAndPlay();
+            
             document.getElementById('spTitle').textContent = t.title || '';
             document.getElementById('spArtist').textContent = t.channel || '';
             document.getElementById('spArt').src = t.thumbnail || '';
@@ -1024,13 +1111,23 @@
         }
 
         window.togglePlay = () => {
-            if (!yt) return;
-            if (playing) { yt.pauseVideo(); if (ytTop) ytTop.pauseVideo(); }
-            else if (vid) { yt.playVideo(); yt.unMute(); }
-            else if (playlist.length > 0) playTrack(0);
+            console.log('⏯️ Toggle play, yt:', !!yt, 'playing:', playing, 'vid:', vid);
+            if (!yt) {
+                toast('⚠️ Player não está pronto');
+                return;
+            }
+            if (playing) {
+                yt.pauseVideo();
+                if (ytTop) ytTop.pauseVideo();
+            } else if (vid) {
+                yt.playVideo();
+                yt.unMute();
+            } else if (playlist.length > 0) {
+                playTrack(0);
+            }
         };
-        window.nextTrack = () => { if (!playlist.length) return; document.getElementById('progressBar').style.width = '0%'; playTrack((idx + 1) % playlist.length); };
-        window.prevTrack = () => { if (!playlist.length) return; document.getElementById('progressBar').style.width = '0%'; playTrack((idx - 1 + playlist.length) % playlist.length); };
+        window.nextTrack = () => { if (!playlist.length) return; stopProgress(); playTrack((idx + 1) % playlist.length); };
+        window.prevTrack = () => { if (!playlist.length) return; stopProgress(); playTrack((idx - 1 + playlist.length) % playlist.length); };
         window.seekTrack = (e) => {
             if (!yt || !vid) return;
             const r = document.getElementById('progressContainer').getBoundingClientRect();
@@ -1042,19 +1139,26 @@
             isVideo = true;
             document.getElementById('playerContainer').classList.add('active');
             const startTime = yt?.getCurrentTime?.() || 0;
-            const wrapper = document.getElementById('playerWrapper');
             if (!ytTop) {
-                wrapper.innerHTML = '<div id="topPlayerElement"></div>';
+                document.getElementById('playerWrapper').innerHTML = '<div id="topPlayerElement"></div>';
                 ytTop = new YT.Player('topPlayerElement', {
                     videoId: vid,
                     playerVars: { autoplay: 1, playsinline: 1, controls: 1, rel: 0, modestbranding: 1, fs: 1, origin: window.location.origin },
-                    events: { onReady: () => { if (!isNaN(startTime)) ytTop.seekTo(startTime); }, onStateChange: (e) => { if (e.data === 1 && yt?.pauseVideo) yt.pauseVideo(); if (e.data === 0) closeVideo(); } }
+                    events: {
+                        onReady: () => { if (!isNaN(startTime)) ytTop.seekTo(startTime); },
+                        onStateChange: (e) => { if (e.data === 1 && yt?.pauseVideo) yt.pauseVideo(); if (e.data === 0) closeVideo(); }
+                    }
                 });
-            } else { ytTop.loadVideoById({ videoId: vid, startSeconds: startTime }); }
+            } else {
+                ytTop.loadVideoById({ videoId: vid, startSeconds: startTime });
+            }
             document.getElementById('playerContainer').scrollIntoView({ behavior: 'smooth' });
         };
         window.closeVideo = () => { document.getElementById('playerContainer').classList.remove('active'); if (ytTop) ytTop.stopVideo(); isVideo = false; };
-        window.downloadCurrent = () => { if (!vid || idx < 0) { toast('⚠️ Nenhuma música selecionada'); return; } DL.download(playlist[idx].id, playlist[idx].title, playlist[idx].channel, playlist[idx].thumbnail); };
+        window.downloadCurrent = () => {
+            if (!vid || idx < 0) { toast('⚠️ Nenhuma música'); return; }
+            DL.download(playlist[idx].id, playlist[idx].title, playlist[idx].channel, playlist[idx].thumbnail);
+        };
 
         window.toggleMIR = () => { MIR.active ? MIR.stop() : MIR.init(); };
         window.jumpToNextSegment = () => MIR.jumpNext();
@@ -1063,16 +1167,27 @@
         // ===== RESULTADOS =====
         window.playFromResults = (id, title, channel, thumb) => {
             const v = { id, title, channel, thumbnail: thumb };
-            playlist = playlist.filter(t => t.id !== v.id); playlist.unshift(v);
-            idx = 0; playTrack(0); toast('▶ ' + title.substring(0, 30));
+            playlist = playlist.filter(t => t.id !== v.id); 
+            playlist.unshift(v);
+            idx = 0; 
+            playTrack(0); 
+            toast('▶ ' + title.substring(0, 30));
         };
-        window.toggleFav = (id, title, channel, thumb, e) => { if (e) e.stopPropagation(); Fav.toggle({ id, title, channel, thumbnail: thumb }); updateFavButtons(); };
-        window.dlFromCard = (id, title, channel, thumb, e) => { if (e) e.stopPropagation(); DL.download(id, title, channel, thumb); };
+        window.toggleFav = (id, title, channel, thumb, e) => { 
+            if (e) e.stopPropagation(); 
+            Fav.toggle({ id, title, channel, thumbnail: thumb }); 
+            updateFavButtons(); 
+        };
+        window.dlFromCard = (id, title, channel, thumb, e) => { 
+            if (e) e.stopPropagation(); 
+            DL.download(id, title, channel, thumb); 
+        };
 
         function updateFavButtons() {
             document.querySelectorAll('.v-btn.fav').forEach(b => {
                 const fid = b.getAttribute('data-id'), f = Fav.is(fid);
-                b.classList.toggle('fav-active', f); b.textContent = f ? '❤️' : '🤍';
+                b.classList.toggle('fav-active', f); 
+                b.textContent = f ? '❤️' : '🤍';
             });
         }
 
@@ -1085,7 +1200,6 @@
                 <div class="video-info">
                     <div class="video-title">${esc(v.title)}</div>
                     <div class="video-channel">${esc(v.channel)}</div>
-                    ${v.at ? `<div style="font-size:0.65rem;color:var(--text3);margin-top:1px;">🕐 ${new Date(v.at).toLocaleDateString()}</div>` : ''}
                 </div>
                 <div class="video-actions">
                     <button class="v-btn fav${f?' fav-active':''}" data-id="${v.id}" onclick="toggleFav('${v.id}','${esc(v.title)}','${esc(v.channel)}','${esc(v.thumbnail || '')}',event)">${f?'❤️':'🤍'}</button>
@@ -1109,28 +1223,7 @@
             const resCont = document.getElementById('resultsContainer');
             let items = [];
             
-            if (t === 'segments') {
-                items = MIR.segments;
-                window.onPageChange = function(page, items) {
-                    resCont.innerHTML = items.map((seg, i) => `
-                        <div class="video-card" onclick="MIR.jumpToSegment(${(page-1)*10+i})" style="border-left:3px solid var(--green);">
-                            <div class="video-info">
-                                <div class="video-title">🎵 ${seg.name}</div>
-                                <div class="video-channel">${formatTime(seg.start)} - ${seg.end ? formatTime(seg.end) : '...'} (${seg.duration ? Math.round(seg.duration) + 's' : 'em andamento'})</div>
-                            </div>
-                        </div>
-                    `).join('');
-                };
-            } else if (t === 'favorites') {
-                items = Fav.favs;
-                window.onPageChange = function(page, items) { resCont.innerHTML = items.map(v => card(v)).join(''); updateFavButtons(); };
-            } else if (t === 'history') {
-                items = Fav.hist;
-                window.onPageChange = function(page, items) { resCont.innerHTML = items.map(v => card(v)).join(''); updateFavButtons(); };
-            } else if (t === 'downloads') {
-                items = DL.items;
-                window.onPageChange = function(page, items) { resCont.innerHTML = items.map(v => card(v)).join(''); updateFavButtons(); };
-            } else if (t === 'search') {
+            if (t === 'search') {
                 if (query) { searchYT(query); return; }
                 resCont.innerHTML = '<div style="text-align:center;padding:50px;color:var(--text2);"><div style="font-size:3rem;">🎧</div><div>Busque suas músicas</div></div>';
                 document.getElementById('resultCount').textContent = '';
@@ -1138,62 +1231,81 @@
                 return;
             }
             
-            if (items.length === 0) {
-                const empties = { 'favorites': '❤️ Nenhum favorito', 'history': '🕐 Histórico vazio', 'downloads': '📥 Nenhum download', 'segments': 'Ative o MIR e reproduza uma música' };
-                resCont.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text2);">${empties[t] || 'Vazio'}</div>`;
+            items = t === 'favorites' ? Fav.favs : t === 'history' ? Fav.hist : t === 'downloads' ? DL.items : t === 'segments' ? MIR.segments : [];
+            
+            window.onPageChange = (page, pageItems) => {
+                resCont.innerHTML = pageItems.map(v => {
+                    if (t === 'segments') {
+                        const idx = MIR.segments.indexOf(v);
+                        return `<div class="video-card" onclick="MIR.jumpToSegment(${idx})" style="border-left:3px solid var(--green);"><div class="video-info"><div class="video-title">🎵 ${v.name}</div><div class="video-channel">${formatTime(v.start)} - ${v.end ? formatTime(v.end) : '...'}</div></div></div>`;
+                    }
+                    return card(v);
+                }).join('');
+                if (t !== 'segments') updateFavButtons();
+            };
+            
+            if (!items.length) {
+                const empties = { 'favorites': '❤️ Nenhum favorito', 'history': '🕐 Histórico vazio', 'downloads': '📥 Nenhum download', 'segments': 'Ative o MIR' };
+                resCont.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text2);">${empties[t]}</div>`;
                 document.getElementById('pageCounter').classList.remove('active');
                 document.getElementById('resultCount').textContent = '';
             } else {
                 Paginator.init(items, 10);
-                const pageItems = Paginator.getPageItems();
-                if (t === 'segments') {
-                    resCont.innerHTML = pageItems.map((seg, i) => {
-                        const segIdx = Paginator.currentItems.indexOf(seg);
-                        return `<div class="video-card" onclick="MIR.jumpToSegment(${segIdx})" style="border-left:3px solid var(--green);"><div class="video-info"><div class="video-title">🎵 ${seg.name}</div><div class="video-channel">${formatTime(seg.start)} - ${seg.end ? formatTime(seg.end) : '...'}</div></div></div>`;
-                    }).join('');
-                } else {
-                    resCont.innerHTML = pageItems.map(v => card(v)).join('');
-                    updateFavButtons();
-                }
+                resCont.innerHTML = Paginator.getPageItems().map(v => {
+                    if (t === 'segments') {
+                        const idx = MIR.segments.indexOf(v);
+                        return `<div class="video-card" onclick="MIR.jumpToSegment(${idx})" style="border-left:3px solid var(--green);"><div class="video-info"><div class="video-title">🎵 ${v.name}</div><div class="video-channel">${formatTime(v.start)} - ${v.end ? formatTime(v.end) : '...'}</div></div></div>`;
+                    }
+                    return card(v);
+                }).join('');
+                if (t !== 'segments') updateFavButtons();
             }
         };
 
-        // ===== BUSCA =====
-        document.getElementById('searchBtn').addEventListener('click', () => { query = document.getElementById('searchInput').value.trim(); searchYT(query); });
-        document.getElementById('searchInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') { query = document.getElementById('searchInput').value.trim(); searchYT(query); } });
+        // ===== BUSCA (SIMULADA PARA TESTE) =====
+        document.getElementById('searchBtn').addEventListener('click', () => { 
+            query = document.getElementById('searchInput').value.trim(); 
+            searchYT(query); 
+        });
+        document.getElementById('searchInput').addEventListener('keydown', (e) => { 
+            if (e.key === 'Enter') { 
+                query = document.getElementById('searchInput').value.trim(); 
+                searchYT(query); 
+            } 
+        });
         
         async function searchYT(q) {
-            if (!q) { toast('⚠️ Digite algo para buscar'); return; }
+            if (!q) { toast('⚠️ Digite algo'); return; }
             const resCont = document.getElementById('resultsContainer');
             resCont.innerHTML = '<div class="loading"><div class="spinner"></div><div>Buscando...</div></div>';
-            document.getElementById('resultCount').textContent = '';
             
-            try {
-                const mockResults = [];
-                for (let i = 1; i <= 25; i++) {
-                    mockResults.push({ id: `video${i}`, title: `${q} - Resultado ${i}`, channel: `Canal ${i}`, thumbnail: '' });
-                }
-                
-                window.onPageChange = function(page, items) { resCont.innerHTML = items.map(v => card(v)).join(''); updateFavButtons(); };
-                Paginator.init(mockResults, 10);
-                resCont.innerHTML = Paginator.getPageItems().map(v => card(v)).join('');
-                updateFavButtons();
-            } catch(e) { toast('⚠️ Erro na busca'); }
+            // RESULTADOS DE TESTE - Substitua pela API real
+            const mockResults = [
+                { id: 'dQw4w9WgXcQ', title: 'Rick Astley - Never Gonna Give You Up', channel: 'Rick Astley', thumbnail: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/default.jpg' },
+                { id: '9bZkp7q19f0', title: 'PSY - Gangnam Style', channel: 'PSY', thumbnail: 'https://i.ytimg.com/vi/9bZkp7q19f0/default.jpg' },
+                { id: 'kJQP7kiw5Fk', title: 'Luis Fonsi - Despacito', channel: 'Luis Fonsi', thumbnail: 'https://i.ytimg.com/vi/kJQP7kiw5Fk/default.jpg' },
+            ];
+            
+            window.onPageChange = (page, items) => { 
+                resCont.innerHTML = items.map(v => card(v)).join(''); 
+                updateFavButtons(); 
+            };
+            Paginator.init(mockResults, 10);
+            resCont.innerHTML = Paginator.getPageItems().map(v => card(v)).join('');
+            updateFavButtons();
         }
 
-        // ===== CONTROLES DE PÁGINA =====
         window.changePage = (action) => Paginator.changePage(action);
         window.jumpToPage = () => {
             const page = parseInt(document.getElementById('pageJump').value);
             if (page) Paginator.jumpTo(page);
         };
 
-        // ===== UTILS =====
         function toast(m) {
             if (toastTO) clearTimeout(toastTO);
             const el = document.getElementById('toast');
-            el.textContent = m; el.classList.add('show');
-            toastTO = setTimeout(() => el.classList.remove('show'), 2500);
+            if (el) { el.textContent = m; el.classList.add('show'); }
+            toastTO = setTimeout(() => { if (el) el.classList.remove('show'); }, 2500);
         }
 
         // ===== MEDIA SESSION =====
@@ -1206,45 +1318,39 @@
 
         // ===== INIT =====
         function init() {
-            // Carregar calibração salva
+            console.log('🚀 Iniciando app...');
+            
+            // Carregar calibração
             const hasCalibration = ScreenCalibrator.load();
             if (!hasCalibration) {
-                // Detectar automaticamente na primeira vez
                 ScreenCalibrator.detect();
                 ScreenCalibrator.apply();
-                console.log('✅ Calibração automática aplicada');
-            } else {
-                console.log('✅ Calibração carregada do storage');
+                console.log('✅ Safe areas configuradas:', ScreenCalibrator.calibration?.safeArea);
             }
-            
             ScreenCalibrator.updateIndicator();
             
-            // Inicializar visualizador MIR
+            // Visualizador MIR
             const waveform = document.getElementById('mirWaveform');
-            if (waveform) { let bars = ''; for (let i = 0; i < 40; i++) bars += '<div class="mir-bar" style="height:2px"></div>'; waveform.innerHTML = bars; }
+            if (waveform) { 
+                let bars = ''; 
+                for (let i = 0; i < 40; i++) bars += '<div class="mir-bar" style="height:2px"></div>'; 
+                waveform.innerHTML = bars; 
+            }
             
-            console.log('✅ Play Tube Music Pro v9 - Calibrador Inteligente');
+            console.log('✅ Play Tube Music Pro v10 - Corrigido');
         }
         
         window.addEventListener('resize', () => { 
             clearTimeout(window._rt); 
             window._rt = setTimeout(() => {
-                // Recalibrar em resize apenas se não tiver calibração salva
-                if (!ScreenCalibrator.calibration) {
-                    ScreenCalibrator.detect();
-                    ScreenCalibrator.apply();
-                }
                 ScreenCalibrator.updateIndicator();
             }, 500); 
         });
         
-        window.addEventListener('orientationchange', () => setTimeout(() => {
-            ScreenCalibrator.detect();
-            ScreenCalibrator.updateIndicator();
-        }, 300));
-        
         window.addEventListener('load', init);
-        window.addEventListener('error', (e) => { if (e.target && e.target.tagName === 'IMG') e.target.style.display = 'none'; }, true);
+        window.addEventListener('error', (e) => { 
+            if (e.target && e.target.tagName === 'IMG') e.target.style.display = 'none'; 
+        }, true);
 
         // Expor globais
         window.T = T; window.MIR = MIR; window.ScreenCalibrator = ScreenCalibrator; window.Paginator = Paginator;
