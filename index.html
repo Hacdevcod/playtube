@@ -6,6 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0f0f0f">
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src *; img-src * data:; style-src * 'unsafe-inline'; media-src *; frame-src *;">
     
     <title>Play Tube Music Pro</title>
     
@@ -26,7 +27,6 @@
             --player-h: 80px;
             --safe-t: 0px;
             --safe-b: 0px;
-            --zoom-level: 1;
         }
 
         * { margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent; }
@@ -37,9 +37,6 @@
             min-height: 100vh; min-height: 100dvh; overflow-x: hidden;
             padding-top: var(--safe-t);
             padding-bottom: calc(var(--player-h) + var(--safe-b) + 15px);
-            transform: scale(var(--zoom-level));
-            transform-origin: top center;
-            transition: transform 0.3s ease;
         }
 
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -73,7 +70,9 @@
             transition: all 0.2s;
         }
         .toolbar-btn:active { background: var(--red); color: #fff; }
-        .toolbar-btn.highlight { border-color: #ff0; color: #ff0; }
+        .toolbar-btn.api-status { font-size: 0.6rem; padding: 3px 8px; }
+        .toolbar-btn.api-status.online { border-color: #0f0; color: #0f0; }
+        .toolbar-btn.api-status.offline { border-color: #f00; color: #f00; }
 
         /* ===== PAGE COUNTER (SUPERIOR) ===== */
         .page-counter-top {
@@ -123,6 +122,13 @@
             white-space: nowrap; flex-shrink: 0;
         }
         .tab-btn.active { background: var(--red); color: #fff; border-color: var(--red); }
+
+        /* ===== API METHOD INDICATOR ===== */
+        .api-method {
+            text-align: center; padding: 4px; font-size: 0.6rem; color: var(--text3);
+            background: var(--surface); border-bottom: 1px solid var(--border);
+        }
+        .api-method span { color: var(--green); font-weight: 600; }
 
         /* ===== RESULTS ===== */
         .results-section { padding: 4px 10px 20px; min-height: 150px; }
@@ -235,7 +241,13 @@
             <span class="logo-text">Play Tube<sup>MUSIC</sup></span>
         </div>
         <div class="spacer"></div>
+        <button class="toolbar-btn api-status" id="apiStatusBtn" onclick="checkAPIStatus()">🟡 API</button>
         <button class="toolbar-btn" onclick="T.cycle()">🎨</button>
+    </div>
+
+    <!-- INDICADOR DO MÉTODO DE API -->
+    <div class="api-method" id="apiMethod">
+        Método: <span id="apiMethodText">Pronto para buscar</span>
     </div>
 
     <!-- CONTADOR DE PÁGINAS (SUPERIOR) -->
@@ -303,7 +315,7 @@
         <div class="sp-progress" onclick="seekTrack(event)">
             <div class="sp-progress-bar" id="progressBar"></div>
         </div>
-        <img class="sp-art" id="spArt" src="" alt="" onclick="showVideo()" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23333%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%23777%22 font-size=%2214%22>♪</text></svg>'">
+        <img class="sp-art" id="spArt" src="" alt="" onclick="showVideo()" onerror="this.style.display='none'">
         <div class="sp-info" onclick="showVideo()">
             <div class="sp-title" id="spTitle">Toque para tocar</div>
             <div class="sp-artist" id="spArtist">--</div>
@@ -323,50 +335,285 @@
     (function() {
         'use strict';
         
-        // ===== CONFIGURAÇÃO DA API =====
-        const API_CONFIG = {
-            // Use um proxy CORS para desenvolvimento local
-            // Em produção, configure seu próprio backend
-            proxy: 'https://api.allorigins.win/raw?url=',
-            youtubeSearchURL: 'https://www.googleapis.com/youtube/v3/search',
-            // ⚠️ IMPORTANTE: Substitua por sua chave da API do YouTube
-            // Obtenha em: https://console.cloud.google.com/apis/credentials
-            apiKey: 'AIzaSyAqzGt5QmBQhJQ-NxrPBHZqOcN9GrNZF8o', // Chave de exemplo (NÃO FUNCIONA - substitua!)
+        // ===== SISTEMA DE API MULTI-CAMADA =====
+        const YouTubeAPI = {
+            // Método 1: API via Worker do Cloudflare (recomendado)
+            // Crie um Worker gratuito em: https://workers.cloudflare.com
+            workerURL: '', // Ex: 'https://seu-worker.seuusuario.workers.dev'
             
-            // Fallback: usar API de busca interna do YouTube (scraping)
-            useFallback: true,
-            fallbackURL: 'https://www.youtube.com/results'
+            // Método 2: Proxy público CORS
+            proxies: [
+                'https://api.allorigins.win/raw?url=',
+                'https://corsproxy.io/?',
+                'https://cors-anywhere.herokuapp.com/'
+            ],
+            currentProxyIndex: 0,
+            
+            // Método 3: API Invidious (alternativa open-source)
+            invidiousInstances: [
+                'https://invidious.snopyta.org',
+                'https://yewtu.be',
+                'https://invidious.kavin.rocks',
+                'https://vid.puffyan.us'
+            ],
+            currentInvidiousIndex: 0,
+            
+            lastUsedMethod: '',
+            
+            async search(query, maxResults = 30) {
+                console.log('🔍 Buscando:', query);
+                this.updateMethod('🔍 Buscando...');
+                
+                // Tentar Worker primeiro (se configurado)
+                if (this.workerURL) {
+                    try {
+                        const results = await this.searchViaWorker(query);
+                        if (results.length > 0) return results;
+                    } catch(e) { console.log('Worker falhou'); }
+                }
+                
+                // Tentar Invidious
+                try {
+                    const results = await this.searchViaInvidious(query);
+                    if (results.length > 0) return results;
+                } catch(e) { console.log('Invidious falhou'); }
+                
+                // Tentar Proxy CORS
+                try {
+                    const results = await this.searchViaProxy(query);
+                    if (results.length > 0) return results;
+                } catch(e) { console.log('Proxy falhou'); }
+                
+                // Fallback: busca direta (pode falhar por CORS)
+                try {
+                    const results = await this.searchDirect(query);
+                    if (results.length > 0) return results;
+                } catch(e) { console.log('Busca direta falhou'); }
+                
+                return [];
+            },
+            
+            async searchViaWorker(query) {
+                this.updateMethod('⚡ Buscando via Worker...');
+                const url = `${this.workerURL}?q=${encodeURIComponent(query)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                
+                if (data.videos) {
+                    this.lastUsedMethod = 'Cloudflare Worker';
+                    return data.videos.map(v => ({
+                        id: v.id,
+                        title: v.title,
+                        channel: v.channel || v.author || '',
+                        thumbnail: v.thumbnail || `https://i.ytimg.com/vi/${v.id}/default.jpg`,
+                        duration: v.duration || ''
+                    }));
+                }
+                return [];
+            },
+            
+            async searchViaInvidious(query) {
+                for (let i = 0; i < this.invidiousInstances.length; i++) {
+                    try {
+                        const instance = this.invidiousInstances[this.currentInvidiousIndex];
+                        this.updateMethod(`🔄 Buscando via Invidious...`);
+                        
+                        const url = `${instance}/api/v1/search?q=${encodeURIComponent(query)}&type=video`;
+                        const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+                        
+                        if (!res.ok) continue;
+                        
+                        const data = await res.json();
+                        
+                        if (Array.isArray(data) && data.length > 0) {
+                            this.lastUsedMethod = 'Invidious API';
+                            this.updateMethod(`✅ Invidious API (${data.length} resultados)`);
+                            
+                            return data.slice(0, maxResults).map(item => ({
+                                id: item.videoId,
+                                title: item.title,
+                                channel: item.author,
+                                thumbnail: item.videoThumbnails?.[0]?.url || 
+                                         `https://i.ytimg.com/vi/${item.videoId}/default.jpg`,
+                                duration: item.lengthSeconds ? 
+                                    `${Math.floor(item.lengthSeconds/60)}:${(item.lengthSeconds%60).toString().padStart(2,'0')}` : ''
+                            }));
+                        }
+                    } catch(e) {
+                        this.currentInvidiousIndex = (this.currentInvidiousIndex + 1) % this.invidiousInstances.length;
+                    }
+                }
+                return [];
+            },
+            
+            async searchViaProxy(query) {
+                for (let i = 0; i < this.proxies.length; i++) {
+                    try {
+                        const proxy = this.proxies[this.currentProxyIndex];
+                        this.updateMethod(`🌐 Buscando via Proxy...`);
+                        
+                        const searchURL = `https://www.youtube.com/results?search_query=${encodeURIComponent(query + ' música')}`;
+                        const res = await fetch(proxy + encodeURIComponent(searchURL), { 
+                            signal: AbortSignal.timeout(8000) 
+                        });
+                        
+                        if (!res.ok) continue;
+                        
+                        const html = await res.text();
+                        const results = this.parseYouTubeHTML(html);
+                        
+                        if (results.length > 0) {
+                            this.lastUsedMethod = 'Proxy CORS';
+                            this.updateMethod(`✅ Proxy CORS (${results.length} resultados)`);
+                            return results.slice(0, maxResults);
+                        }
+                    } catch(e) {
+                        this.currentProxyIndex = (this.currentProxyIndex + 1) % this.proxies.length;
+                    }
+                }
+                return [];
+            },
+            
+            async searchDirect(query) {
+                this.updateMethod('📡 Busca direta...');
+                const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query + ' música')}`;
+                const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+                const html = await res.text();
+                const results = this.parseYouTubeHTML(html);
+                
+                if (results.length > 0) {
+                    this.lastUsedMethod = 'YouTube Direto';
+                    this.updateMethod(`✅ YouTube Direto (${results.length} resultados)`);
+                }
+                
+                return results.slice(0, maxResults);
+            },
+            
+            parseYouTubeHTML(html) {
+                const results = [];
+                
+                // Método 1: Extrair de ytInitialData (mais confiável)
+                const jsonMatch = html.match(/ytInitialData\s*=\s*({.+?});/);
+                if (jsonMatch) {
+                    try {
+                        const data = JSON.parse(jsonMatch[1]);
+                        const contents = data?.contents?.twoColumnSearchResultsRenderer?.primaryContents?.sectionListRenderer?.contents;
+                        
+                        if (contents) {
+                            for (const section of contents) {
+                                const items = section?.itemSectionRenderer?.contents;
+                                if (items) {
+                                    for (const item of items) {
+                                        const videoRenderer = item?.videoRenderer;
+                                        if (videoRenderer && videoRenderer.videoId) {
+                                            results.push({
+                                                id: videoRenderer.videoId,
+                                                title: videoRenderer.title?.runs?.[0]?.text || '',
+                                                channel: videoRenderer.ownerText?.runs?.[0]?.text || '',
+                                                thumbnail: videoRenderer.thumbnail?.thumbnails?.[0]?.url || 
+                                                          `https://i.ytimg.com/vi/${videoRenderer.videoId}/default.jpg`
+                                            });
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } catch(e) {}
+                }
+                
+                // Método 2: Regex como fallback
+                if (results.length === 0) {
+                    const videoIdRegex = /\/watch\?v=([a-zA-Z0-9_-]{11})/g;
+                    const titleRegex = /"title":{"runs":\[{"text":"([^"]+)"}/g;
+                    
+                    const ids = [];
+                    const titles = [];
+                    
+                    let match;
+                    while ((match = videoIdRegex.exec(html)) !== null) {
+                        const id = match[1];
+                        if (!ids.includes(id)) ids.push(id);
+                    }
+                    
+                    while ((match = titleRegex.exec(html)) !== null) {
+                        titles.push(this.decodeHTML(match[1]));
+                    }
+                    
+                    for (let i = 0; i < Math.min(ids.length, titles.length, 50); i++) {
+                        results.push({
+                            id: ids[i],
+                            title: titles[i] || `Vídeo ${i + 1}`,
+                            channel: '',
+                            thumbnail: `https://i.ytimg.com/vi/${ids[i]}/default.jpg`
+                        });
+                    }
+                }
+                
+                return results;
+            },
+            
+            decodeHTML(html) {
+                const txt = document.createElement('textarea');
+                txt.innerHTML = html;
+                return txt.value;
+            },
+            
+            updateMethod(text) {
+                const el = document.getElementById('apiMethodText');
+                if (el) el.textContent = text;
+            }
         };
-        
-        // ===== DATABASE DE MÚSICAS (FALLBACK) =====
-        const MusicDB = {
+
+        // ===== DATABASE LOCAL (FALLBACK FINAL) =====
+        const LocalDB = {
             songs: [
-                { id: 'dQw4w9WgXcQ', title: 'Never Gonna Give You Up', artist: 'Rick Astley', thumbnail: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/default.jpg' },
-                { id: '9bZkp7q19f0', title: 'Gangnam Style', artist: 'PSY', thumbnail: 'https://i.ytimg.com/vi/9bZkp7q19f0/default.jpg' },
-                { id: 'kJQP7kiw5Fk', title: 'Despacito', artist: 'Luis Fonsi ft. Daddy Yankee', thumbnail: 'https://i.ytimg.com/vi/kJQP7kiw5Fk/default.jpg' },
-                { id: 'JGwWNGJdvx8', title: 'Shape of You', artist: 'Ed Sheeran', thumbnail: 'https://i.ytimg.com/vi/JGwWNGJdvx8/default.jpg' },
-                { id: 'RgKAFK5djSk', title: 'See You Again', artist: 'Wiz Khalifa ft. Charlie Puth', thumbnail: 'https://i.ytimg.com/vi/RgKAFK5djSk/default.jpg' },
-                { id: 'OPf0YbXqDm0', title: 'Uptown Funk', artist: 'Mark Ronson ft. Bruno Mars', thumbnail: 'https://i.ytimg.com/vi/OPf0YbXqDm0/default.jpg' },
-                { id: 'YQHsXMglC9A', title: 'Hello', artist: 'Adele', thumbnail: 'https://i.ytimg.com/vi/YQHsXMglC9A/default.jpg' },
-                { id: 'fRh_vgS2dFE', title: 'Sorry', artist: 'Justin Bieber', thumbnail: 'https://i.ytimg.com/vi/fRh_vgS2dFE/default.jpg' },
-                { id: 'CevxZvSJLk8', title: 'Roar', artist: 'Katy Perry', thumbnail: 'https://i.ytimg.com/vi/CevxZvSJLk8/default.jpg' },
-                { id: 'HP-MbfHFUqs', title: 'Blank Space', artist: 'Taylor Swift', thumbnail: 'https://i.ytimg.com/vi/HP-MbfHFUqs/default.jpg' },
-                { id: 'JGwWNGJdvx8', title: 'Shape of You', artist: 'Ed Sheeran', thumbnail: 'https://i.ytimg.com/vi/JGwWNGJdvx8/default.jpg' },
-                { id: 'bnCT0GElVBg', title: 'Bohemian Rhapsody', artist: 'Queen', thumbnail: 'https://i.ytimg.com/vi/bnCT0GElVBg/default.jpg' },
-                { id: 'hT_nvWreIhg', title: 'Counting Stars', artist: 'OneRepublic', thumbnail: 'https://i.ytimg.com/vi/hT_nvWreIhg/default.jpg' },
-                { id: '0KSOMA3QBU0', title: 'Perfect', artist: 'Ed Sheeran', thumbnail: 'https://i.ytimg.com/vi/0KSOMA3QBU0/default.jpg' },
-                { id: 'aJOTlE1K90k', title: 'Girls Like You', artist: 'Maroon 5', thumbnail: 'https://i.ytimg.com/vi/aJOTlE1K90k/default.jpg' },
-                { id: 'UceaB4D0jpo', title: 'Rockabye', artist: 'Clean Bandit', thumbnail: 'https://i.ytimg.com/vi/UceaB4D0jpo/default.jpg' },
-                { id: 'YykjpeuMNEk', title: 'Hymn For The Weekend', artist: 'Coldplay', thumbnail: 'https://i.ytimg.com/vi/YykjpeuMNEk/default.jpg' },
-                { id: 'VbfpW0pbvaU', title: 'Starboy', artist: 'The Weeknd', thumbnail: 'https://i.ytimg.com/vi/VbfpW0pbvaU/default.jpg' },
-                { id: 'PMivT7MJ41M', title: 'Cheap Thrills', artist: 'Sia', thumbnail: 'https://i.ytimg.com/vi/PMivT7MJ41M/default.jpg' },
-                { id: 'JRfuAukYTKg', title: 'Shake It Off', artist: 'Taylor Swift', thumbnail: 'https://i.ytimg.com/vi/JRfuAukYTKg/default.jpg' },
-                { id: 'CduA0TULnow', title: 'Let Her Go', artist: 'Passenger', thumbnail: 'https://i.ytimg.com/vi/CduA0TULnow/default.jpg' },
-                { id: 'lp-EO5I60KA', title: 'Thinking Out Loud', artist: 'Ed Sheeran', thumbnail: 'https://i.ytimg.com/vi/lp-EO5I60KA/default.jpg' },
-                { id: '450p7goxZqg', title: 'All of Me', artist: 'John Legend', thumbnail: 'https://i.ytimg.com/vi/450p7goxZqg/default.jpg' },
-                { id: 'NuCOfRkz2oI', title: 'Havana', artist: 'Camila Cabello', thumbnail: 'https://i.ytimg.com/vi/NuCOfRkz2oI/default.jpg' },
-                { id: 'pRpeEdMmmQ0', title: 'Waka Waka', artist: 'Shakira', thumbnail: 'https://i.ytimg.com/vi/pRpeEdMmmQ0/default.jpg' },
-            ]
+                { id: 'dQw4w9WgXcQ', title: 'Never Gonna Give You Up', artist: 'Rick Astley' },
+                { id: '9bZkp7q19f0', title: 'Gangnam Style', artist: 'PSY' },
+                { id: 'kJQP7kiw5Fk', title: 'Despacito', artist: 'Luis Fonsi ft. Daddy Yankee' },
+                { id: 'JGwWNGJdvx8', title: 'Shape of You', artist: 'Ed Sheeran' },
+                { id: 'RgKAFK5djSk', title: 'See You Again', artist: 'Wiz Khalifa ft. Charlie Puth' },
+                { id: 'OPf0YbXqDm0', title: 'Uptown Funk', artist: 'Mark Ronson ft. Bruno Mars' },
+                { id: 'YQHsXMglC9A', title: 'Hello', artist: 'Adele' },
+                { id: 'fRh_vgS2dFE', title: 'Sorry', artist: 'Justin Bieber' },
+                { id: 'CevxZvSJLk8', title: 'Roar', artist: 'Katy Perry' },
+                { id: 'HP-MbfHFUqs', title: 'Blank Space', artist: 'Taylor Swift' },
+                { id: 'bnCT0GElVBg', title: 'Bohemian Rhapsody', artist: 'Queen' },
+                { id: 'hT_nvWreIhg', title: 'Counting Stars', artist: 'OneRepublic' },
+                { id: '0KSOMA3QBU0', title: 'Perfect', artist: 'Ed Sheeran' },
+                { id: 'aJOTlE1K90k', title: 'Girls Like You', artist: 'Maroon 5' },
+                { id: 'UceaB4D0jpo', title: 'Rockabye', artist: 'Clean Bandit' },
+                { id: 'YykjpeuMNEk', title: 'Hymn For The Weekend', artist: 'Coldplay' },
+                { id: 'VbfpW0pbvaU', title: 'Starboy', artist: 'The Weeknd' },
+                { id: 'PMivT7MJ41M', title: 'Cheap Thrills', artist: 'Sia' },
+                { id: 'JRfuAukYTKg', title: 'Shake It Off', artist: 'Taylor Swift' },
+                { id: 'CduA0TULnow', title: 'Let Her Go', artist: 'Passenger' },
+                { id: 'lp-EO5I60KA', title: 'Thinking Out Loud', artist: 'Ed Sheeran' },
+                { id: '450p7goxZqg', title: 'All of Me', artist: 'John Legend' },
+                { id: 'NuCOfRkz2oI', title: 'Havana', artist: 'Camila Cabello' },
+                { id: 'pRpeEdMmmQ0', title: 'Waka Waka', artist: 'Shakira' },
+                { id: 'K0ibBPhiaG0', title: 'Dance Monkey', artist: 'Tones and I' },
+            ],
+            
+            search(query) {
+                const q = query.toLowerCase();
+                return this.songs
+                    .filter(s => s.title.toLowerCase().includes(q) || s.artist.toLowerCase().includes(q))
+                    .map(s => ({
+                        id: s.id,
+                        title: s.title,
+                        channel: s.artist,
+                        thumbnail: `https://i.ytimg.com/vi/${s.id}/default.jpg`
+                    }));
+            },
+            
+            getAll() {
+                return this.songs.map(s => ({
+                    id: s.id,
+                    title: s.title,
+                    channel: s.artist,
+                    thumbnail: `https://i.ytimg.com/vi/${s.id}/default.jpg`
+                }));
+            }
         };
 
         // ===== SISTEMA DE PAGINAÇÃO =====
@@ -399,7 +646,7 @@
                 }
                 if (this.currentPage !== oldPage) {
                     this.updateAllUI();
-                    this.dispatchChange();
+                    this.renderCurrentPage();
                 }
             },
             
@@ -408,14 +655,15 @@
                 if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
                     this.currentPage = page;
                     this.updateAllUI();
-                    this.dispatchChange();
+                    this.renderCurrentPage();
                 }
             },
             
-            dispatchChange() {
-                window.dispatchEvent(new CustomEvent('pageChanged', { 
-                    detail: { page: this.currentPage, items: this.getCurrentItems() }
-                }));
+            renderCurrentPage() {
+                const items = this.getCurrentItems();
+                document.getElementById('resultsContainer').innerHTML = items.map((v, i) => card(v, i)).join('');
+                updateFavButtons();
+                document.getElementById('resultsContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
             },
             
             updateAllUI() {
@@ -435,12 +683,6 @@
                     document.getElementById('btnPrevTop').disabled = this.currentPage === 1;
                     document.getElementById('btnNextTop').disabled = this.currentPage === this.totalPages;
                     document.getElementById('btnLastTop').disabled = this.currentPage === this.totalPages;
-                    
-                    const jumpInput = document.getElementById('pageJumpTop');
-                    if (jumpInput) {
-                        jumpInput.max = this.totalPages;
-                        jumpInput.placeholder = `1-${this.totalPages}`;
-                    }
                 } else {
                     topEl.classList.add('hidden');
                 }
@@ -531,157 +773,49 @@
             has(id) { return this.items.some(d => d.id === id); }
         };
 
-        // ===== BUSCA NA API =====
+        // ===== BUSCA PRINCIPAL =====
         let currentQuery = '';
-        let allSearchResults = [];
 
-        async function searchYouTube(query) {
-            if (!query || !query.trim()) {
-                toast('⚠️ Digite algo para buscar');
+        async function doSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) { toast('⚠️ Digite algo para buscar'); return; }
+            
+            currentQuery = query;
+            const resCont = document.getElementById('resultsContainer');
+            resCont.innerHTML = '<div class="loading"><div class="spinner"></div><div class="loading-text">🔍 Buscando na API...</div></div>';
+            
+            // Tentar API primeiro
+            const apiResults = await YouTubeAPI.search(query);
+            
+            if (apiResults.length > 0) {
+                displayResults(apiResults, YouTubeAPI.lastUsedMethod);
                 return;
             }
             
-            currentQuery = query.trim();
-            const resCont = document.getElementById('resultsContainer');
-            resCont.innerHTML = '<div class="loading"><div class="spinner"></div><div class="loading-text">🔍 Buscando...</div></div>';
+            // Fallback para database local
+            YouTubeAPI.updateMethod('📚 Usando database local...');
+            const localResults = LocalDB.search(query);
             
-            try {
-                // Tentar buscar via API do YouTube
-                const results = await fetchFromYouTubeAPI(query);
-                
-                if (results && results.length > 0) {
-                    allSearchResults = results;
-                    displayPaginatedResults(results);
-                    toast(`✅ ${results.length} resultados encontrados`);
-                } else {
-                    // Fallback para database local
-                    useLocalFallback(query);
-                }
-            } catch (error) {
-                console.error('Erro na busca:', error);
-                // Fallback para database local
-                useLocalFallback(query);
+            if (localResults.length > 0) {
+                displayResults(localResults, 'Database Local');
+                return;
             }
+            
+            // Mostrar tudo do database local
+            const allLocal = LocalDB.getAll();
+            displayResults(allLocal, 'Biblioteca Completa');
+            toast('📚 Mostrando todas as músicas');
         }
 
-        async function fetchFromYouTubeAPI(query) {
-            // TENTATIVA 1: API oficial do YouTube
-            if (API_CONFIG.apiKey && API_CONFIG.apiKey !== 'AIzaSyAqzGt5QmBQhJQ-NxrPBHZqOcN9GrNZF8o') {
-                try {
-                    const url = `${API_CONFIG.youtubeSearchURL}?part=snippet&maxResults=50&q=${encodeURIComponent(query + ' música')}&type=video&videoCategoryId=10&key=${API_CONFIG.apiKey}`;
-                    const response = await fetch(url);
-                    const data = await response.json();
-                    
-                    if (data.items && data.items.length > 0) {
-                        return data.items.map(item => ({
-                            id: item.id.videoId,
-                            title: item.snippet.title,
-                            channel: item.snippet.channelTitle,
-                            thumbnail: item.snippet.thumbnails?.default?.url || 
-                                      item.snippet.thumbnails?.medium?.url || ''
-                        }));
-                    }
-                } catch(e) {
-                    console.log('API YouTube falhou, tentando fallback...');
-                }
-            }
+        function displayResults(results, method) {
+            YouTubeAPI.updateMethod(`✅ ${method} (${results.length} resultados)`);
             
-            // TENTATIVA 2: Proxy CORS
-            try {
-                const searchURL = `https://www.youtube.com/results?search_query=${encodeURIComponent(query + ' música')}`;
-                const proxyURL = API_CONFIG.proxy + encodeURIComponent(searchURL);
-                const response = await fetch(proxyURL);
-                const html = await response.text();
-                
-                // Extrair dados do HTML (scraping básico)
-                const results = parseYouTubeHTML(html);
-                if (results.length > 0) return results;
-            } catch(e) {
-                console.log('Proxy falhou, usando database local...');
-            }
-            
-            return [];
-        }
-
-        function parseYouTubeHTML(html) {
-            const results = [];
-            // Regex para extrair videoId e título do HTML do YouTube
-            const videoRegex = /\/watch\?v=([a-zA-Z0-9_-]{11})/g;
-            const titleRegex = /"title":{"runs":\[{"text":"([^"]+)"}/g;
-            
-            let match;
-            const ids = [];
-            while ((match = videoRegex.exec(html)) !== null) {
-                if (!ids.includes(match[1])) ids.push(match[1]);
-            }
-            
-            const titles = [];
-            while ((match = titleRegex.exec(html)) !== null) {
-                titles.push(match[1]);
-            }
-            
-            for (let i = 0; i < Math.min(ids.length, titles.length, 50); i++) {
-                results.push({
-                    id: ids[i],
-                    title: decodeHTML(titles[i]),
-                    channel: '',
-                    thumbnail: `https://i.ytimg.com/vi/${ids[i]}/default.jpg`
-                });
-            }
-            
-            return results;
-        }
-
-        function useLocalFallback(query) {
-            const q = query.toLowerCase();
-            const filtered = MusicDB.songs.filter(s => 
-                s.title.toLowerCase().includes(q) || 
-                s.artist.toLowerCase().includes(q)
-            );
-            
-            if (filtered.length > 0) {
-                allSearchResults = filtered.map(s => ({
-                    id: s.id,
-                    title: s.title,
-                    channel: s.artist,
-                    thumbnail: s.thumbnail
-                }));
-            } else {
-                // Se não encontrou nada, mostrar todos
-                allSearchResults = MusicDB.songs.map(s => ({
-                    id: s.id,
-                    title: s.title,
-                    channel: s.artist,
-                    thumbnail: s.thumbnail
-                }));
-                toast('📚 Mostrando biblioteca completa');
-            }
-            
-            displayPaginatedResults(allSearchResults);
-        }
-
-        function displayPaginatedResults(results) {
             Paginator.setItems(results, 8);
-            const pageItems = Paginator.getCurrentItems();
-            const resCont = document.getElementById('resultsContainer');
-            
-            if (pageItems.length === 0) {
-                resCont.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text2);">Nenhum resultado encontrado</div>';
-                document.getElementById('pageCounterTop').classList.add('hidden');
-                document.getElementById('pageCounterBottom').classList.add('hidden');
-                document.getElementById('resultCount').textContent = '0 resultados';
-                return;
-            }
-            
-            resCont.innerHTML = pageItems.map((v, i) => card(v, i)).join('');
+            document.getElementById('resultsContainer').innerHTML = Paginator.getCurrentItems().map((v, i) => card(v, i)).join('');
             updateFavButtons();
             Paginator.updateAllUI();
-        }
-
-        function decodeHTML(html) {
-            const txt = document.createElement('textarea');
-            txt.innerHTML = html;
-            return txt.value;
+            
+            toast(`✅ ${results.length} músicas encontradas via ${method}`);
         }
 
         // ===== YOUTUBE PLAYER =====
@@ -703,9 +837,7 @@
                         console.log('✅ Player YouTube pronto');
                         e.target.setVolume(100);
                         e.target.unMute();
-                        if (vid) {
-                            e.target.loadVideoById({ videoId: vid, startSeconds: 0 });
-                        }
+                        if (vid) e.target.loadVideoById({ videoId: vid, startSeconds: 0 });
                     },
                     onStateChange: (e) => {
                         if (e.data === 1) { playing = true; updatePlayBtn(true); startProgress(); }
@@ -722,14 +854,8 @@
             });
         }
 
-        window.onYouTubeIframeAPIReady = () => {
-            console.log('✅ API YouTube carregada');
-            initPlayer();
-        };
-        
-        setTimeout(() => {
-            if (!yt && typeof YT !== 'undefined' && YT.Player) initPlayer();
-        }, 2000);
+        window.onYouTubeIframeAPIReady = () => initPlayer();
+        setTimeout(() => { if (!yt && typeof YT !== 'undefined' && YT.Player) initPlayer(); }, 2000);
 
         function startProgress() {
             stopProgress();
@@ -753,16 +879,12 @@
             if (i >= 0 && i < playlist.length) idx = i;
             if (idx < 0 || idx >= playlist.length) return;
             
-            const t = playlist[idx]; 
-            vid = t.id; 
-            Fav.addHist(t);
+            const t = playlist[idx]; vid = t.id; Fav.addHist(t);
             document.getElementById('progressBar').style.width = '0%';
             
             if (yt?.loadVideoById) {
                 yt.loadVideoById({ videoId: vid, startSeconds: 0 });
-                setTimeout(() => {
-                    if (yt?.playVideo) { yt.playVideo(); yt.unMute(); yt.setVolume(100); }
-                }, 500);
+                setTimeout(() => { if (yt?.playVideo) { yt.playVideo(); yt.unMute(); yt.setVolume(100); } }, 500);
             } else {
                 initPlayer();
                 setTimeout(() => playTrack(i), 1000);
@@ -775,46 +897,29 @@
             document.title = '▶ ' + (t.title || 'Play Tube Music');
             document.getElementById('spotifyBar').classList.add('active');
             
-            // Marcar card como tocando
             document.querySelectorAll('.video-card').forEach(c => c.classList.remove('playing'));
-            const cards = document.querySelectorAll('.video-card');
-            cards.forEach(c => {
-                if (c.getAttribute('data-videoid') === vid) c.classList.add('playing');
-            });
+            document.querySelectorAll(`[data-videoid="${vid}"]`).forEach(c => c.classList.add('playing'));
         }
 
         window.togglePlay = () => {
-            if (!yt) { 
-                initPlayer();
-                setTimeout(() => togglePlay(), 500);
-                return; 
-            }
+            if (!yt) { initPlayer(); setTimeout(() => togglePlay(), 500); return; }
             if (playing) { yt.pauseVideo(); if (ytTop) ytTop.pauseVideo(); }
             else if (vid) { yt.playVideo(); yt.unMute(); }
             else if (playlist.length > 0) playTrack(0);
         };
-        
-        window.nextTrack = () => { 
-            if (playlist.length) { stopProgress(); playTrack((idx + 1) % playlist.length); } 
-        };
-        
-        window.prevTrack = () => { 
-            if (playlist.length) { stopProgress(); playTrack((idx - 1 + playlist.length) % playlist.length); } 
-        };
-        
+        window.nextTrack = () => { if (playlist.length) { stopProgress(); playTrack((idx + 1) % playlist.length); } };
+        window.prevTrack = () => { if (playlist.length) { stopProgress(); playTrack((idx - 1 + playlist.length) % playlist.length); } };
         window.seekTrack = (e) => {
             if (!yt || !vid) return;
             const r = e.currentTarget.getBoundingClientRect();
             const d = yt.getDuration();
             if (d > 0) yt.seekTo(((e.clientX - r.left) / r.width) * d, true);
         };
-        
         window.showVideo = () => {
             if (!vid) return;
             document.getElementById('playerContainer').classList.add('active');
             const st = yt?.getCurrentTime?.() || 0;
             const wrapper = document.getElementById('playerWrapper');
-            
             if (!ytTop) {
                 wrapper.innerHTML = '<div id="topPlayerElement"></div>';
                 ytTop = new YT.Player('topPlayerElement', {
@@ -830,67 +935,52 @@
             }
             document.getElementById('playerContainer').scrollIntoView({ behavior: 'smooth' });
         };
-        
         window.closeVideo = () => {
             document.getElementById('playerContainer').classList.remove('active');
             if (ytTop) ytTop.stopVideo();
         };
-        
         window.downloadCurrent = () => {
             if (!vid || idx < 0) { toast('⚠️ Nenhuma música'); return; }
-            const t = playlist[idx];
-            DL.download(t.id, t.title, t.channel || t.artist, t.thumbnail);
+            DL.download(playlist[idx].id, playlist[idx].title, playlist[idx].channel, playlist[idx].thumbnail);
         };
 
-        // ===== RESULTADOS =====
         window.playFromResults = (id, title, channel, thumb) => {
-            const v = { id, title, channel, thumbnail: thumb };
-            playlist = playlist.filter(t => t.id !== v.id); 
-            playlist.unshift(v);
-            idx = 0; 
-            playTrack(0); 
+            playlist = playlist.filter(t => t.id !== id);
+            playlist.unshift({ id, title, channel, thumbnail: thumb });
+            idx = 0; playTrack(0);
             toast('▶ ' + title.substring(0, 35));
         };
-        
-        window.toggleFav = (id, title, channel, thumb, e) => { 
-            if (e) e.stopPropagation(); 
-            const isFav = Fav.toggle({ id, title, channel, thumbnail: thumb }); 
+        window.toggleFav = (id, title, channel, thumb, e) => {
+            if (e) e.stopPropagation();
+            const isFav = Fav.toggle({ id, title, channel, thumbnail: thumb });
             updateFavButtons();
             toast(isFav ? '❤️ Favoritado' : '💔 Removido');
         };
-        
-        window.dlFromCard = (id, title, channel, thumb, e) => { 
-            if (e) e.stopPropagation(); 
-            DL.download(id, title, channel, thumb); 
+        window.dlFromCard = (id, title, channel, thumb, e) => {
+            if (e) e.stopPropagation();
+            DL.download(id, title, channel, thumb);
         };
 
         function updateFavButtons() {
             document.querySelectorAll('.v-btn.fav').forEach(b => {
                 const fid = b.getAttribute('data-id'), f = Fav.is(fid);
-                b.classList.toggle('fav-active', f); 
-                b.textContent = f ? '❤️' : '🤍';
+                b.classList.toggle('fav-active', f); b.textContent = f ? '❤️' : '🤍';
             });
         }
 
-        function esc(t) { 
-            if (!t) return ''; 
-            const d = document.createElement('div'); 
-            d.textContent = t; 
-            return d.innerHTML; 
-        }
+        function esc(t) { if (!t) return ''; const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
 
         function card(v, index) {
             const f = Fav.is(v.id), d = DL.has(v.id);
             const isPlaying = vid === v.id;
-            return `<div class="video-card${isPlaying ? ' playing' : ''}" 
-                         data-videoid="${v.id}"
+            return `<div class="video-card${isPlaying ? ' playing' : ''}" data-videoid="${v.id}"
                          onclick="playFromResults('${v.id}','${esc(v.title)}','${esc(v.channel)}','${esc(v.thumbnail || '')}')" 
                          style="animation-delay:${index * 0.03}s">
                 <img class="video-thumb" src="${v.thumbnail || ''}" loading="lazy" 
-                     onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23333%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%23777%22 font-size=%2214%22>♪</text></svg>'">
+                     onerror="this.style.display='none'">
                 <div class="video-info">
                     <div class="video-title">${esc(v.title)}</div>
-                    <div class="video-channel">${esc(v.channel || 'YouTube')}</div>
+                    <div class="video-channel">${esc(v.channel || 'YouTube')}${v.duration ? ' • ' + v.duration : ''}</div>
                 </div>
                 <div class="video-actions">
                     <button class="v-btn fav${f?' fav-active':''}" data-id="${v.id}" 
@@ -900,54 +990,31 @@
         }
 
         // ===== TABS =====
-        let currentTab = 'search';
-        
         window.switchTab = (t) => {
-            currentTab = t;
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             [...document.querySelectorAll('.tab-btn')].forEach(b => {
                 const txt = b.textContent.toLowerCase();
-                if ((t === 'search' && txt.includes('buscar')) || 
-                    (t === 'favorites' && txt.includes('favorito')) ||
-                    (t === 'history' && txt.includes('histórico')) ||
-                    (t === 'downloads' && txt.includes('download'))) {
+                if ((t === 'search' && txt.includes('buscar')) || (t === 'favorites' && txt.includes('favorito')) ||
+                    (t === 'history' && txt.includes('histórico')) || (t === 'downloads' && txt.includes('download'))) {
                     b.classList.add('active');
                 }
             });
             
-            const titles = { 
-                'search': '🔍 Resultados da Busca', 
-                'favorites': '❤️ Favoritos', 
-                'history': '🕐 Histórico', 
-                'downloads': '⬇️ Downloads' 
-            };
+            const titles = { 'search': '🔍 Resultados', 'favorites': '❤️ Favoritos', 'history': '🕐 Histórico', 'downloads': '⬇️ Downloads' };
             document.getElementById('sectionTitle').textContent = titles[t] || 'Resultados';
             
             if (t === 'search') {
-                if (currentQuery) {
-                    searchYouTube(currentQuery);
-                } else {
-                    document.getElementById('resultsContainer').innerHTML = 
-                        '<div style="text-align:center;padding:50px;color:var(--text2);"><div style="font-size:3rem;">🎧</div><div>Busque suas músicas favoritas</div></div>';
-                    document.getElementById('pageCounterTop').classList.add('hidden');
-                    document.getElementById('pageCounterBottom').classList.add('hidden');
-                    document.getElementById('resultCount').textContent = '';
-                }
+                if (currentQuery) { doSearch(); return; }
+                document.getElementById('resultsContainer').innerHTML = '<div style="text-align:center;padding:50px;color:var(--text2);"><div style="font-size:3rem;">🎧</div><div>Busque músicas</div></div>';
+                hidePagination();
                 return;
             }
             
-            let items = [];
-            if (t === 'favorites') items = Fav.favs;
-            else if (t === 'history') items = Fav.hist;
-            else if (t === 'downloads') items = DL.items;
+            let items = t === 'favorites' ? Fav.favs : t === 'history' ? Fav.hist : t === 'downloads' ? DL.items : [];
             
-            if (items.length === 0) {
-                const empties = { 'favorites': '❤️ Nenhum favorito ainda', 'history': '🕐 Histórico vazio', 'downloads': '📥 Nenhum download' };
-                document.getElementById('resultsContainer').innerHTML = 
-                    `<div style="text-align:center;padding:40px;color:var(--text2);">${empties[t]}</div>`;
-                document.getElementById('pageCounterTop').classList.add('hidden');
-                document.getElementById('pageCounterBottom').classList.add('hidden');
-                document.getElementById('resultCount').textContent = '0 itens';
+            if (!items.length) {
+                document.getElementById('resultsContainer').innerHTML = `<div style="text-align:center;padding:40px;color:var(--text2);">Vazio</div>`;
+                hidePagination();
             } else {
                 Paginator.setItems(items, 8);
                 document.getElementById('resultsContainer').innerHTML = Paginator.getCurrentItems().map((v, i) => card(v, i)).join('');
@@ -956,37 +1023,36 @@
             }
         };
 
-        // ===== CONTROLES DE PÁGINA =====
+        function hidePagination() {
+            document.getElementById('pageCounterTop').classList.add('hidden');
+            document.getElementById('pageCounterBottom').classList.add('hidden');
+            document.getElementById('resultCount').textContent = '';
+        }
+
         window.changePage = (action) => Paginator.changePage(action);
-        
         window.jumpToPage = () => {
             const page = parseInt(document.getElementById('pageJumpTop').value);
             if (page) Paginator.jumpToPage(page);
         };
-        
-        window.doSearch = () => {
-            const query = document.getElementById('searchInput').value;
-            searchYouTube(query);
+        window.doSearch = doSearch;
+        window.checkAPIStatus = async () => {
+            toast('🔍 Verificando APIs...');
+            const testResults = await YouTubeAPI.search('test');
+            if (testResults.length > 0) {
+                document.getElementById('apiStatusBtn').textContent = '🟢 API';
+                document.getElementById('apiStatusBtn').classList.add('online');
+                toast('✅ APIs funcionando!');
+            } else {
+                document.getElementById('apiStatusBtn').textContent = '🔴 API';
+                document.getElementById('apiStatusBtn').classList.add('offline');
+                toast('⚠️ Usando database local');
+            }
         };
 
-        // Event listener para página mudar
-        window.addEventListener('pageChanged', (e) => {
-            const { items } = e.detail;
-            document.getElementById('resultsContainer').innerHTML = items.map((v, i) => card(v, i)).join('');
-            updateFavButtons();
-            
-            // Scroll suave para o topo dos resultados
-            document.getElementById('resultsContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
-        });
-
-        // Enter no campo de busca
         document.getElementById('searchInput').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                doSearch();
-            }
+            if (e.key === 'Enter') doSearch();
         });
 
-        // ===== UTILS =====
         function toast(m) {
             if (toastTO) clearTimeout(toastTO);
             const el = document.getElementById('toast');
@@ -994,7 +1060,6 @@
             toastTO = setTimeout(() => { if (el) el.classList.remove('show'); }, 2500);
         }
 
-        // ===== MEDIA SESSION =====
         if ('mediaSession' in navigator) {
             navigator.mediaSession.setActionHandler('play', () => togglePlay());
             navigator.mediaSession.setActionHandler('pause', () => togglePlay());
@@ -1002,9 +1067,7 @@
             navigator.mediaSession.setActionHandler('nexttrack', () => nextTrack());
         }
 
-        // ===== INIT =====
         function init() {
-            // Detectar safe areas
             const style = getComputedStyle(document.documentElement);
             const safeTop = parseInt(style.getPropertyValue('env(safe-area-inset-top)')) || 0;
             const safeBottom = parseInt(style.getPropertyValue('env(safe-area-inset-bottom)')) || 0;
@@ -1012,20 +1075,15 @@
             document.documentElement.style.setProperty('--safe-b', safeBottom + 'px');
             document.body.style.paddingTop = safeTop + 'px';
             
-            console.log('✅ Play Tube Music Pro v12 - Busca API + Paginação Superior');
-            console.log('📚 Database local:', MusicDB.songs.length, 'músicas');
-            console.log('🔑 API Key configurada:', API_CONFIG.apiKey ? 'Sim' : 'Não (usando fallback)');
+            console.log('✅ Play Tube Music Pro v13 - API Multi-Camada');
+            console.log('📡 Worker:', YouTubeAPI.workerURL || 'Não configurado');
+            console.log('🔄 Proxies:', YouTubeAPI.proxies.length);
+            console.log('📺 Invidious:', YouTubeAPI.invidiousInstances.length);
+            console.log('📚 Database Local:', LocalDB.songs.length, 'músicas');
         }
         
         window.addEventListener('load', init);
-
-        // Expor globais
         window.T = T;
-        window.Paginator = Paginator;
-        window.searchYouTube = searchYouTube;
-        window.doSearch = doSearch;
-        window.changePage = changePage;
-        window.jumpToPage = jumpToPage;
     })();
     </script>
 </body>
