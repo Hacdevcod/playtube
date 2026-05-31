@@ -8,14 +8,14 @@
     <meta name="theme-color" content="#0f0f0f">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="HandheldFriendly" content="true">
-    <meta name="google-signin-client_id" content="1015083213340-69q19u0bd6f232l6kmdcmk2hf3lqgrtj.apps.googleusercontent.com">
     
     <meta http-equiv="Content-Security-Policy" content="
         media-src * blob: mediastream:;
         script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://s.ytimg.com https://accounts.google.com https://apis.google.com;
-        connect-src * blob: https://accounts.google.com https://apis.google.com;
+        connect-src * blob: https://accounts.google.com https://apis.google.com https://oauth2.googleapis.com;
         worker-src blob:;
         frame-src https://accounts.google.com;
+        form-action https://accounts.google.com;
     ">
     
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><circle cx='96' cy='96' r='96' fill='%23ff0000'/><polygon points='80,60 80,132 140,96' fill='white'/></svg>">
@@ -101,7 +101,7 @@
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.85);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             z-index: 500;
@@ -154,10 +154,7 @@
             transition: all 0.3s;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             margin-bottom: 15px;
-        }
-        .google-btn:hover { 
-            transform: translateY(-2px); 
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+            -webkit-appearance: none;
         }
         .google-btn:active { 
             transform: scale(0.98); 
@@ -177,10 +174,30 @@
             cursor: pointer;
             transition: all 0.3s;
             width: 100%;
+            -webkit-appearance: none;
         }
-        .skip-btn:hover {
+        .skip-btn:active {
             background: var(--surface2);
             color: var(--text);
+        }
+
+        /* ===== LOADING NO LOGIN ===== */
+        .login-loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        .login-loading.active {
+            display: block;
+        }
+        .login-loading .spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid var(--border);
+            border-top-color: var(--blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
         }
 
         /* ===== PERFIL DO USUÁRIO ===== */
@@ -193,7 +210,7 @@
             border-radius: 20px;
             transition: background 0.2s;
         }
-        .user-profile:hover {
+        .user-profile:active {
             background: var(--surface2);
         }
         .user-avatar {
@@ -207,14 +224,14 @@
             font-size: 0.8rem;
             font-weight: 600;
             color: var(--text);
-            max-width: 100px;
+            max-width: 80px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
         
         .user-menu {
-            position: absolute;
+            position: fixed;
             top: calc(var(--safe-t) + var(--topbar-h) + 5px);
             right: 12px;
             background: var(--surface);
@@ -232,7 +249,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 10px 16px;
+            padding: 12px 16px;
             font-size: 0.85rem;
             color: var(--text);
             cursor: pointer;
@@ -241,8 +258,9 @@
             background: none;
             width: 100%;
             text-align: left;
+            -webkit-appearance: none;
         }
-        .user-menu-item:hover {
+        .user-menu-item:active {
             background: var(--surface2);
         }
         .user-menu-item.danger {
@@ -276,7 +294,7 @@
             animation: pulse 2s infinite;
         }
 
-        /* Componentes existentes */
+        /* Componentes existentes mantidos iguais */
         .audio-player-container {
             position: fixed; top: 0; left: 0;
             width: 1px; height: 1px; opacity: 0.01;
@@ -298,7 +316,7 @@
             display: flex;
             align-items: center;
             padding: 0 12px;
-            gap: 10px;
+            gap: 8px;
             border-bottom: 1px solid var(--border);
             z-index: 100;
         }
@@ -309,14 +327,14 @@
             font-size: 12px; color: #fff; animation: pulseLogo 2s ease-in-out infinite;
         }
         .logo-text {
-            font-size: 1rem; font-weight: 700;
+            font-size: 0.9rem; font-weight: 700;
             background: linear-gradient(90deg, var(--text), #f44, var(--text), #f66);
             background-size: 200% auto; -webkit-background-clip: text; background-clip: text;
             -webkit-text-fill-color: transparent; animation: shimmer 3s linear infinite;
         }
         .logo-text sup { font-size: 7px; background: var(--red); color: #fff; padding: 1px 3px; border-radius: 3px; -webkit-text-fill-color: #fff; }
         .spacer { flex: 1; }
-        .theme-btn { background: none; border: none; color: var(--text); font-size: 1.1rem; cursor: pointer; padding: 4px; }
+        .theme-btn { background: none; border: none; color: var(--text); font-size: 1.1rem; cursor: pointer; padding: 4px; -webkit-appearance: none; }
         .bg-play-indicator {
             display: none; width: 8px; height: 8px;
             background: var(--green); border-radius: 50%;
@@ -324,6 +342,7 @@
         }
         .bg-play-indicator.active { display: inline-block; }
 
+        /* Restante do CSS mantido igual ao original */
         .page-counter {
             display: none; align-items: center; justify-content: center;
             gap: 8px; padding: 8px 10px; background: var(--surface);
@@ -497,6 +516,7 @@
             .sp-btn.play { width: 34px; height: 34px; } 
             .video-thumb { width: 40px; height: 40px; }
             .sp-title { font-size: 0.8rem; }
+            .logo-text { font-size: 0.8rem; }
             body {
                 padding-top: calc(var(--safe-t) + var(--topbar-h));
                 padding-bottom: calc(var(--player-h) + 6px + var(--nav-bar-h) + var(--safe-b));
@@ -534,11 +554,21 @@
             <div style="font-size:3rem;margin-bottom:15px;">🎧</div>
             <h2>Bem-vindo ao Play Tube</h2>
             <p>Faça login com sua conta Google para salvar suas músicas, playlists e configurações na nuvem.</p>
-            <button class="google-btn" onclick="Auth.login()">
-                <img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><path fill='%234285F4' d='M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z'/><path fill='%2334A853' d='M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z'/><path fill='%23FBBC05' d='M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z'/><path fill='%23EA4335' d='M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z'/></svg>" alt="Google">
-                Entrar com Google
-            </button>
-            <button class="skip-btn" onclick="Auth.skip()">Continuar sem login</button>
+            
+            <!-- Área de loading -->
+            <div class="login-loading" id="loginLoading">
+                <div class="spinner"></div>
+                <p style="color:var(--text2);font-size:0.85rem;">Conectando ao Google...</p>
+            </div>
+            
+            <!-- Botões -->
+            <div id="loginButtons">
+                <button class="google-btn" onclick="Auth.login()">
+                    <img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><path fill='%234285F4' d='M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z'/><path fill='%2334A853' d='M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z'/><path fill='%23FBBC05' d='M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z'/><path fill='%23EA4335' d='M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z'/></svg>" alt="Google">
+                    Entrar com Google
+                </button>
+                <button class="skip-btn" onclick="Auth.skip()">Continuar sem login</button>
+            </div>
         </div>
     </div>
 
@@ -551,34 +581,24 @@
         <div class="spacer"></div>
         <span class="bg-play-indicator" id="bgPlayIndicator" title="Reproduzindo em background"></span>
         <span class="sync-indicator" id="syncIndicator" style="display:none;">
-            <span class="sync-dot"></span> Cloud
+            <span class="sync-dot"></span>
         </span>
         <button class="theme-btn" onclick="T.cycle()" title="Tema">🎨</button>
-        <!-- Perfil do usuário -->
         <div class="user-profile" id="userProfile" onclick="Auth.toggleMenu()" style="display:none;">
             <img class="user-avatar" id="userAvatar" src="" alt="">
             <span class="user-name" id="userName"></span>
         </div>
-        <!-- Botão de login (quando não logado) -->
         <button class="theme-btn" id="loginBtn" onclick="Auth.showLoginModal()" title="Fazer login">👤</button>
     </div>
 
     <!-- MENU DO USUÁRIO -->
     <div class="user-menu" id="userMenu">
         <div class="user-menu-header" id="menuUserEmail">👤 MINHA CONTA</div>
-        <button class="user-menu-item" onclick="Auth.syncNow()">
-            🔄 Sincronizar dados
-        </button>
-        <button class="user-menu-item" onclick="Auth.exportData()">
-            📤 Exportar dados
-        </button>
-        <button class="user-menu-item" onclick="Auth.importData()">
-            📥 Importar dados
-        </button>
+        <button class="user-menu-item" onclick="Auth.syncNow()">🔄 Sincronizar dados</button>
+        <button class="user-menu-item" onclick="Auth.exportData()">📤 Exportar dados</button>
+        <button class="user-menu-item" onclick="Auth.importData()">📥 Importar dados</button>
         <div class="user-menu-divider"></div>
-        <button class="user-menu-item danger" onclick="Auth.logout()">
-            🚪 Sair da conta
-        </button>
+        <button class="user-menu-item danger" onclick="Auth.logout()">🚪 Sair da conta</button>
     </div>
 
     <!-- PLAYER VIDEO -->
@@ -667,38 +687,66 @@
     (function() {
         'use strict';
         const PROXY = 'https://playtube-proxy.codw23.workers.dev';
-        
-        // Client ID do Google
         const GOOGLE_CLIENT_ID = '1015083213340-69q19u0bd6f232l6kmdcmk2hf3lqgrtj.apps.googleusercontent.com';
 
-        // ===== SISTEMA DE AUTENTICAÇÃO =====
+        // ===== DETECTOR DE DISPOSITIVO =====
+        const Device = {
+            isMobile: /Android|iPhone|iPad|iPod|webOS/i.test(navigator.userAgent),
+            isIOS: /iPhone|iPad|iPod/i.test(navigator.userAgent),
+            isAndroid: /Android/i.test(navigator.userAgent),
+            isStandalone: window.matchMedia('(display-mode: standalone)').matches || 
+                         navigator.standalone || 
+                         window.location.search.includes('standalone=true'),
+            
+            detect() {
+                console.log('📱 Dispositivo:', {
+                    mobile: this.isMobile,
+                    ios: this.isIOS,
+                    android: this.isAndroid,
+                    standalone: this.isStandalone
+                });
+                return this;
+            }
+        };
+        Device.detect();
+
+        // ===== SISTEMA DE AUTENTICAÇÃO (CORRIGIDO PARA MOBILE) =====
         const Auth = {
             user: null,
             token: null,
             isLoggedIn: false,
+            gisLoaded: false,
             
             init() {
-                // Verificar se já existe sessão
+                // Verificar URL hash (retorno do OAuth)
+                this.checkOAuthRedirect();
+                
+                // Verificar sessão salva
                 const saved = localStorage.getItem('playtube_auth');
                 if (saved) {
                     try {
                         const data = JSON.parse(saved);
-                        this.user = data.user;
-                        this.token = data.token;
-                        this.isLoggedIn = true;
-                        this.updateUI();
-                        this.loadCloudData();
+                        // Verificar se o token não expirou (24h)
+                        if (Date.now() - data.timestamp < 24 * 60 * 60 * 1000) {
+                            this.user = data.user;
+                            this.token = data.token;
+                            this.isLoggedIn = true;
+                            this.updateUI();
+                            this.loadCloudData();
+                        } else {
+                            localStorage.removeItem('playtube_auth');
+                        }
                     } catch(e) {
                         localStorage.removeItem('playtube_auth');
                     }
                 }
                 
-                // Inicializar Google Identity Services
-                this.initGoogleAuth();
+                // Aguardar Google Identity Services carregar
+                this.waitForGIS();
                 
-                // Mostrar modal de login se não estiver logado
+                // Mostrar modal se não estiver logado
                 if (!this.isLoggedIn && !localStorage.getItem('playtube_skip_login')) {
-                    setTimeout(() => this.showLoginModal(), 800);
+                    setTimeout(() => this.showLoginModal(), 1000);
                 }
                 
                 if (!this.isLoggedIn && localStorage.getItem('playtube_skip_login')) {
@@ -706,18 +754,40 @@
                 }
             },
             
+            waitForGIS() {
+                let attempts = 0;
+                const maxAttempts = 50;
+                
+                const check = () => {
+                    if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+                        this.gisLoaded = true;
+                        this.initGoogleAuth();
+                        console.log('✅ Google Identity Services carregado');
+                    } else if (attempts < maxAttempts) {
+                        attempts++;
+                        setTimeout(check, 200);
+                    } else {
+                        console.warn('⚠️ Google Identity Services não carregou');
+                    }
+                };
+                
+                check();
+            },
+            
             initGoogleAuth() {
-                if (typeof google === 'undefined' || !google.accounts) {
-                    console.warn('⚠️ Google Identity Services não carregado ainda');
-                    return;
-                }
+                if (!this.gisLoaded) return;
                 
                 try {
                     google.accounts.id.initialize({
                         client_id: GOOGLE_CLIENT_ID,
-                        callback: (response) => this.handleGoogleResponse(response),
+                        callback: (response) => this.handleCredentialResponse(response),
                         auto_select: false,
                         cancel_on_tap_outside: true,
+                        use_fedcm_for_prompt: Device.isMobile ? false : true,
+                        // Configurações para mobile
+                        context: 'signin',
+                        ux_mode: 'popup',
+                        itp_support: true,
                     });
                     console.log('✅ Google Auth inicializado');
                 } catch(e) {
@@ -727,45 +797,122 @@
             
             showLoginModal() {
                 document.getElementById('loginModal').classList.remove('hidden');
+                document.getElementById('loginLoading').classList.remove('active');
+                document.getElementById('loginButtons').style.display = 'block';
             },
             
             hideLoginModal() {
                 document.getElementById('loginModal').classList.add('hidden');
             },
             
+            showLoading() {
+                document.getElementById('loginLoading').classList.add('active');
+                document.getElementById('loginButtons').style.display = 'none';
+            },
+            
+            hideLoading() {
+                document.getElementById('loginLoading').classList.remove('active');
+                document.getElementById('loginButtons').style.display = 'block';
+            },
+            
             login() {
-                if (typeof google === 'undefined' || !google.accounts) {
-                    toast('⏳ Carregando Google...');
-                    setTimeout(() => this.login(), 1000);
+                this.showLoading();
+                
+                if (!this.gisLoaded) {
+                    // Fallback: usar OAuth redirect (mais compatível com mobile)
+                    this.loginWithRedirect();
                     return;
                 }
                 
                 try {
+                    // Tentar One Tap / FedCM primeiro
                     google.accounts.id.prompt((notification) => {
+                        console.log('Prompt notification:', notification);
+                        
                         if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-                            console.log('Prompt não exibido, tentando fallback');
-                            // Fallback: tentar login com redirect
-                            const client = google.accounts.oauth2.initTokenClient({
-                                client_id: GOOGLE_CLIENT_ID,
-                                scope: 'email profile',
-                                callback: (response) => {
-                                    if (response.access_token) {
-                                        this.handleTokenResponse(response);
-                                    }
-                                },
-                            });
-                            client.requestAccessToken();
+                            console.log('One Tap não exibido, usando popup');
+                            this.loginWithPopup();
                         }
                     });
+                    
+                    // Timeout de segurança
+                    setTimeout(() => {
+                        if (!this.isLoggedIn) {
+                            this.hideLoading();
+                        }
+                    }, 10000);
+                    
                 } catch(e) {
-                    console.error('Erro ao iniciar login:', e);
-                    toast('⚠️ Erro ao iniciar login');
+                    console.error('Erro no login:', e);
+                    this.loginWithRedirect();
                 }
             },
             
-            handleGoogleResponse(response) {
+            loginWithPopup() {
                 try {
-                    // Decodificar JWT para obter dados do usuário
+                    const client = google.accounts.oauth2.initTokenClient({
+                        client_id: GOOGLE_CLIENT_ID,
+                        scope: 'email profile openid',
+                        callback: (response) => {
+                            if (response.error) {
+                                console.error('Erro OAuth:', response.error);
+                                this.hideLoading();
+                                toast('⚠️ Login cancelado');
+                                return;
+                            }
+                            this.handleTokenResponse(response);
+                        },
+                    });
+                    
+                    client.requestAccessToken({ prompt: 'select_account' });
+                } catch(e) {
+                    console.error('Erro no popup:', e);
+                    this.loginWithRedirect();
+                }
+            },
+            
+            loginWithRedirect() {
+                // Método mais compatível com mobile
+                console.log('🔄 Usando redirect OAuth');
+                
+                const state = this.generateState();
+                localStorage.setItem('oauth_state', state);
+                
+                const params = new URLSearchParams({
+                    client_id: GOOGLE_CLIENT_ID,
+                    redirect_uri: window.location.href.split('#')[0],
+                    response_type: 'token',
+                    scope: 'email profile openid',
+                    state: state,
+                    prompt: 'select_account',
+                    include_granted_scopes: 'true',
+                });
+                
+                window.location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + params.toString();
+            },
+            
+            checkOAuthRedirect() {
+                // Verificar se voltou de um redirect OAuth
+                const hash = window.location.hash;
+                if (hash && hash.includes('access_token')) {
+                    const params = new URLSearchParams(hash.substring(1));
+                    const accessToken = params.get('access_token');
+                    const state = params.get('state');
+                    const savedState = localStorage.getItem('oauth_state');
+                    
+                    if (accessToken && state === savedState) {
+                        localStorage.removeItem('oauth_state');
+                        // Limpar hash da URL
+                        history.replaceState(null, '', window.location.pathname);
+                        
+                        // Buscar dados do usuário
+                        this.fetchUserInfo(accessToken);
+                    }
+                }
+            },
+            
+            handleCredentialResponse(response) {
+                try {
                     const payload = JSON.parse(atob(response.credential.split('.')[1]));
                     
                     this.user = {
@@ -783,27 +930,38 @@
                     this.loadCloudData();
                     toast('✅ Bem-vindo, ' + (payload.given_name || payload.name) + '!');
                     
-                    console.log('👤 Usuário logado:', this.user.email);
                 } catch(e) {
                     console.error('Erro ao processar resposta:', e);
+                    this.hideLoading();
                     toast('⚠️ Erro ao processar login');
                 }
             },
             
             handleTokenResponse(response) {
-                // Buscar informações do usuário
-                fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                    headers: { 'Authorization': 'Bearer ' + response.access_token }
-                })
-                .then(r => r.json())
-                .then(data => {
+                if (response.access_token) {
+                    this.fetchUserInfo(response.access_token);
+                }
+            },
+            
+            async fetchUserInfo(accessToken) {
+                this.showLoading();
+                
+                try {
+                    const r = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                        headers: { 'Authorization': 'Bearer ' + accessToken }
+                    });
+                    
+                    if (!r.ok) throw new Error('Falha ao buscar dados');
+                    
+                    const data = await r.json();
+                    
                     this.user = {
                         id: data.sub,
                         name: data.name,
                         email: data.email,
                         picture: data.picture
                     };
-                    this.token = response.access_token;
+                    this.token = accessToken;
                     this.isLoggedIn = true;
                     
                     this.saveAuth();
@@ -811,11 +969,16 @@
                     this.hideLoginModal();
                     this.loadCloudData();
                     toast('✅ Bem-vindo, ' + (data.given_name || data.name) + '!');
-                })
-                .catch(e => {
-                    console.error('Erro ao buscar dados do usuário:', e);
+                    
+                } catch(e) {
+                    console.error('Erro ao buscar dados:', e);
+                    this.hideLoading();
                     toast('⚠️ Erro ao obter dados do perfil');
-                });
+                }
+            },
+            
+            generateState() {
+                return 'state_' + Date.now() + '_' + Math.random().toString(36).substring(2);
             },
             
             skip() {
@@ -827,12 +990,18 @@
             
             logout() {
                 if (confirm('Tem certeza que deseja sair? Seus dados locais serão mantidos.')) {
-                    // Salvar dados localmente antes de sair
                     Auth.saveLocalData();
                     
-                    // Fazer upload para nuvem antes de sair
                     if (this.isLoggedIn) {
                         this.uploadToCloud();
+                    }
+                    
+                    // Revogar token Google
+                    if (this.token && typeof google !== 'undefined' && google.accounts) {
+                        google.accounts.id.disableAutoSelect();
+                        if (google.accounts.oauth2) {
+                            google.accounts.oauth2.revoke(this.token, () => {});
+                        }
                     }
                     
                     this.user = null;
@@ -840,12 +1009,6 @@
                     this.isLoggedIn = false;
                     localStorage.removeItem('playtube_auth');
                     
-                    // Desabilitar login automático do Google
-                    if (typeof google !== 'undefined' && google.accounts) {
-                        google.accounts.id.disableAutoSelect();
-                    }
-                    
-                    // Recarregar dados locais
                     this.loadLocalData();
                     this.updateUI();
                     this.hideMenu();
@@ -895,7 +1058,6 @@
                 document.getElementById('userMenu').classList.remove('active');
             },
             
-            // Sincronização com nuvem
             async syncNow() {
                 if (!this.isLoggedIn) {
                     toast('⚠️ Faça login primeiro');
@@ -911,7 +1073,6 @@
             },
             
             uploadToCloud() {
-                // Simular upload para nuvem (salva no localStorage como backup)
                 const data = {
                     user: this.user,
                     favs: Fav.favs,
@@ -924,8 +1085,7 @@
                 
                 const cloudKey = 'playtube_cloud_' + (this.user?.id || 'demo');
                 localStorage.setItem(cloudKey, JSON.stringify(data));
-                
-                console.log('📤 Dados enviados para nuvem:', new Date().toLocaleString());
+                console.log('📤 Dados enviados para nuvem');
             },
             
             loadCloudData() {
@@ -938,7 +1098,6 @@
                     try {
                         const data = JSON.parse(saved);
                         
-                        // Perguntar se deseja restaurar dados da nuvem
                         if (data.favs && data.favs.length > 0) {
                             if (confirm('Dados salvos na nuvem encontrados. Deseja restaurar?')) {
                                 if (data.favs) localStorage.setItem('favs', JSON.stringify(data.favs));
@@ -950,7 +1109,6 @@
                                     T.apply();
                                 }
                                 
-                                // Recarregar em memória
                                 Fav.favs = JSON.parse(localStorage.getItem('favs') || '[]');
                                 Fav.hist = JSON.parse(localStorage.getItem('hist') || '[]');
                                 DL.items = JSON.parse(localStorage.getItem('dls') || '[]');
@@ -960,10 +1118,9 @@
                             }
                         }
                     } catch(e) {
-                        console.error('Erro ao carregar dados da nuvem:', e);
+                        console.error('Erro ao carregar dados:', e);
                     }
                 } else {
-                    // Primeiro login - fazer upload dos dados locais
                     this.uploadToCloud();
                     toast('☁️ Dados salvos na nuvem');
                 }
@@ -1041,7 +1198,6 @@
                                     T.apply();
                                 }
                                 
-                                // Sincronizar com nuvem se logado
                                 if (this.isLoggedIn) {
                                     this.uploadToCloud();
                                 }
@@ -1064,20 +1220,12 @@
         const Playlist = {
             playlists: JSON.parse(localStorage.getItem('playlists') || '[]'),
             
-            getPlaylists() {
-                return this.playlists;
-            },
-            
-            reload() {
-                this.playlists = JSON.parse(localStorage.getItem('playlists') || '[]');
-            },
+            getPlaylists() { return this.playlists; },
+            reload() { this.playlists = JSON.parse(localStorage.getItem('playlists') || '[]'); },
             
             create(name) {
                 const exists = this.playlists.find(p => p.name === name);
-                if (exists) {
-                    toast('⚠️ Playlist já existe');
-                    return null;
-                }
+                if (exists) { toast('⚠️ Playlist já existe'); return null; }
                 
                 const newPl = {
                     id: 'pl_' + Date.now(),
@@ -1407,7 +1555,6 @@
         }
         
         function onPlayerError(e) {
-            console.error('❌ Erro no player:', e.data);
             if (recoveryAttempts < MAX_RECOVERY && vid) {
                 recoveryAttempts++;
                 setTimeout(() => {
@@ -1488,8 +1635,7 @@
             
             if ('mediaSession' in navigator) {
                 navigator.mediaSession.metadata = new MediaMetadata({
-                    title: t.title || '',
-                    artist: t.channel || '',
+                    title: t.title || '', artist: t.channel || '',
                     artwork: [{ src: t.thumbnail || '', sizes: '96x96', type: 'image/jpeg' }]
                 });
             }
@@ -1604,128 +1750,49 @@
                     b.classList.add('active'); 
             });
             
-            const titles = {
-                search: 'Resultados', favorites: '❤️ Favoritos', playlists: '📋 Playlists',
-                history: '🕐 Histórico', downloads: '⬇️ Downloads'
-            };
+            const titles = { search: 'Resultados', favorites: '❤️ Favoritos', playlists: '📋 Playlists', history: '🕐 Histórico', downloads: '⬇️ Downloads' };
             sTitle.innerHTML = '<span>' + (titles[t] || 'Resultados') + '</span>';
             
             if (t === 'search') { 
                 if (query) searchYT(query); 
-                else {
-                    resCont.innerHTML = '<div style="text-align:center;padding:50px;color:var(--text2);"><div style="font-size:3rem;">🎧</div><div>Busque suas músicas</div></div>';
-                    document.getElementById('pageCounter').classList.remove('active'); resCount.textContent = '';
-                }
+                else { resCont.innerHTML = '<div style="text-align:center;padding:50px;color:var(--text2);"><div style="font-size:3rem;">🎧</div><div>Busque suas músicas</div></div>'; document.getElementById('pageCounter').classList.remove('active'); resCount.textContent = ''; }
             }
             else if (t === 'favorites') { 
-                if (Fav.favs.length === 0) {
-                    resCont.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text2);">❤️ Vazio</div>';
-                    document.getElementById('pageCounter').classList.remove('active'); resCount.textContent = '0 itens';
-                } else {
-                    Paginator.setItems(Fav.favs, 10);
-                    resCont.innerHTML = Paginator.getPageItems().map(v => card(v)).join('');
-                    Paginator.updateUI(); updateFavBtns();
-                }
+                if (Fav.favs.length === 0) { resCont.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text2);">❤️ Vazio</div>'; document.getElementById('pageCounter').classList.remove('active'); resCount.textContent = '0 itens'; }
+                else { Paginator.setItems(Fav.favs, 10); resCont.innerHTML = Paginator.getPageItems().map(v => card(v)).join(''); Paginator.updateUI(); updateFavBtns(); }
             }
             else if (t === 'playlists') { 
                 const pls = Playlist.getPlaylists();
                 if (pls.length === 0) {
-                    resCont.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text2);">
-                        📋 Nenhuma playlist<br><br>
-                        <button onclick="createPlaylist()" style="background:var(--red);color:#fff;border:none;padding:10px 20px;border-radius:20px;cursor:pointer;font-size:0.85rem;">
-                            + Criar Playlist
-                        </button>
-                    </div>`;
+                    resCont.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text2);">📋 Nenhuma playlist<br><br><button onclick="createPlaylist()" style="background:var(--red);color:#fff;border:none;padding:10px 20px;border-radius:20px;cursor:pointer;font-size:0.85rem;">+ Criar Playlist</button></div>`;
                     document.getElementById('pageCounter').classList.remove('active'); resCount.textContent = '0 playlists';
                 } else {
-                    resCont.innerHTML = pls.map(pl => `
-                        <div class="video-card" style="flex-direction:column;align-items:stretch;" onclick="showPlaylist('${pl.id}')">
-                            <div style="display:flex;justify-content:space-between;align-items:center;">
-                                <div style="font-weight:600;color:var(--text);">📋 ${esc(pl.name)}</div>
-                                <button class="v-btn" onclick="event.stopPropagation();deletePlaylist('${pl.id}')" style="color:#f44;">🗑️</button>
-                            </div>
-                            <div style="font-size:0.7rem;color:var(--text2);margin-top:4px;">
-                                ${pl.tracks.length} músicas • Criada em ${new Date(pl.createdAt).toLocaleDateString()}
-                            </div>
-                        </div>
-                    `).join('');
+                    resCont.innerHTML = pls.map(pl => `<div class="video-card" style="flex-direction:column;align-items:stretch;" onclick="showPlaylist('${pl.id}')"><div style="display:flex;justify-content:space-between;align-items:center;"><div style="font-weight:600;color:var(--text);">📋 ${esc(pl.name)}</div><button class="v-btn" onclick="event.stopPropagation();deletePlaylist('${pl.id}')" style="color:#f44;">🗑️</button></div><div style="font-size:0.7rem;color:var(--text2);margin-top:4px;">${pl.tracks.length} músicas • ${new Date(pl.createdAt).toLocaleDateString()}</div></div>`).join('');
                     document.getElementById('pageCounter').classList.remove('active'); resCount.textContent = `${pls.length} playlists`;
                 }
             }
             else if (t === 'history') { 
-                if (Fav.hist.length === 0) {
-                    resCont.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text2);">🕐 Vazio</div>';
-                    document.getElementById('pageCounter').classList.remove('active'); resCount.textContent = '0 itens';
-                } else {
-                    Paginator.setItems(Fav.hist, 10);
-                    resCont.innerHTML = Paginator.getPageItems().map(v => card(v)).join('');
-                    Paginator.updateUI(); updateFavBtns();
-                }
+                if (Fav.hist.length === 0) { resCont.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text2);">🕐 Vazio</div>'; document.getElementById('pageCounter').classList.remove('active'); resCount.textContent = '0 itens'; }
+                else { Paginator.setItems(Fav.hist, 10); resCont.innerHTML = Paginator.getPageItems().map(v => card(v)).join(''); Paginator.updateUI(); updateFavBtns(); }
             }
             else if (t === 'downloads') { 
-                if (DL.all().length === 0) {
-                    resCont.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text2);">📥 Vazio</div>';
-                    document.getElementById('pageCounter').classList.remove('active'); resCount.textContent = '0 itens';
-                } else {
-                    Paginator.setItems(DL.all(), 10);
-                    resCont.innerHTML = Paginator.getPageItems().map(v => card(v)).join('');
-                    Paginator.updateUI(); updateFavBtns();
-                }
+                if (DL.all().length === 0) { resCont.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text2);">📥 Vazio</div>'; document.getElementById('pageCounter').classList.remove('active'); resCount.textContent = '0 itens'; }
+                else { Paginator.setItems(DL.all(), 10); resCont.innerHTML = Paginator.getPageItems().map(v => card(v)).join(''); Paginator.updateUI(); updateFavBtns(); }
             }
         };
 
-        window.createPlaylist = () => {
-            const name = prompt('Nome da playlist:');
-            if (name && name.trim()) {
-                Playlist.create(name.trim());
-                switchTab('playlists');
-            }
-        };
-        
-        window.deletePlaylist = (id) => {
-            if (confirm('Excluir esta playlist?')) {
-                Playlist.delete(id);
-                switchTab('playlists');
-            }
-        };
-        
+        window.createPlaylist = () => { const name = prompt('Nome da playlist:'); if (name && name.trim()) { Playlist.create(name.trim()); switchTab('playlists'); } };
+        window.deletePlaylist = (id) => { if (confirm('Excluir esta playlist?')) { Playlist.delete(id); switchTab('playlists'); } };
         window.showPlaylist = (id) => {
             const pl = Playlist.getPlaylists().find(p => p.id === id);
             if (!pl) return;
-            
-            if (pl.tracks.length === 0) {
-                resCont.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text2);">
-                    📋 Playlist vazia<br>
-                    <span style="font-size:0.8rem;">Adicione músicas através dos resultados de busca</span>
-                </div>`;
-                sTitle.innerHTML = '<span>📋 ' + esc(pl.name) + '</span>';
-            } else {
-                Paginator.setItems(pl.tracks, 10);
-                resCont.innerHTML = Paginator.getPageItems().map(v => card(v)).join('');
-                Paginator.updateUI(); updateFavBtns();
-                sTitle.innerHTML = '<span>📋 ' + esc(pl.name) + ' (' + pl.tracks.length + ')</span>';
-            }
+            if (pl.tracks.length === 0) { resCont.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text2);">📋 Playlist vazia<br><span style="font-size:0.8rem;">Adicione músicas através dos resultados de busca</span></div>`; sTitle.innerHTML = '<span>📋 ' + esc(pl.name) + '</span>'; }
+            else { Paginator.setItems(pl.tracks, 10); resCont.innerHTML = Paginator.getPageItems().map(v => card(v)).join(''); Paginator.updateUI(); updateFavBtns(); sTitle.innerHTML = '<span>📋 ' + esc(pl.name) + ' (' + pl.tracks.length + ')</span>'; }
         };
 
         // ===== CONTROLES DE PÁGINA =====
-        window.changePage = (action) => {
-            Paginator.changePage(action);
-            const items = Paginator.getPageItems();
-            resCont.innerHTML = items.map(v => card(v)).join('');
-            updateFavBtns();
-            resCont.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        };
-        
-        window.jumpToPage = () => {
-            const page = parseInt(document.getElementById('pageJump').value);
-            if (page) {
-                Paginator.jumpToPage(page);
-                const items = Paginator.getPageItems();
-                resCont.innerHTML = items.map(v => card(v)).join('');
-                updateFavBtns();
-                resCont.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        };
+        window.changePage = (action) => { Paginator.changePage(action); const items = Paginator.getPageItems(); resCont.innerHTML = items.map(v => card(v)).join(''); updateFavBtns(); resCont.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+        window.jumpToPage = () => { const page = parseInt(document.getElementById('pageJump').value); if (page) { Paginator.jumpToPage(page); const items = Paginator.getPageItems(); resCont.innerHTML = items.map(v => card(v)).join(''); updateFavBtns(); resCont.scrollIntoView({ behavior: 'smooth', block: 'start' }); } };
 
         // ===== BUSCA =====
         sBtn.addEventListener('click', () => { query = sInput.value; searchYT(query); });
@@ -1734,26 +1801,14 @@
         async function searchYT(q) {
             if (!q.trim()) { toast('⚠️ Digite algo'); return; }
             showLoad(true); 
-            
             try {
                 const u = new URL(PROXY); 
-                u.searchParams.append('q', q + ' música'); 
-                u.searchParams.append('maxResults', '50');
-                u.searchParams.append('regionCode', 'BR'); 
-                u.searchParams.append('relevanceLanguage', 'pt');
-                
-                const r = await fetch(u); 
-                if (!r.ok) throw new Error('Erro');
+                u.searchParams.append('q', q + ' música'); u.searchParams.append('maxResults', '50');
+                u.searchParams.append('regionCode', 'BR'); u.searchParams.append('relevanceLanguage', 'pt');
+                const r = await fetch(u); if (!r.ok) throw new Error('Erro');
                 const d = await r.json();
-                
-                if (d.videos?.length) {
-                    Paginator.setItems(d.videos, 10);
-                    resCont.innerHTML = Paginator.getPageItems().map(v => card(v)).join('');
-                    Paginator.updateUI(); updateFavBtns();
-                } else {
-                    resCont.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text2);">Nenhum resultado</div>';
-                    document.getElementById('pageCounter').classList.remove('active'); resCount.textContent = '';
-                }
+                if (d.videos?.length) { Paginator.setItems(d.videos, 10); resCont.innerHTML = Paginator.getPageItems().map(v => card(v)).join(''); Paginator.updateUI(); updateFavBtns(); }
+                else { resCont.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text2);">Nenhum resultado</div>'; document.getElementById('pageCounter').classList.remove('active'); resCount.textContent = ''; }
             } catch(e) { toast('⚠️ Erro na busca'); }
             showLoad(false);
         }
@@ -1775,17 +1830,13 @@
 
         // ===== EVENTOS =====
         document.addEventListener('visibilitychange', () => {
-            if (document.hidden && window.playing) {
-                AudioBackground.requestWakeLock(); AudioBackground.initAudioContext(); startKeepAlive();
-            }
+            if (document.hidden && window.playing) { AudioBackground.requestWakeLock(); AudioBackground.initAudioContext(); startKeepAlive(); }
         });
         
         document.addEventListener('click', (e) => {
             const menu = document.getElementById('userMenu');
             const profile = document.getElementById('userProfile');
-            if (menu.classList.contains('active') && !menu.contains(e.target) && !profile.contains(e.target)) {
-                menu.classList.remove('active');
-            }
+            if (menu.classList.contains('active') && !menu.contains(e.target) && !profile.contains(e.target)) { menu.classList.remove('active'); }
         });
 
         // ===== INIT =====
@@ -1797,13 +1848,11 @@
             
             setTimeout(() => initYT(), 500);
             
-            console.log('✅ Play Tube Music - Google Auth Configurado');
+            console.log('✅ Play Tube Music - Login Mobile Corrigido');
+            console.log('📱 Device:', Device);
         }
         
-        window.addEventListener('resize', () => { 
-            clearTimeout(window._rt); 
-            window._rt = setTimeout(autoAdjustScreen, 250); 
-        });
+        window.addEventListener('resize', () => { clearTimeout(window._rt); window._rt = setTimeout(autoAdjustScreen, 250); });
         window.addEventListener('orientationchange', () => setTimeout(autoAdjustScreen, 300));
         window.addEventListener('load', init);
 
@@ -1811,6 +1860,7 @@
         window.Auth = Auth;
         window.Playlist = Playlist;
         window.T = T;
+        window.Device = Device;
         window.autoAdjustScreen = autoAdjustScreen;
         window.changePage = changePage;
         window.jumpToPage = jumpToPage;
