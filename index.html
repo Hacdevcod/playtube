@@ -9,7 +9,6 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="HandheldFriendly" content="true">
     
-    <!-- CSP atualizado para permitir áudio -->
     <meta http-equiv="Content-Security-Policy" content="
         media-src * blob: mediastream:;
         script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://s.ytimg.com;
@@ -35,10 +34,10 @@
             --input-text: #fff;
             --input-ph: #717171;
             --green: #1db954;
-            --player-h: 70px;
-            --safe-t: env(safe-area-inset-top, 0px);
-            --safe-b: env(safe-area-inset-bottom, 0px);
-            --status-bar-h: 0px;
+            --player-h: 65px;
+            --topbar-h: 50px;
+            --safe-t: 0px;
+            --safe-b: 0px;
             --nav-bar-h: 0px;
             --font-scale: 1;
         }
@@ -83,9 +82,10 @@
             min-height: 100dvh;
             overflow-x: hidden;
             transition: background 0.3s, color 0.3s;
-            padding-top: 0;
-            /* Padding bottom é apenas o player + espaço extra */
-            padding-bottom: calc(var(--player-h) + var(--safe-b) + var(--nav-bar-h) + 10px);
+            /* Padding top = safe-t (status bar) + topbar-h */
+            padding-top: calc(var(--safe-t) + var(--topbar-h));
+            /* Padding bottom = player-h + espaço entre player e navbar + navbar + safe-b */
+            padding-bottom: calc(var(--player-h) + 8px + var(--nav-bar-h) + var(--safe-b));
         }
 
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -123,13 +123,14 @@
         /* ===== TOPBAR ===== */
         .topbar {
             position: fixed;
+            /* Fica colado abaixo da barra de status */
             top: var(--safe-t);
             left: 0;
             right: 0;
+            height: var(--topbar-h);
             background: var(--bg);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            height: 50px;
             display: flex;
             align-items: center;
             padding: 0 12px;
@@ -154,7 +155,6 @@
         .spacer { flex: 1; }
         .theme-btn { background: none; border: none; color: var(--text); font-size: 1.1rem; cursor: pointer; padding: 4px; }
         
-        /* Indicador de reprodução em background */
         .bg-play-indicator {
             display: none;
             width: 8px;
@@ -166,13 +166,6 @@
         }
         .bg-play-indicator.active {
             display: inline-block;
-        }
-
-        /* ===== CONTEÚDO PRINCIPAL ===== */
-        .main-content {
-            padding-top: calc(var(--safe-t) + 50px);
-            min-height: 100vh;
-            min-height: 100dvh;
         }
 
         /* ===== PAGE COUNTER ===== */
@@ -239,8 +232,6 @@
             padding: 4px 12px 20px; 
             background: var(--bg); 
             min-height: 200px;
-            /* Garantir que o conteúdo não fique atrás do player */
-            padding-bottom: calc(var(--player-h) + var(--safe-b) + var(--nav-bar-h) + 30px);
         }
         .section-title {
             font-size: 0.8rem; font-weight: 600; margin-bottom: 8px; padding-left: 4px;
@@ -272,8 +263,8 @@
         /* ===== SPOTIFY BAR (PLAYER) ===== */
         .spotify-bar {
             position: fixed;
-            /* Posicionar acima dos botões do sistema (safe area bottom + navbar) */
-            bottom: calc(var(--safe-b) + var(--nav-bar-h));
+            /* Player fica acima dos botões de navegação e safe area inferior */
+            bottom: calc(var(--nav-bar-h) + var(--safe-b));
             left: 0;
             right: 0;
             height: var(--player-h);
@@ -282,20 +273,18 @@
             -webkit-backdrop-filter: blur(20px);
             display: none;
             align-items: center;
-            padding: 0 12px;
-            gap: 10px;
+            padding: 0 10px;
+            gap: 8px;
             z-index: 200;
             border-top: 1px solid rgba(255,255,255,0.1);
             box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
             animation: slideUp 0.4s ease;
-            /* Margem inferior para separar dos botões */
-            margin-bottom: 0;
         }
         .spotify-bar.active { display: flex; }
         .spotify-bar.playing { background: linear-gradient(135deg, #0a1a0a, #1a2a1a); }
         .sp-art {
-            width: 48px;
-            height: 48px;
+            width: 46px;
+            height: 46px;
             border-radius: 8px;
             object-fit: cover;
             flex-shrink: 0;
@@ -403,8 +392,8 @@
         /* ===== TOAST & LOADING ===== */
         .toast {
             position: fixed;
-            /* Posicionar acima do player */
-            bottom: calc(var(--player-h) + var(--safe-b) + var(--nav-bar-h) + 15px);
+            /* Acima do player */
+            bottom: calc(var(--player-h) + var(--nav-bar-h) + var(--safe-b) + 15px);
             left: 50%;
             transform: translateX(-50%) translateY(120px);
             background: #333;
@@ -433,8 +422,8 @@
         }
         .dl-progress {
             position: fixed;
-            /* Posicionar acima do player */
-            bottom: calc(var(--player-h) + var(--safe-b) + var(--nav-bar-h) + 10px);
+            /* Acima do player */
+            bottom: calc(var(--player-h) + var(--nav-bar-h) + var(--safe-b) + 10px);
             left: 12px;
             right: 12px;
             background: var(--surface);
@@ -504,16 +493,21 @@
 
         /* Media Queries */
         @media (max-width: 360px) { 
-            :root { --player-h: 60px; }
+            :root { 
+                --player-h: 58px;
+                --topbar-h: 44px;
+            }
             .sp-art { width: 38px; height: 38px; } 
             .sp-btn.play { width: 34px; height: 34px; } 
             .video-thumb { width: 40px; height: 40px; }
-            .topbar { height: 44px; }
-            .main-content { padding-top: calc(var(--safe-t) + 44px); }
             .sp-title { font-size: 0.8rem; }
             .sp-artist { font-size: 0.65rem; }
             .sp-btn { font-size: 0.8rem; padding: 4px; }
             .sp-dl { font-size: 0.65rem; padding: 4px 6px; }
+            body {
+                padding-top: calc(var(--safe-t) + var(--topbar-h));
+                padding-bottom: calc(var(--player-h) + 6px + var(--nav-bar-h) + var(--safe-b));
+            }
         }
         
         @media (min-width: 768px) { 
@@ -536,36 +530,32 @@
         
         @media (orientation: landscape) and (max-height: 500px) {
             :root { 
-                --player-h: 50px;
+                --player-h: 46px;
+                --topbar-h: 40px;
             }
-            .sp-art { width: 32px; height: 32px; }
-            .sp-btn.play { width: 30px; height: 30px; font-size: 0.7rem; }
+            .sp-art { width: 30px; height: 30px; }
+            .sp-btn.play { width: 28px; height: 28px; font-size: 0.7rem; }
             .results-section { 
                 max-height: 35vh; 
                 overflow-y: auto; 
             }
-            .topbar { height: 40px; }
-            .main-content { padding-top: calc(var(--safe-t) + 40px); }
             .sp-title { font-size: 0.75rem; }
             .sp-artist { font-size: 0.6rem; }
             .sp-btn { font-size: 0.7rem; padding: 2px; }
             .sp-dl { font-size: 0.6rem; padding: 3px 5px; }
-        }
-
-        /* Suporte para dispositivos com botões virtuais */
-        @supports (padding-bottom: env(safe-area-inset-bottom)) {
-            .spotify-bar {
-                bottom: calc(env(safe-area-inset-bottom) + var(--nav-bar-h));
+            body {
+                padding-top: calc(var(--safe-t) + var(--topbar-h));
+                padding-bottom: calc(var(--player-h) + 4px + var(--nav-bar-h) + var(--safe-b));
             }
         }
     </style>
 </head>
 <body data-theme="dark">
 
-    <!-- Container do player de áudio oculto (para background) -->
+    <!-- Player de áudio oculto -->
     <div class="audio-player-container" id="audioPlayerContainer"></div>
 
-    <!-- TOPBAR -->
+    <!-- TOPBAR - Fixa abaixo da barra de status -->
     <div class="topbar" id="topbar">
         <div class="logo">
             <div class="logo-icon">♪</div>
@@ -576,59 +566,54 @@
         <button class="theme-btn" onclick="T.cycle()" title="Tema">🎨</button>
     </div>
 
-    <!-- CONTEÚDO PRINCIPAL -->
-    <div class="main-content">
-
-        <!-- PLAYER VIDEO -->
-        <div class="player-container" id="playerContainer">
-            <div class="player-wrapper" id="playerWrapper"></div>
-            <button class="player-close" onclick="closeVideo()">✕</button>
-        </div>
-
-        <!-- PAGE COUNTER -->
-        <div class="page-counter" id="pageCounter">
-            <button class="page-btn-pg" onclick="changePage('first')" id="btnFirst">⏮</button>
-            <button class="page-btn-pg" onclick="changePage('prev')" id="btnPrev">◀</button>
-            <span class="page-info-pg" id="pageInfo">
-                Pág <span class="pg-current" id="pageCurrent">1</span> de <span id="pageTotal">1</span>
-            </span>
-            <button class="page-btn-pg" onclick="changePage('next')" id="btnNext">▶</button>
-            <button class="page-btn-pg" onclick="changePage('last')" id="btnLast">⏭</button>
-            <input type="number" class="page-jump-pg" id="pageJump" min="1" placeholder="Pág" 
-                   onkeydown="if(event.key==='Enter')jumpToPage()">
-            <span class="page-items-range" id="itemsRange"></span>
-        </div>
-
-        <!-- BUSCA -->
-        <div class="search-section">
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="🎵 Buscar música..." autocomplete="off" enterkeyhint="search">
-                <button class="search-btn" id="searchBtn">🔍</button>
-            </div>
-        </div>
-
-        <!-- TABS -->
-        <div class="tabs-container">
-            <button class="tab-btn active" onclick="switchTab('search')">🔍 Buscar</button>
-            <button class="tab-btn" onclick="switchTab('favorites')">❤️ Favoritos</button>
-            <button class="tab-btn" onclick="switchTab('history')">🕐 Histórico</button>
-            <button class="tab-btn" onclick="switchTab('downloads')">⬇️ Downloads</button>
-        </div>
-
-        <!-- RESULTADOS -->
-        <div class="results-section">
-            <div class="section-title" id="sectionTitle"><span>Resultados</span><span class="result-count" id="resultCount"></span></div>
-            <div id="resultsContainer">
-                <div style="text-align:center;padding:50px;color:var(--text2);">
-                    <div style="font-size:3rem;">🎧</div>
-                    <div style="font-size:1.1rem;color:var(--text);">Play Tube Music</div>
-                </div>
-            </div>
-        </div>
-
+    <!-- PLAYER VIDEO -->
+    <div class="player-container" id="playerContainer">
+        <div class="player-wrapper" id="playerWrapper"></div>
+        <button class="player-close" onclick="closeVideo()">✕</button>
     </div>
 
-    <!-- BARRA SPOTIFY (PLAYER) - Posicionada acima dos botões do sistema -->
+    <!-- PAGE COUNTER -->
+    <div class="page-counter" id="pageCounter">
+        <button class="page-btn-pg" onclick="changePage('first')" id="btnFirst">⏮</button>
+        <button class="page-btn-pg" onclick="changePage('prev')" id="btnPrev">◀</button>
+        <span class="page-info-pg" id="pageInfo">
+            Pág <span class="pg-current" id="pageCurrent">1</span> de <span id="pageTotal">1</span>
+        </span>
+        <button class="page-btn-pg" onclick="changePage('next')" id="btnNext">▶</button>
+        <button class="page-btn-pg" onclick="changePage('last')" id="btnLast">⏭</button>
+        <input type="number" class="page-jump-pg" id="pageJump" min="1" placeholder="Pág" 
+               onkeydown="if(event.key==='Enter')jumpToPage()">
+        <span class="page-items-range" id="itemsRange"></span>
+    </div>
+
+    <!-- BUSCA -->
+    <div class="search-section">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🎵 Buscar música..." autocomplete="off" enterkeyhint="search">
+            <button class="search-btn" id="searchBtn">🔍</button>
+        </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs-container">
+        <button class="tab-btn active" onclick="switchTab('search')">🔍 Buscar</button>
+        <button class="tab-btn" onclick="switchTab('favorites')">❤️ Favoritos</button>
+        <button class="tab-btn" onclick="switchTab('history')">🕐 Histórico</button>
+        <button class="tab-btn" onclick="switchTab('downloads')">⬇️ Downloads</button>
+    </div>
+
+    <!-- RESULTADOS -->
+    <div class="results-section">
+        <div class="section-title" id="sectionTitle"><span>Resultados</span><span class="result-count" id="resultCount"></span></div>
+        <div id="resultsContainer">
+            <div style="text-align:center;padding:50px;color:var(--text2);">
+                <div style="font-size:3rem;">🎧</div>
+                <div style="font-size:1.1rem;color:var(--text);">Play Tube Music</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PLAYER - Fixo acima dos botões do sistema -->
     <div class="spotify-bar" id="spotifyBar">
         <div class="sp-progress" id="progressContainer" onclick="seekTrack(event)">
             <div class="sp-progress-bar" id="progressBar"></div>
@@ -665,61 +650,53 @@
         'use strict';
         const PROXY = 'https://playtube-proxy.codw23.workers.dev';
 
-        // ===== DETECÇÃO DE BOTÕES DO SISTEMA =====
+        // ===== DETECÇÃO DAS BARRAS DO SISTEMA =====
         function detectSystemBars() {
             const style = getComputedStyle(document.documentElement);
             const dpr = window.devicePixelRatio || 1;
             const w = window.innerWidth;
             const h = window.innerHeight;
             
-            // Detectar safe area top (barra de status)
+            // Safe area top (barra de status)
             let safeTop = parseInt(style.getPropertyValue('env(safe-area-inset-top)')) || 
                          parseInt(style.getPropertyValue('constant(safe-area-inset-top)')) || 0;
             
-            // Detectar safe area bottom (barra de navegação/gestos)
+            // Safe area bottom
             let safeBottom = parseInt(style.getPropertyValue('env(safe-area-inset-bottom)')) || 
                             parseInt(style.getPropertyValue('constant(safe-area-inset-bottom)')) || 0;
             
-            // Detectar barra de navegação (botões voltar, home, recentes)
+            // Barra de navegação (botões voltar, home, recentes)
             let navBarHeight = 0;
             
-            // Android: verificar se há barra de navegação virtual
             const isAndroid = /Android/.test(navigator.userAgent);
+            
             if (isAndroid) {
-                // Em dispositivos Android com botões virtuais, a diferença entre
-                // window.innerHeight e screen.height pode indicar a presença da barra
+                // Detectar barra de navegação virtual Android
                 const screenHeight = screen.height || h;
                 const heightDiff = screenHeight - h;
                 
-                // Se a diferença for significativa e não houver safe-area-inset-bottom
                 if (heightDiff > 50 && safeBottom === 0) {
-                    navBarHeight = 48; // Altura típica da barra de navegação Android
+                    navBarHeight = 48;
                 }
                 
-                // Se já tem safe-area-inset-bottom, usar esse valor para a navbar
                 if (safeBottom > 0 && safeBottom <= 48) {
                     navBarHeight = safeBottom;
-                    safeBottom = 0; // Resetar para não duplicar
+                    safeBottom = 0;
                 }
             }
             
-            // iOS: safe-area-inset-bottom já inclui a barra de gestos
-            if (!isAndroid && safeBottom > 0) {
-                // Em iPhones com Face ID, a safe area bottom já é a barra de gestos
-                navBarHeight = 0; // A safe area já inclui
-                safeBottom = safeBottom; // Manter
-            }
-            
-            // Fallback para dispositivos conhecidos
+            // Fallbacks para dispositivos conhecidos
             if (safeTop === 0 && dpr >= 3 && w < 430) {
-                safeTop = 47; // iPhone com notch
+                safeTop = 47; // iPhone com notch/Dynamic Island
+            } else if (safeTop === 0 && dpr >= 2 && w < 430) {
+                safeTop = 24; // Android status bar
             }
             
             if (safeBottom === 0 && navBarHeight === 0) {
-                if (dpr >= 3 && w < 430) {
+                if (dpr >= 3 && w < 430 && !isAndroid) {
                     safeBottom = 34; // iPhone com Face ID
-                } else if (isAndroid && w < 430) {
-                    navBarHeight = 48; // Android com botões virtuais
+                } else if (isAndroid && w < 430 && safeBottom === 0) {
+                    navBarHeight = 48;
                 }
             }
             
@@ -744,13 +721,10 @@
                         this.wakeLock = await navigator.wakeLock.request('screen');
                         console.log('✅ Wake Lock ativo');
                         this.wakeLock.addEventListener('release', () => {
-                            console.log('⚠️ Wake Lock liberado');
                             if (window.playing) this.requestWakeLock();
                         });
                     }
-                } catch (e) {
-                    console.warn('Wake Lock não suportado:', e);
-                }
+                } catch (e) {}
             },
             
             releaseWakeLock() {
@@ -771,9 +745,7 @@
                     if (this.audioContext.state === 'suspended') {
                         this.audioContext.resume();
                     }
-                } catch (e) {
-                    console.warn('AudioContext não disponível:', e);
-                }
+                } catch (e) {}
             }
         };
 
@@ -785,104 +757,93 @@
             const portrait = h > w;
             const mobile = w < 768;
             
-            // Detectar barras do sistema
             const systemBars = detectSystemBars();
             
             // Atualizar variáveis CSS
-            document.documentElement.style.setProperty('--safe-t', systemBars.statusBarHeight + 'px');
-            document.documentElement.style.setProperty('--safe-b', systemBars.safeBottom + 'px');
-            document.documentElement.style.setProperty('--nav-bar-h', systemBars.navBarHeight + 'px');
-            document.documentElement.style.setProperty('--status-bar-h', systemBars.statusBarHeight + 'px');
-            
-            // Ajustar padding do body
-            document.body.style.paddingTop = '0';
+            const root = document.documentElement;
+            root.style.setProperty('--safe-t', systemBars.statusBarHeight + 'px');
+            root.style.setProperty('--safe-b', systemBars.safeBottom + 'px');
+            root.style.setProperty('--nav-bar-h', systemBars.navBarHeight + 'px');
             
             // Altura do player
             let ph;
-            if (mobile) {
-                if (!portrait) {
-                    ph = 48; // Landscape
-                } else if (w < 360) {
-                    ph = 60; // Muito pequeno
-                } else {
-                    ph = 65; // Normal
-                }
+            if (mobile && !portrait) {
+                ph = 46;
+            } else if (mobile && w < 360) {
+                ph = 58;
+            } else if (mobile) {
+                ph = 62;
             } else {
-                ph = 70; // Desktop/tablet
+                ph = 65;
             }
+            root.style.setProperty('--player-h', ph + 'px');
             
-            document.documentElement.style.setProperty('--player-h', ph + 'px');
+            // Altura da topbar
+            let th;
+            if (mobile && !portrait) {
+                th = 40;
+            } else if (w < 360) {
+                th = 44;
+            } else {
+                th = 50;
+            }
+            root.style.setProperty('--topbar-h', th + 'px');
             
-            // Padding bottom = player + safe bottom + navbar + espaço extra
-            const totalBottom = ph + systemBars.safeBottom + systemBars.navBarHeight + 10;
+            // Atualizar padding do body
+            const totalTop = systemBars.statusBarHeight + th;
+            const totalBottom = ph + 8 + systemBars.navBarHeight + systemBars.safeBottom;
+            document.body.style.paddingTop = totalTop + 'px';
             document.body.style.paddingBottom = totalBottom + 'px';
             
             // Tamanho da fonte
             let fs = w < 320 ? 13 : w < 360 ? 14 : w < 768 ? 15 : 16;
-            document.documentElement.style.fontSize = fs + 'px';
+            root.style.fontSize = fs + 'px';
             
             // Ajustar elementos do player
             const art = document.getElementById('spArt');
             const play = document.getElementById('spPlay');
             
-            if (art && mobile) {
-                if (!portrait) {
-                    art.style.width = '32px';
-                    art.style.height = '32px';
-                } else if (w < 360) {
+            if (art) {
+                if (mobile && !portrait) {
+                    art.style.width = '30px';
+                    art.style.height = '30px';
+                } else if (mobile && w < 360) {
                     art.style.width = '38px';
                     art.style.height = '38px';
+                } else if (mobile) {
+                    art.style.width = '42px';
+                    art.style.height = '42px';
                 } else {
-                    art.style.width = '44px';
-                    art.style.height = '44px';
+                    art.style.width = '46px';
+                    art.style.height = '46px';
                 }
             }
             
-            if (play && mobile) {
-                if (!portrait) {
-                    play.style.width = '30px';
-                    play.style.height = '30px';
-                } else if (w < 360) {
+            if (play) {
+                if (mobile && !portrait) {
+                    play.style.width = '28px';
+                    play.style.height = '28px';
+                } else if (mobile && w < 360) {
                     play.style.width = '34px';
                     play.style.height = '34px';
+                } else if (mobile) {
+                    play.style.width = '38px';
+                    play.style.height = '38px';
                 } else {
                     play.style.width = '40px';
                     play.style.height = '40px';
                 }
             }
             
-            // Ajustar altura da topbar
-            const topbar = document.getElementById('topbar');
-            if (topbar) {
-                if (mobile && !portrait) {
-                    topbar.style.height = '40px';
-                } else if (w < 360) {
-                    topbar.style.height = '44px';
-                } else {
-                    topbar.style.height = '50px';
-                }
-            }
-            
-            // Atualizar posição do player
-            updatePlayerPosition();
-            
-            console.log('📐 Tela ajustada:', {
-                statusBar: systemBars.statusBarHeight + 'px',
-                safeBottom: systemBars.safeBottom + 'px',
-                navBar: systemBars.navBarHeight + 'px',
-                playerHeight: ph + 'px',
-                totalBottom: totalBottom + 'px'
+            console.log('📐 Ajustado:', {
+                statusBar: systemBars.statusBarHeight,
+                topbar: th,
+                totalTop: totalTop,
+                player: ph,
+                navBar: systemBars.navBarHeight,
+                safeBottom: systemBars.safeBottom,
+                totalBottom: totalBottom
             });
-        }
-        
-        function updatePlayerPosition() {
-            const spotifyBar = document.getElementById('spotifyBar');
-            if (spotifyBar) {
-                const style = getComputedStyle(document.documentElement);
-                const safeBottom = parseInt(style.getPropertyValue('--safe-b')) || 0;
-                const navBarH = parseInt(style.getPropertyValue('--nav-bar-h')) || 0;
-                spotifyBar.style.bottom = (safeBottom + navBarH) + 'px';
-            }
         }
 
         // ===== SISTEMA DE PAGINAÇÃO =====
@@ -1041,7 +1002,7 @@
         const vidCont = $('playerContainer'), vidWrap = $('playerWrapper');
         const bgIndicator = $('bgPlayIndicator');
 
-        // ===== YOUTUBE PLAYER OTIMIZADO PARA BACKGROUND =====
+        // ===== YOUTUBE PLAYER =====
         window.onYouTubeIframeAPIReady = () => initYT();
         
         function initYT() {
@@ -1055,21 +1016,10 @@
                 videoId: '',
                 host: 'https://www.youtube-nocookie.com',
                 playerVars: { 
-                    autoplay: 0, 
-                    playsinline: 1, 
-                    controls: 0, 
-                    disablekb: 1, 
-                    fs: 0, 
-                    rel: 0, 
-                    modestbranding: 1, 
-                    iv_load_policy: 3, 
-                    origin: window.location.origin, 
-                    enablejsapi: 1, 
-                    mute: 0, 
-                    volume: 100,
-                    autohide: 1,
-                    showinfo: 0,
-                    loop: 0
+                    autoplay: 0, playsinline: 1, controls: 0, disablekb: 1, 
+                    fs: 0, rel: 0, modestbranding: 1, iv_load_policy: 3, 
+                    origin: window.location.origin, enablejsapi: 1, 
+                    mute: 0, volume: 100, autohide: 1, showinfo: 0, loop: 0
                 },
                 events: { 
                     onReady: onPlayerReady, 
@@ -1077,18 +1027,14 @@
                     onError: onPlayerError 
                 }
             });
-            
-            console.log('🎵 Player de áudio inicializado');
         }
         
         function onPlayerReady(e) {
-            console.log('✅ Player pronto');
             e.target.setVolume(100);
             e.target.unMute();
             recoveryAttempts = 0;
             
             if (vid && window.playing) {
-                console.log('🔄 Retomando reprodução:', vid);
                 e.target.loadVideoById({ videoId: vid, startSeconds: 0 });
                 setTimeout(() => {
                     e.target.playVideo();
@@ -1126,8 +1072,6 @@
             
             if (recoveryAttempts < MAX_RECOVERY && vid) {
                 recoveryAttempts++;
-                console.log(`🔄 Tentativa de recuperação ${recoveryAttempts}/${MAX_RECOVERY}`);
-                
                 setTimeout(() => {
                     if (yt && yt.loadVideoById) {
                         yt.loadVideoById({ videoId: vid, startSeconds: 0 });
@@ -1138,7 +1082,6 @@
                     }
                 }, 1000 * recoveryAttempts);
             } else if (recoveryAttempts >= MAX_RECOVERY) {
-                console.error('❌ Máximo de tentativas de recuperação atingido');
                 stopPlayback();
                 toast('⚠️ Erro na reprodução');
             }
@@ -1157,10 +1100,7 @@
         }
         
         function stopProg() { 
-            if (progInt) { 
-                clearInterval(progInt); 
-                progInt = null; 
-            } 
+            if (progInt) { clearInterval(progInt); progInt = null; } 
         }
         
         function updateUI(p) {
@@ -1183,18 +1123,15 @@
                     try {
                         const state = yt.getPlayerState();
                         if (state !== 1 && state !== 3) {
-                            console.log('🔄 Keep-alive: retomando reprodução');
                             yt.playVideo();
                             yt.unMute();
                             AudioBackground.initAudioContext();
                         }
-                        
                         if (document.hidden) {
                             AudioBackground.requestWakeLock();
                             AudioBackground.initAudioContext();
                         }
                     } catch (e) {
-                        console.warn('Keep-alive falhou, tentando reinicializar:', e);
                         if (vid) {
                             initYT();
                             setTimeout(() => {
@@ -1262,11 +1199,7 @@
         }
         
         window.togglePlay = () => {
-            if (!yt) {
-                initYT();
-                toast('🔄 Inicializando player...');
-                return;
-            }
+            if (!yt) { initYT(); toast('🔄 Inicializando player...'); return; }
             if (window.playing) { 
                 yt.pauseVideo(); 
                 if (ytTop) ytTop.pauseVideo(); 
@@ -1322,18 +1255,9 @@
                 vidWrap.innerHTML = '<div id="topPlayerElement"></div>'; 
                 ytTop = new YT.Player('topPlayerElement', { 
                     videoId: vid, 
-                    playerVars: { 
-                        autoplay: 1, 
-                        playsinline: 1, 
-                        controls: 1, 
-                        rel: 0, 
-                        modestbranding: 1, 
-                        fs: 1 
-                    }, 
+                    playerVars: { autoplay: 1, playsinline: 1, controls: 1, rel: 0, modestbranding: 1, fs: 1 }, 
                     events: { 
-                        onReady: () => { 
-                            if (yt?.getCurrentTime) ytTop.seekTo(yt.getCurrentTime()); 
-                        }, 
+                        onReady: () => { if (yt?.getCurrentTime) ytTop.seekTo(yt.getCurrentTime()); }, 
                         onStateChange: e => { 
                             if (e.data === 1 && yt?.pauseVideo) yt.pauseVideo(); 
                             if (e.data === 0) closeVideo(); 
@@ -1399,7 +1323,7 @@
                 </div></div>`;
         }
 
-        // ===== TABS (COM PAGINAÇÃO) =====
+        // ===== TABS =====
         window.switchTab = t => {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             [...document.querySelectorAll('.tab-btn')].forEach(b => { 
@@ -1477,7 +1401,7 @@
             }
         };
 
-        // ===== BUSCA (COM PAGINAÇÃO) =====
+        // ===== BUSCA =====
         sBtn.addEventListener('click', () => { query = sInput.value; searchYT(query); });
         sInput.addEventListener('keydown', e => { if (e.key === 'Enter') { query = sInput.value; searchYT(query); } });
         
@@ -1517,7 +1441,7 @@
         function showLoad(s) { if (s) resCont.innerHTML = '<div class="loading"><div class="spinner"></div><div>Buscando...</div></div>'; }
         function toast(m) { if (toastTO) clearTimeout(toastTO); toastEl.textContent = m; toastEl.classList.add('show'); toastTO = setTimeout(() => toastEl.classList.remove('show'), 2500); }
 
-        // ===== MEDIA SESSION (CONTROLES DO SISTEMA) =====
+        // ===== MEDIA SESSION =====
         function setupMS() {
             if (!('mediaSession' in navigator)) return;
             navigator.mediaSession.setActionHandler('play', togglePlay);
@@ -1527,86 +1451,36 @@
             navigator.mediaSession.setActionHandler('stop', stopPlayback);
         }
 
-        // ===== EVENTOS DE VISIBILIDADE =====
+        // ===== EVENTOS =====
         document.addEventListener('visibilitychange', () => {
             if (document.hidden && window.playing) {
-                console.log('📱 App em background, mantendo áudio');
                 AudioBackground.requestWakeLock();
                 AudioBackground.initAudioContext();
                 startKeepAlive();
-            } else if (!document.hidden) {
-                console.log('📱 App visível');
-                updateUI(window.playing);
-                updatePlayerPosition();
-            }
-        });
-        
-        document.addEventListener('freeze', () => {
-            console.log('⚠️ Página congelada, tentando manter áudio');
-            if (window.playing) {
-                AudioBackground.requestWakeLock();
-            }
-        });
-        
-        document.addEventListener('resume', () => {
-            console.log('✅ Página descongelada');
-            updatePlayerPosition();
-            if (window.playing && yt) {
-                try {
-                    const state = yt.getPlayerState();
-                    if (state !== 1) {
-                        yt.playVideo();
-                        yt.unMute();
-                    }
-                } catch(e) {
-                    console.warn('Erro ao retomar:', e);
-                }
             }
         });
 
-        // ===== INICIALIZAÇÃO =====
+        // ===== INIT =====
         function init() {
             setupMS(); 
             autoAdjustScreen();
-            updatePlayerPosition();
             AudioBackground.initAudioContext();
             
-            setTimeout(() => {
-                initYT();
-            }, 500);
+            setTimeout(() => initYT(), 500);
             
-            console.log('✅ Play Tube Music - Player acima dos botões do sistema');
+            console.log('✅ Play Tube Music - Layout corrigido');
         }
         
-        // Re-ajustar em resize/orientação
         window.addEventListener('resize', () => { 
             clearTimeout(window._rt); 
-            window._rt = setTimeout(() => {
-                autoAdjustScreen();
-                updatePlayerPosition();
-            }, 250); 
+            window._rt = setTimeout(autoAdjustScreen, 250); 
         });
-        window.addEventListener('orientationchange', () => {
-            setTimeout(() => {
-                autoAdjustScreen();
-                updatePlayerPosition();
-            }, 300);
-        });
+        window.addEventListener('orientationchange', () => setTimeout(autoAdjustScreen, 300));
         window.addEventListener('load', init);
-
-        // Limpar recursos ao fechar
-        window.addEventListener('beforeunload', () => {
-            stopKeepAlive();
-            AudioBackground.releaseWakeLock();
-            if (yt) {
-                try { yt.destroy(); } catch(e) {}
-            }
-        });
 
         // EXPORT GLOBAIS
         window.T = T;
         window.autoAdjustScreen = autoAdjustScreen;
-        window.updatePlayerPosition = updatePlayerPosition;
         window.changePage = changePage;
         window.jumpToPage = jumpToPage;
         window.togglePlay = togglePlay; 
