@@ -35,10 +35,11 @@
             --input-text: #fff;
             --input-ph: #717171;
             --green: #1db954;
-            --player-h: 80px;
+            --player-h: 70px;
             --safe-t: env(safe-area-inset-top, 0px);
             --safe-b: env(safe-area-inset-bottom, 0px);
             --status-bar-h: 0px;
+            --nav-bar-h: 0px;
             --font-scale: 1;
         }
         
@@ -71,7 +72,6 @@
         * { margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent; }
         html { 
             font-size:16px;
-            /* Garantir que o html ocupe toda a viewport */
             height: 100%;
             height: 100dvh;
         }
@@ -83,9 +83,9 @@
             min-height: 100dvh;
             overflow-x: hidden;
             transition: background 0.3s, color 0.3s;
-            /* Padding top é a soma da safe area top + altura da topbar */
             padding-top: 0;
-            padding-bottom: calc(var(--player-h) + var(--safe-b) + 15px);
+            /* Padding bottom é apenas o player + espaço extra */
+            padding-bottom: calc(var(--player-h) + var(--safe-b) + var(--nav-bar-h) + 10px);
         }
 
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -136,14 +136,6 @@
             gap: 10px;
             border-bottom: 1px solid var(--border);
             z-index: 100;
-            /* Garantir que a topbar fique visível sobre o conteúdo */
-            margin-top: 0;
-        }
-        
-        /* Espaçador para compensar a topbar fixa */
-        .topbar-spacer {
-            height: 50px;
-            width: 100%;
         }
         
         .logo { display: flex; align-items: center; gap: 6px; animation: float 3s ease-in-out infinite; }
@@ -243,7 +235,13 @@
         .tab-btn.active { background: var(--red); color: #fff; border-color: var(--red); }
 
         /* ===== RESULTS ===== */
-        .results-section { padding: 4px 12px 20px; background: var(--bg); min-height: 200px; }
+        .results-section { 
+            padding: 4px 12px 20px; 
+            background: var(--bg); 
+            min-height: 200px;
+            /* Garantir que o conteúdo não fique atrás do player */
+            padding-bottom: calc(var(--player-h) + var(--safe-b) + var(--nav-bar-h) + 30px);
+        }
         .section-title {
             font-size: 0.8rem; font-weight: 600; margin-bottom: 8px; padding-left: 4px;
             display: flex; align-items: center; justify-content: space-between;
@@ -271,105 +269,294 @@
         .v-btn.fav-active { color: #f00; background: rgba(255,0,0,0.3); }
         .v-btn.dl:active { background: var(--green); }
 
-        /* ===== SPOTIFY BAR ===== */
+        /* ===== SPOTIFY BAR (PLAYER) ===== */
         .spotify-bar {
-            position: fixed; bottom: 0; left: 0; right: 0; height: var(--player-h);
+            position: fixed;
+            /* Posicionar acima dos botões do sistema (safe area bottom + navbar) */
+            bottom: calc(var(--safe-b) + var(--nav-bar-h));
+            left: 0;
+            right: 0;
+            height: var(--player-h);
             background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            display: none; align-items: center; padding: 0 12px; gap: 10px;
-            z-index: 200; border-top: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.5); animation: slideUp 0.4s ease;
-            /* Garantir que fique acima da safe area inferior */
-            padding-bottom: var(--safe-b);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: none;
+            align-items: center;
+            padding: 0 12px;
+            gap: 10px;
+            z-index: 200;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
+            animation: slideUp 0.4s ease;
+            /* Margem inferior para separar dos botões */
+            margin-bottom: 0;
         }
         .spotify-bar.active { display: flex; }
         .spotify-bar.playing { background: linear-gradient(135deg, #0a1a0a, #1a2a1a); }
         .sp-art {
-            width: 52px; height: 52px; border-radius: 8px; object-fit: cover;
-            flex-shrink: 0; cursor: pointer; transition: transform 0.3s;
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            object-fit: cover;
+            flex-shrink: 0;
+            cursor: pointer;
+            transition: transform 0.3s;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
-        .sp-art.playing { animation: spin 8s linear infinite; border-radius: 50%; box-shadow: 0 0 15px rgba(29,185,84,0.3); }
-        .sp-info { flex: 1; min-width: 0; cursor: pointer; display: flex; flex-direction: column; gap: 2px; }
-        .sp-title { font-size: 0.9rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .sp-artist { font-size: 0.7rem; color: rgba(255,255,255,0.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .sp-progress { position: absolute; top: -2px; left: 0; right: 0; height: 3px; background: rgba(255,255,255,0.1); cursor: pointer; }
-        .sp-progress-bar { height: 100%; background: linear-gradient(90deg, #1db954, #1ed760); width: 0%; transition: width 0.3s linear; animation: progressGlow 2s ease-in-out infinite; }
-        .sp-controls { display: flex; gap: 12px; align-items: center; }
-        .sp-btn { background: none; border: none; color: rgba(255,255,255,0.9); font-size: 1rem; cursor: pointer; padding: 6px; transition: all 0.2s; }
-        .sp-btn:active { transform: scale(0.85); color: #fff; }
+        .sp-art.playing { 
+            animation: spin 8s linear infinite; 
+            border-radius: 50%; 
+            box-shadow: 0 0 15px rgba(29,185,84,0.3); 
+        }
+        .sp-info { 
+            flex: 1; 
+            min-width: 0; 
+            cursor: pointer; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 2px; 
+        }
+        .sp-title { 
+            font-size: 0.85rem; 
+            font-weight: 600; 
+            color: #fff; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+        }
+        .sp-artist { 
+            font-size: 0.7rem; 
+            color: rgba(255,255,255,0.7); 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+        }
+        .sp-progress { 
+            position: absolute; 
+            top: -2px; 
+            left: 0; 
+            right: 0; 
+            height: 3px; 
+            background: rgba(255,255,255,0.1); 
+            cursor: pointer; 
+        }
+        .sp-progress-bar { 
+            height: 100%; 
+            background: linear-gradient(90deg, #1db954, #1ed760); 
+            width: 0%; 
+            transition: width 0.3s linear; 
+            animation: progressGlow 2s ease-in-out infinite; 
+        }
+        .sp-controls { 
+            display: flex; 
+            gap: 8px; 
+            align-items: center; 
+        }
+        .sp-btn { 
+            background: none; 
+            border: none; 
+            color: rgba(255,255,255,0.9); 
+            font-size: 0.9rem; 
+            cursor: pointer; 
+            padding: 6px; 
+            transition: all 0.2s; 
+        }
+        .sp-btn:active { 
+            transform: scale(0.85); 
+            color: #fff; 
+        }
         .sp-btn.play {
-            width: 44px; height: 44px; background: #fff; border-radius: 50%;
-            color: #000; font-size: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            width: 40px;
+            height: 40px;
+            background: #fff;
+            border-radius: 50%;
+            color: #000;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
-        .sp-btn.play.playing { background: var(--green); color: #fff; }
+        .sp-btn.play.playing { 
+            background: var(--green); 
+            color: #fff; 
+        }
         .sp-dl {
-            background: rgba(29,185,84,0.15); border: none; color: var(--green);
-            font-size: 0.75rem; cursor: pointer; padding: 6px 10px; border-radius: 15px;
-            transition: all 0.2s; display: flex; align-items: center; gap: 3px;
+            background: rgba(29,185,84,0.15);
+            border: none;
+            color: var(--green);
+            font-size: 0.7rem;
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: 15px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 3px;
         }
-        .sp-dl:active { background: rgba(29,185,84,0.3); transform: scale(0.95); }
-        .sp-dl.downloading { animation: downloading 0.8s infinite; background: rgba(29,185,84,0.3); }
+        .sp-dl:active { 
+            background: rgba(29,185,84,0.3); 
+            transform: scale(0.95); 
+        }
+        .sp-dl.downloading { 
+            animation: downloading 0.8s infinite; 
+            background: rgba(29,185,84,0.3); 
+        }
 
         /* ===== TOAST & LOADING ===== */
         .toast {
-            position: fixed; bottom: calc(var(--player-h) + var(--safe-b) + 20px); left: 50%;
-            transform: translateX(-50%) translateY(120px); background: #333;
-            color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 0.75rem;
-            z-index: 600; transition: transform 0.3s; white-space: nowrap;
-            max-width: 90vw; overflow: hidden; text-overflow: ellipsis; pointer-events: none;
+            position: fixed;
+            /* Posicionar acima do player */
+            bottom: calc(var(--player-h) + var(--safe-b) + var(--nav-bar-h) + 15px);
+            left: 50%;
+            transform: translateX(-50%) translateY(120px);
+            background: #333;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            z-index: 600;
+            transition: transform 0.3s;
+            white-space: nowrap;
+            max-width: 90vw;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            pointer-events: none;
         }
         .toast.show { transform: translateX(-50%) translateY(0); }
         .loading { text-align: center; padding: 40px; color: var(--text2); }
         .spinner {
-            width: 30px; height: 30px; border: 3px solid var(--border);
-            border-top-color: var(--red); border-radius: 50%;
-            animation: spin 1s linear infinite; margin: 0 auto 10px;
+            width: 30px;
+            height: 30px;
+            border: 3px solid var(--border);
+            border-top-color: var(--red);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
         }
         .dl-progress {
-            position: fixed; bottom: calc(var(--player-h) + var(--safe-b) + 10px); left: 12px; right: 12px;
-            background: var(--surface); border-radius: 10px; padding: 10px;
-            z-index: 300; display: none; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            position: fixed;
+            /* Posicionar acima do player */
+            bottom: calc(var(--player-h) + var(--safe-b) + var(--nav-bar-h) + 10px);
+            left: 12px;
+            right: 12px;
+            background: var(--surface);
+            border-radius: 10px;
+            padding: 10px;
+            z-index: 300;
+            display: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }
         .dl-progress.active { display: block; }
-        .dl-bar { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; margin-top: 6px; }
-        .dl-fill { height: 100%; background: linear-gradient(90deg, #1db954, #00e676); width: 0%; transition: width 0.3s; }
+        .dl-bar { 
+            height: 3px; 
+            background: var(--border); 
+            border-radius: 2px; 
+            overflow: hidden; 
+            margin-top: 6px; 
+        }
+        .dl-fill { 
+            height: 100%; 
+            background: linear-gradient(90deg, #1db954, #00e676); 
+            width: 0%; 
+            transition: width 0.3s; 
+        }
 
         /* ===== PLAYER VIDEO ===== */
         .player-container {
-            width: 100%; background: #000; display: none; position: relative;
-            animation: slideUp 0.4s ease; border-bottom: 2px solid var(--red);
+            width: 100%;
+            background: #000;
+            display: none;
+            position: relative;
+            animation: slideUp 0.4s ease;
+            border-bottom: 2px solid var(--red);
         }
         .player-container.active { display: block; }
-        .player-container.rainbow-border { animation: rainbow 3s linear infinite; border-width: 2px; border-style: solid; }
-        .player-wrapper { width: 100%; aspect-ratio: 16/9; position: relative; }
-        .player-wrapper iframe { width: 100%; height: 100%; border: none; }
+        .player-container.rainbow-border { 
+            animation: rainbow 3s linear infinite; 
+            border-width: 2px; 
+            border-style: solid; 
+        }
+        .player-wrapper { 
+            width: 100%; 
+            aspect-ratio: 16/9; 
+            position: relative; 
+        }
+        .player-wrapper iframe { 
+            width: 100%; 
+            height: 100%; 
+            border: none; 
+        }
         .player-close {
-            position: absolute; top: 8px; right: 8px; width: 32px; height: 32px;
-            border-radius: 50%; background: rgba(0,0,0,0.7); border: none;
-            color: #fff; font-size: 16px; cursor: pointer; z-index: 10;
-            display: flex; align-items: center; justify-content: center;
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.7);
+            border: none;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
+        /* Media Queries */
         @media (max-width: 360px) { 
-            .sp-art { width: 42px; height: 42px; } 
-            .sp-btn.play { width: 38px; height: 38px; } 
+            :root { --player-h: 60px; }
+            .sp-art { width: 38px; height: 38px; } 
+            .sp-btn.play { width: 34px; height: 34px; } 
             .video-thumb { width: 40px; height: 40px; }
             .topbar { height: 44px; }
-            .topbar-spacer { height: 44px; }
             .main-content { padding-top: calc(var(--safe-t) + 44px); }
+            .sp-title { font-size: 0.8rem; }
+            .sp-artist { font-size: 0.65rem; }
+            .sp-btn { font-size: 0.8rem; padding: 4px; }
+            .sp-dl { font-size: 0.65rem; padding: 4px 6px; }
         }
+        
         @media (min-width: 768px) { 
-            body { max-width: 550px; margin: 0 auto; box-shadow: 0 0 30px rgba(0,0,0,0.3); }
-            .topbar { max-width: 550px; left: 50%; transform: translateX(-50%); }
+            body { 
+                max-width: 550px; 
+                margin: 0 auto; 
+                box-shadow: 0 0 30px rgba(0,0,0,0.3); 
+            }
+            .topbar { 
+                max-width: 550px; 
+                left: 50%; 
+                transform: translateX(-50%); 
+            }
+            .spotify-bar {
+                max-width: 550px;
+                left: 50%;
+                transform: translateX(-50%);
+            }
         }
+        
         @media (orientation: landscape) and (max-height: 500px) {
-            :root { --player-h: 60px; }
-            .sp-art { width: 38px; height: 38px; }
-            .results-section { max-height: 35vh; overflow-y: auto; }
+            :root { 
+                --player-h: 50px;
+            }
+            .sp-art { width: 32px; height: 32px; }
+            .sp-btn.play { width: 30px; height: 30px; font-size: 0.7rem; }
+            .results-section { 
+                max-height: 35vh; 
+                overflow-y: auto; 
+            }
             .topbar { height: 40px; }
-            .topbar-spacer { height: 40px; }
             .main-content { padding-top: calc(var(--safe-t) + 40px); }
+            .sp-title { font-size: 0.75rem; }
+            .sp-artist { font-size: 0.6rem; }
+            .sp-btn { font-size: 0.7rem; padding: 2px; }
+            .sp-dl { font-size: 0.6rem; padding: 3px 5px; }
+        }
+
+        /* Suporte para dispositivos com botões virtuais */
+        @supports (padding-bottom: env(safe-area-inset-bottom)) {
+            .spotify-bar {
+                bottom: calc(env(safe-area-inset-bottom) + var(--nav-bar-h));
+            }
         }
     </style>
 </head>
@@ -441,7 +628,7 @@
 
     </div>
 
-    <!-- BARRA SPOTIFY -->
+    <!-- BARRA SPOTIFY (PLAYER) - Posicionada acima dos botões do sistema -->
     <div class="spotify-bar" id="spotifyBar">
         <div class="sp-progress" id="progressContainer" onclick="seekTrack(event)">
             <div class="sp-progress-bar" id="progressBar"></div>
@@ -478,31 +665,69 @@
         'use strict';
         const PROXY = 'https://playtube-proxy.codw23.workers.dev';
 
-        // ===== DETECÇÃO DA BARRA DE STATUS =====
-        function detectStatusBar() {
+        // ===== DETECÇÃO DE BOTÕES DO SISTEMA =====
+        function detectSystemBars() {
             const style = getComputedStyle(document.documentElement);
-            const safeTop = parseInt(style.getPropertyValue('env(safe-area-inset-top)')) || 
-                           parseInt(style.getPropertyValue('constant(safe-area-inset-top)')) || 0;
+            const dpr = window.devicePixelRatio || 1;
+            const w = window.innerWidth;
+            const h = window.innerHeight;
             
-            // Em dispositivos iOS com notch, a safe-area-inset-top já inclui a barra de status
-            // Em dispositivos Android, podemos precisar calcular
-            let statusBarHeight = safeTop;
+            // Detectar safe area top (barra de status)
+            let safeTop = parseInt(style.getPropertyValue('env(safe-area-inset-top)')) || 
+                         parseInt(style.getPropertyValue('constant(safe-area-inset-top)')) || 0;
             
-            // Se não detectou safe area, estima baseado no devicePixelRatio
-            if (statusBarHeight === 0) {
-                const dpr = window.devicePixelRatio || 1;
-                const w = window.innerWidth;
-                // Estimativa para dispositivos comuns
-                if (dpr >= 3 && w < 430) {
-                    statusBarHeight = 47; // iPhone com notch
-                } else if (dpr >= 2) {
-                    statusBarHeight = 24; // Android com barra de status
-                } else {
-                    statusBarHeight = 20; // Dispositivos mais antigos
+            // Detectar safe area bottom (barra de navegação/gestos)
+            let safeBottom = parseInt(style.getPropertyValue('env(safe-area-inset-bottom)')) || 
+                            parseInt(style.getPropertyValue('constant(safe-area-inset-bottom)')) || 0;
+            
+            // Detectar barra de navegação (botões voltar, home, recentes)
+            let navBarHeight = 0;
+            
+            // Android: verificar se há barra de navegação virtual
+            const isAndroid = /Android/.test(navigator.userAgent);
+            if (isAndroid) {
+                // Em dispositivos Android com botões virtuais, a diferença entre
+                // window.innerHeight e screen.height pode indicar a presença da barra
+                const screenHeight = screen.height || h;
+                const heightDiff = screenHeight - h;
+                
+                // Se a diferença for significativa e não houver safe-area-inset-bottom
+                if (heightDiff > 50 && safeBottom === 0) {
+                    navBarHeight = 48; // Altura típica da barra de navegação Android
+                }
+                
+                // Se já tem safe-area-inset-bottom, usar esse valor para a navbar
+                if (safeBottom > 0 && safeBottom <= 48) {
+                    navBarHeight = safeBottom;
+                    safeBottom = 0; // Resetar para não duplicar
                 }
             }
             
-            return statusBarHeight;
+            // iOS: safe-area-inset-bottom já inclui a barra de gestos
+            if (!isAndroid && safeBottom > 0) {
+                // Em iPhones com Face ID, a safe area bottom já é a barra de gestos
+                navBarHeight = 0; // A safe area já inclui
+                safeBottom = safeBottom; // Manter
+            }
+            
+            // Fallback para dispositivos conhecidos
+            if (safeTop === 0 && dpr >= 3 && w < 430) {
+                safeTop = 47; // iPhone com notch
+            }
+            
+            if (safeBottom === 0 && navBarHeight === 0) {
+                if (dpr >= 3 && w < 430) {
+                    safeBottom = 34; // iPhone com Face ID
+                } else if (isAndroid && w < 430) {
+                    navBarHeight = 48; // Android com botões virtuais
+                }
+            }
+            
+            return {
+                statusBarHeight: safeTop,
+                safeBottom: safeBottom,
+                navBarHeight: navBarHeight
+            };
         }
 
         // ===== CONFIGURAÇÃO DE ÁUDIO EM BACKGROUND =====
@@ -560,46 +785,104 @@
             const portrait = h > w;
             const mobile = w < 768;
             
-            // Detectar altura da barra de status
-            const statusBarH = detectStatusBar();
-            
-            // Safe areas
-            const style = getComputedStyle(document.documentElement);
-            const safeBottom = parseInt(style.getPropertyValue('env(safe-area-inset-bottom)')) || 
-                              parseInt(style.getPropertyValue('constant(safe-area-inset-bottom)')) || 
-                              (dpr >= 3 && w < 430 ? 34 : 0);
+            // Detectar barras do sistema
+            const systemBars = detectSystemBars();
             
             // Atualizar variáveis CSS
-            document.documentElement.style.setProperty('--safe-t', statusBarH + 'px');
-            document.documentElement.style.setProperty('--safe-b', safeBottom + 'px');
-            document.documentElement.style.setProperty('--status-bar-h', statusBarH + 'px');
+            document.documentElement.style.setProperty('--safe-t', systemBars.statusBarHeight + 'px');
+            document.documentElement.style.setProperty('--safe-b', systemBars.safeBottom + 'px');
+            document.documentElement.style.setProperty('--nav-bar-h', systemBars.navBarHeight + 'px');
+            document.documentElement.style.setProperty('--status-bar-h', systemBars.statusBarHeight + 'px');
             
             // Ajustar padding do body
             document.body.style.paddingTop = '0';
             
             // Altura do player
-            let ph = mobile ? (portrait ? 70 : 55) : 80;
+            let ph;
+            if (mobile) {
+                if (!portrait) {
+                    ph = 48; // Landscape
+                } else if (w < 360) {
+                    ph = 60; // Muito pequeno
+                } else {
+                    ph = 65; // Normal
+                }
+            } else {
+                ph = 70; // Desktop/tablet
+            }
+            
             document.documentElement.style.setProperty('--player-h', ph + 'px');
-            document.body.style.paddingBottom = `calc(${ph}px + ${safeBottom}px + 15px)`;
+            
+            // Padding bottom = player + safe bottom + navbar + espaço extra
+            const totalBottom = ph + systemBars.safeBottom + systemBars.navBarHeight + 10;
+            document.body.style.paddingBottom = totalBottom + 'px';
             
             // Tamanho da fonte
             let fs = w < 320 ? 13 : w < 360 ? 14 : w < 768 ? 15 : 16;
             document.documentElement.style.fontSize = fs + 'px';
             
-            // Ajustar elementos
-            const art = document.getElementById('spArt'), play = document.getElementById('spPlay');
-            if (art && mobile) { const s = portrait ? '44px' : '38px'; art.style.width = s; art.style.height = s; }
-            if (play && mobile) { const s = portrait ? '40px' : '36px'; play.style.width = s; play.style.height = s; }
+            // Ajustar elementos do player
+            const art = document.getElementById('spArt');
+            const play = document.getElementById('spPlay');
             
-            // Ajustar altura da topbar em landscape
-            const topbar = document.getElementById('topbar');
-            if (topbar && mobile && !portrait) {
-                topbar.style.height = '40px';
-            } else if (topbar) {
-                topbar.style.height = w < 360 ? '44px' : '50px';
+            if (art && mobile) {
+                if (!portrait) {
+                    art.style.width = '32px';
+                    art.style.height = '32px';
+                } else if (w < 360) {
+                    art.style.width = '38px';
+                    art.style.height = '38px';
+                } else {
+                    art.style.width = '44px';
+                    art.style.height = '44px';
+                }
             }
             
-            console.log('📐 Tela ajustada - Status bar:', statusBarH + 'px', 'Safe bottom:', safeBottom + 'px');
+            if (play && mobile) {
+                if (!portrait) {
+                    play.style.width = '30px';
+                    play.style.height = '30px';
+                } else if (w < 360) {
+                    play.style.width = '34px';
+                    play.style.height = '34px';
+                } else {
+                    play.style.width = '40px';
+                    play.style.height = '40px';
+                }
+            }
+            
+            // Ajustar altura da topbar
+            const topbar = document.getElementById('topbar');
+            if (topbar) {
+                if (mobile && !portrait) {
+                    topbar.style.height = '40px';
+                } else if (w < 360) {
+                    topbar.style.height = '44px';
+                } else {
+                    topbar.style.height = '50px';
+                }
+            }
+            
+            // Atualizar posição do player
+            updatePlayerPosition();
+            
+            console.log('📐 Tela ajustada:', {
+                statusBar: systemBars.statusBarHeight + 'px',
+                safeBottom: systemBars.safeBottom + 'px',
+                navBar: systemBars.navBarHeight + 'px',
+                playerHeight: ph + 'px',
+                totalBottom: totalBottom + 'px'
+            });
+        }
+        
+        function updatePlayerPosition() {
+            const spotifyBar = document.getElementById('spotifyBar');
+            if (spotifyBar) {
+                const style = getComputedStyle(document.documentElement);
+                const safeBottom = parseInt(style.getPropertyValue('--safe-b')) || 0;
+                const navBarH = parseInt(style.getPropertyValue('--nav-bar-h')) || 0;
+                spotifyBar.style.bottom = (safeBottom + navBarH) + 'px';
+            }
         }
 
         // ===== SISTEMA DE PAGINAÇÃO =====
@@ -694,11 +977,6 @@
                 document.body.setAttribute('data-theme', this.current);
                 const themeColor = this.current === 'light' ? '#fff' : this.current === 'amoled' ? '#000' : '#0f0f0f';
                 document.querySelector('meta[name="theme-color"]').setAttribute('content', themeColor);
-                // Atualizar status bar style
-                const statusBarMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
-                if (statusBarMeta) {
-                    statusBarMeta.setAttribute('content', this.current === 'light' ? 'black-translucent' : 'black-translucent');
-                }
                 localStorage.setItem('theme', this.current);
             },
             cycle() {
@@ -1259,6 +1537,7 @@
             } else if (!document.hidden) {
                 console.log('📱 App visível');
                 updateUI(window.playing);
+                updatePlayerPosition();
             }
         });
         
@@ -1271,6 +1550,7 @@
         
         document.addEventListener('resume', () => {
             console.log('✅ Página descongelada');
+            updatePlayerPosition();
             if (window.playing && yt) {
                 try {
                     const state = yt.getPlayerState();
@@ -1288,22 +1568,30 @@
         function init() {
             setupMS(); 
             autoAdjustScreen();
+            updatePlayerPosition();
             AudioBackground.initAudioContext();
             
             setTimeout(() => {
                 initYT();
             }, 500);
             
-            console.log('✅ Play Tube Music - Topbar abaixo da barra de status');
-            console.log('📱 Status bar:', detectStatusBar() + 'px');
+            console.log('✅ Play Tube Music - Player acima dos botões do sistema');
         }
         
         // Re-ajustar em resize/orientação
         window.addEventListener('resize', () => { 
             clearTimeout(window._rt); 
-            window._rt = setTimeout(autoAdjustScreen, 250); 
+            window._rt = setTimeout(() => {
+                autoAdjustScreen();
+                updatePlayerPosition();
+            }, 250); 
         });
-        window.addEventListener('orientationchange', () => setTimeout(autoAdjustScreen, 300));
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                autoAdjustScreen();
+                updatePlayerPosition();
+            }, 300);
+        });
         window.addEventListener('load', init);
 
         // Limpar recursos ao fechar
@@ -1318,6 +1606,7 @@
         // EXPORT GLOBAIS
         window.T = T;
         window.autoAdjustScreen = autoAdjustScreen;
+        window.updatePlayerPosition = updatePlayerPosition;
         window.changePage = changePage;
         window.jumpToPage = jumpToPage;
         window.togglePlay = togglePlay; 
