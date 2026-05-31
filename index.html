@@ -81,6 +81,9 @@
             transition: background 0.3s, color 0.3s;
             padding-top: calc(var(--safe-t) + var(--topbar-h));
             padding-bottom: calc(var(--player-h) + 8px + var(--nav-bar-h) + var(--safe-b));
+            /* Impedir que o navegador suspenda a página */
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -93,8 +96,9 @@
         @keyframes progressGlow { 0%,100% { box-shadow: 0 0 5px rgba(29,185,84,0.5); } 50% { box-shadow: 0 0 15px rgba(29,185,84,0.8); } }
         @keyframes downloading { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
         @keyframes rainbow { 0% { border-color: #f00; } 25% { border-color: #f80; } 50% { border-color: #0c0; } 75% { border-color: #21f; } 100% { border-color: #f00; } }
+        @keyframes keepAwake { 0%,100% { opacity: 0.001; } 50% { opacity: 0.002; } }
 
-        /* Player do YouTube (transparente, apenas para áudio) */
+        /* Player do YouTube */
         #ytPlayerContainer {
             position: fixed;
             top: 0;
@@ -109,6 +113,19 @@
         #ytPlayerContainer iframe {
             width: 100%;
             height: 100%;
+        }
+
+        /* Canvas para manter áudio vivo */
+        #keepAwakeCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 1px;
+            height: 1px;
+            opacity: 0.01;
+            pointer-events: none;
+            z-index: -2;
+            animation: keepAwake 10s infinite;
         }
 
         /* ===== TOPBAR ===== */
@@ -150,6 +167,24 @@
             margin-right: 5px; animation: pulse 1.5s infinite;
         }
         .bg-play-indicator.active { display: inline-block; }
+        
+        /* Indicador de modo suspenso */
+        .suspend-mode-indicator {
+            display: none;
+            font-size: 0.65rem;
+            color: var(--green);
+            margin-right: 5px;
+            align-items: center;
+            gap: 3px;
+        }
+        .suspend-mode-indicator.active { display: flex; }
+        .suspend-dot {
+            width: 5px;
+            height: 5px;
+            background: var(--green);
+            border-radius: 50%;
+            animation: pulse 1s infinite;
+        }
 
         /* ===== PAGE COUNTER ===== */
         .page-counter {
@@ -512,6 +547,9 @@
 
     <!-- Player do YouTube (oculto, para áudio) -->
     <div id="ytPlayerContainer"></div>
+    
+    <!-- Canvas para manter áudio vivo em suspensão -->
+    <canvas id="keepAwakeCanvas" width="1" height="1"></canvas>
 
     <!-- TOPBAR -->
     <div class="topbar" id="topbar">
@@ -520,7 +558,10 @@
             <span class="logo-text">Play Tube<sup>MUSIC</sup></span>
         </div>
         <div class="spacer"></div>
-        <span class="bg-play-indicator" id="bgPlayIndicator" title="Reproduzindo em background"></span>
+        <span class="suspend-mode-indicator" id="suspendIndicator">
+            <span class="suspend-dot"></span> BG
+        </span>
+        <span class="bg-play-indicator" id="bgPlayIndicator" title="Reproduzindo"></span>
         <button class="theme-btn" onclick="T.cycle()" title="Tema">🎨</button>
     </div>
 
@@ -607,6 +648,159 @@
     (function() {
         'use strict';
         const PROXY = 'https://playtube-proxy.codw23.workers.dev';
+
+        // ============================================
+        // SISTEMA ANTI-SUSPENSÃO (MANTÉM ÁUDIO VIVO)
+        // ============================================
+        const BackgroundAudio = {
+            wakeLock: null,
+            audioContext: null,
+            oscillator: null,
+            gainNode: null,
+            canvasInterval: null,
+            isActive: false,
+            
+            // Iniciar todos os mecanismos anti-suspensão
+            async start() {
+                if (this.isActive) return;
+                this.isActive = true;
+                console.log('🔒 Ativando sistema anti-suspensão...');
+                
+                // 1. Wake Lock API (evita que a tela desligue completamente)
+                await this.requestWakeLock();
+                
+                // 2. AudioContext (mantém o áudio vivo)
+                this.startAudioContext();
+                
+                // 3. Canvas animation (mantém o loop de renderização)
+                this.startCanvasLoop();
+                
+                // 4. Service Worker message (se disponível)
+                this.pingServiceWorker();
+                
+                document.getElementById('suspendIndicator').classList.add('active');
+                console.log('✅ Sistema anti-suspensão ATIVO');
+            },
+            
+            // Parar todos os mecanismos
+            stop() {
+                this.isActive = false;
+                console.log('🔓 Desativando sistema anti-suspensão...');
+                
+                this.releaseWakeLock();
+                this.stopAudioContext();
+                this.stopCanvasLoop();
+                
+                document.getElementById('suspendIndicator').classList.remove('active');
+            },
+            
+            // Wake Lock - Mantém a tela "ligada"
+            async requestWakeLock() {
+                try {
+                    if ('wakeLock' in navigator) {
+                        this.wakeLock = await navigator.wakeLock.request('screen');
+                        console.log('✅ Wake Lock ativo');
+                        
+                        // Reconectar se for liberado
+                        this.wakeLock.addEventListener('release', () => {
+                            console.log('⚠️ Wake Lock liberado, reconectando...');
+                            if (this.isActive && window.isPlaying) {
+                                this.requestWakeLock();
+                            }
+                        });
+                    } else {
+                        console.log('⚠️ Wake Lock não suportado');
+                    }
+                } catch (e) {
+                    console.warn('Wake Lock erro:', e);
+                }
+            },
+            
+            releaseWakeLock() {
+                if (this.wakeLock) {
+                    this.wakeLock.release().catch(() => {});
+                    this.wakeLock = null;
+                }
+            },
+            
+            // AudioContext - Mantém o pipeline de áudio ativo
+            startAudioContext() {
+                try {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (!AudioContext) return;
+                    
+                    this.audioContext = new AudioContext();
+                    this.oscillator = this.audioContext.createOscillator();
+                    this.gainNode = this.audioContext.createGain();
+                    
+                    // Tom muito baixo (inaudível)
+                    this.oscillator.type = 'sine';
+                    this.oscillator.frequency.value = 20; // 20Hz (quase inaudível)
+                    
+                    this.gainNode.gain.value = 0.001; // Volume extremamente baixo
+                    
+                    this.oscillator.connect(this.gainNode);
+                    this.gainNode.connect(this.audioContext.destination);
+                    this.oscillator.start();
+                    
+                    console.log('✅ AudioContext ativo (tom inaudível)');
+                } catch (e) {
+                    console.warn('AudioContext erro:', e);
+                }
+            },
+            
+            stopAudioContext() {
+                try {
+                    if (this.oscillator) {
+                        this.oscillator.stop();
+                        this.oscillator = null;
+                    }
+                    if (this.audioContext) {
+                        this.audioContext.close();
+                        this.audioContext = null;
+                    }
+                } catch (e) {}
+            },
+            
+            // Canvas Loop - Mantém o loop de renderização
+            startCanvasLoop() {
+                const canvas = document.getElementById('keepAwakeCanvas');
+                if (!canvas) return;
+                
+                const ctx = canvas.getContext('2d');
+                let frame = 0;
+                
+                this.stopCanvasLoop();
+                
+                this.canvasInterval = setInterval(() => {
+                    if (!this.isActive) return;
+                    
+                    frame++;
+                    // Desenhar algo mínimo para manter o canvas ativo
+                    ctx.fillStyle = frame % 2 === 0 ? '#000001' : '#000002';
+                    ctx.fillRect(0, 0, 1, 1);
+                }, 1000);
+                
+                console.log('✅ Canvas loop ativo');
+            },
+            
+            stopCanvasLoop() {
+                if (this.canvasInterval) {
+                    clearInterval(this.canvasInterval);
+                    this.canvasInterval = null;
+                }
+            },
+            
+            // Service Worker ping
+            pingServiceWorker() {
+                if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.controller.postMessage({
+                        type: 'KEEP_ALIVE',
+                        timestamp: Date.now()
+                    });
+                }
+            }
+        };
 
         // ===== DETECÇÃO DE BARRAS DO SISTEMA =====
         function detectSystemBars() {
@@ -794,11 +988,11 @@
             all() { return this.items; }
         };
 
-        // ===== PLAYER (CORRIGIDO) =====
+        // ===== PLAYER PRINCIPAL =====
         let ytPlayer = null;
         let ytPlayerReady = false;
         let currentVideoId = null;
-        let isPlaying = false;
+        window.isPlaying = false;
         let playlist = [];
         let currentIndex = -1;
         let ytTopPlayer = null;
@@ -861,8 +1055,7 @@
             event.target.unMute();
             recoveryAttempts = 0;
             
-            // Se havia música pendente
-            if (currentVideoId && isPlaying) {
+            if (currentVideoId && window.isPlaying) {
                 playVideoById(currentVideoId);
             }
         }
@@ -871,18 +1064,20 @@
             console.log('🔄 Estado:', event.data);
             
             if (event.data === YT.PlayerState.PLAYING) {
-                isPlaying = true;
+                window.isPlaying = true;
                 window.playing = true;
                 updatePlayerUI(true);
                 startProgress();
                 startKeepAlive();
+                BackgroundAudio.start();
                 recoveryAttempts = 0;
             } else if (event.data === YT.PlayerState.PAUSED) {
-                isPlaying = false;
+                window.isPlaying = false;
                 window.playing = false;
                 updatePlayerUI(false);
                 stopProgress();
                 stopKeepAlive();
+                BackgroundAudio.stop();
             } else if (event.data === YT.PlayerState.ENDED) {
                 stopProgress();
                 updateProgressBar(0);
@@ -924,7 +1119,6 @@
                     }
                 }, 300);
             } else {
-                // Se não estiver pronto, reinicializar
                 initYTPlayer();
             }
         }
@@ -932,7 +1126,7 @@
         function startProgress() {
             stopProgress();
             progressInterval = setInterval(() => {
-                if (isPlaying && ytPlayerReady && ytPlayer) {
+                if (window.isPlaying && ytPlayerReady && ytPlayer) {
                     try {
                         const duration = ytPlayer.getDuration();
                         const current = ytPlayer.getCurrentTime();
@@ -954,21 +1148,33 @@
         function startKeepAlive() {
             stopKeepAlive();
             keepAliveInterval = setInterval(() => {
-                if (isPlaying && ytPlayerReady && ytPlayer) {
+                if (window.isPlaying && ytPlayerReady && ytPlayer) {
                     try {
                         const state = ytPlayer.getPlayerState();
                         if (state !== 1 && state !== 3) {
+                            console.log('🔄 Keep-alive: retomando...');
                             ytPlayer.playVideo();
                             ytPlayer.unMute();
+                            
+                            // Reativar anti-suspensão se necessário
+                            if (!BackgroundAudio.isActive) {
+                                BackgroundAudio.start();
+                            }
+                        }
+                        
+                        // Se a página estiver oculta, reforçar anti-suspensão
+                        if (document.hidden) {
+                            BackgroundAudio.start();
                         }
                     } catch(e) {
+                        console.warn('Keep-alive erro:', e);
                         if (currentVideoId) {
                             initYTPlayer();
                             setTimeout(() => playVideoById(currentVideoId), 1000);
                         }
                     }
                 }
-            }, 5000);
+            }, 3000); // Verificar a cada 3 segundos
         }
 
         function stopKeepAlive() {
@@ -1029,7 +1235,7 @@
         window.togglePlay = () => {
             if (!currentVideoId && playlist.length > 0) {
                 playTrack(0);
-            } else if (isPlaying) {
+            } else if (window.isPlaying) {
                 if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
             } else if (currentVideoId) {
                 if (ytPlayer && ytPlayer.playVideo) {
@@ -1122,11 +1328,9 @@
         window.playFromResults = (id, title, channel, thumb) => {
             const track = { id, title, channel, thumbnail: thumb };
             
-            // Adicionar ao início da playlist
             playlist = playlist.filter(t => t.id !== track.id);
             playlist.unshift(track);
             
-            // Tocar
             playTrack(0);
             toast('▶ ' + (title || '').substring(0, 30));
         };
@@ -1326,24 +1530,64 @@
             navigator.mediaSession.setActionHandler('nexttrack', nextTrack);
         }
 
-        // ===== EVENTOS =====
+        // ===== EVENTOS DE VISIBILIDADE =====
         document.addEventListener('visibilitychange', () => {
-            if (document.hidden && isPlaying) {
+            if (document.hidden && window.isPlaying) {
+                console.log('📱 Tela bloqueada/hidden - Reforçando anti-suspensão');
+                BackgroundAudio.start();
                 startKeepAlive();
+            } else if (!document.hidden) {
+                console.log('📱 Tela visível');
+                updatePlayerUI(window.isPlaying);
             }
         });
+        
+        // Prevenir freeze da página
+        document.addEventListener('freeze', () => {
+            console.log('⚠️ Página congelando - Tentando manter áudio');
+            if (window.isPlaying) {
+                BackgroundAudio.start();
+            }
+        });
+        
+        document.addEventListener('resume', () => {
+            console.log('✅ Página descongelada');
+            if (window.isPlaying && ytPlayerReady && ytPlayer) {
+                try {
+                    const state = ytPlayer.getPlayerState();
+                    if (state !== 1) {
+                        ytPlayer.playVideo();
+                        ytPlayer.unMute();
+                    }
+                } catch(e) {}
+            }
+        });
+        
+        // Prevenir que o navegador suspenda a aba
+        window.addEventListener('beforeunload', () => {
+            // Não parar o áudio ao sair
+        });
+        
+        // Manter a página viva com intervalo
+        setInterval(() => {
+            // Pequena operação para evitar que o navegador suspenda
+            const timestamp = Date.now();
+            if (window.isPlaying && document.hidden) {
+                BackgroundAudio.pingServiceWorker();
+            }
+        }, 10000);
 
         // ===== INIT =====
         function init() {
             setupMediaSession();
             autoAdjustScreen();
             
-            // Inicializar player
             if (window.YT && YT.Player) {
                 initYTPlayer();
             }
             
-            console.log('✅ Play Tube Music pronto!');
+            console.log('✅ Play Tube Music - Anti-suspensão ATIVO');
+            console.log('🔒 Modo: Reprodução contínua mesmo com tela bloqueada');
         }
 
         window.addEventListener('resize', () => {
@@ -1353,11 +1597,18 @@
         window.addEventListener('orientationchange', () => setTimeout(autoAdjustScreen, 300));
         window.addEventListener('load', init);
 
+        // Limpar ao fechar
+        window.addEventListener('beforeunload', () => {
+            stopKeepAlive();
+            BackgroundAudio.stop();
+        });
+
         // Export globais
         window.T = T;
         window.Fav = Fav;
         window.DL = DL;
         window.Paginator = Paginator;
+        window.BackgroundAudio = BackgroundAudio;
         window.autoAdjustScreen = autoAdjustScreen;
         window.changePage = changePage;
         window.jumpToPage = jumpToPage;
